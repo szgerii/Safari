@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>6efba8a9-a407-4029-bdd0-651d22a87386</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Engine</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\Collider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
+    <Compile Include="..\Engine\source\debug\PerformanceCalculator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\DisplayManager.cs" />
+    <Compile Include="..\Engine\source\debug\DebugMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)source\debug\DebugFeature.cs" />
+    <Compile Include="..\Engine\Source\Collision\CollisionTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\ComponentHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Component.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\AnimatedSpriteCmp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\CollisionCmp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\DirectionalAnimationCmp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\SpriteCmp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Game.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\GameObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IDrawable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IUpdatable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Input\Actions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Input\GamePad.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Input\InputManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Input\Keyboard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Input\Mouse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Scenes\SceneManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Objects\Camera.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Scenes\Scene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Source\Debug\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Source\Components\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Source\Objects\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Source\Scenes\" />
+  </ItemGroup>
+</Project>
