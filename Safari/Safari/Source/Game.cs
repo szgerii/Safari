@@ -23,14 +23,19 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		base.Initialize();
 
+		DisplayManager.SetVSync(true, true);
+		//DisplayManager.SetTargetFPS(90, true);
+
 		InputSetup();
 
 		GameScene scn = new();
 		SceneManager.Load(scn);
 
 		// GeonBit
-		UserInterface.Initialize(Content, BuiltinThemes.hd);
+
+		UserInterface.Initialize(Content, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
+		UserInterface.Active.GlobalScale = 1.25f;
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			debugInfoParagraphs[pos] = new Paragraph();
 		}
@@ -102,6 +107,8 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("avg", $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms (out of {tickTime.Capacity})");
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 
+			DebugInfoManager.AddInfo("FPS (Update)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+		
 			if (SceneManager.Active is GameScene) {
 				PrintModelDebugInfos();
 			}
@@ -109,6 +116,7 @@ public class Game : Engine.Game {
 	}
 
 	protected override void Draw(GameTime gameTime) {
+		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
 		DebugInfoManager.PreDraw();
 
 		DateTime start = DateTime.Now;
@@ -124,6 +132,9 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("down", new InputAction(keys: [Keys.S, Keys.Down]));
 		InputManager.Actions.Register("left", new InputAction(keys: [Keys.A, Keys.Left]));
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
+
+		InputManager.Actions.Register("fast-pan", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
+		InputManager.Actions.Register("slow-pan", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
 		// debug
 		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
