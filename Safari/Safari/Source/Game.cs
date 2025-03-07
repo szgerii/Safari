@@ -9,12 +9,15 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
+using System.Collections.Generic;
+using Safari.Debug;
 
 namespace Safari;
 
 public class Game : Engine.Game {
-	private bool displayStats = false;
-	private Paragraph statsLine = null;
+	public bool DisplayDebugInfos { get; private set; } = false;
+
+	private Dictionary<DebugInfoPosition, Paragraph> debugInfoParagraphs = new();
 
 	protected override void Initialize() {
 		base.Initialize();
@@ -27,7 +30,9 @@ public class Game : Engine.Game {
 		// GeonBit
 		UserInterface.Initialize(Content, BuiltinThemes.hd);
 		UserInterface.Active.ShowCursor = false;
-		statsLine = new Paragraph();
+		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
+			debugInfoParagraphs[pos] = new Paragraph();
+		}
 
 		// debug stuff
 
@@ -43,13 +48,13 @@ public class Game : Engine.Game {
 			DisplayManager.ApplyChanges();
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-stats", () => {
-			displayStats = !displayStats;
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-debug-infos", () => {
+			DisplayDebugInfos = !DisplayDebugInfos;
 
-			if (displayStats) {
-				UserInterface.Active.AddEntity(statsLine);
+			if (DisplayDebugInfos) {
+				DebugInfoManager.ShowInfos();
 			} else {
-				UserInterface.Active.RemoveEntity(statsLine);
+				DebugInfoManager.HideInfos();
 			}
 		}));
 
@@ -62,20 +67,29 @@ public class Game : Engine.Game {
 
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
 	protected override void Update(GameTime gameTime) {
+		DebugInfoManager.PreUpdate();
+
 		DateTime start = DateTime.Now;
+
 		base.Update(gameTime);
 		UserInterface.Active.Update(gameTime);
+
 		tickTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 		
-		if (displayStats) {
-			statsLine.Text = $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms\n{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms";
+		if (DisplayDebugInfos) {
+			DebugInfoManager.AddInfo("avg", $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms (out of {tickTime.Capacity})");
+			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 		}
 	}
 
 	protected override void Draw(GameTime gameTime) {
+		DebugInfoManager.PreDraw();
+
 		DateTime start = DateTime.Now;
+
 		base.Draw(gameTime);
 		UserInterface.Active.Draw(SpriteBatch);
+
 		drawTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 	}
 
@@ -89,6 +103,6 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));		
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
-		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-stats"));
+		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 	}
 }
