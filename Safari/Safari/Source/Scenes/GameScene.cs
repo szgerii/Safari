@@ -1,4 +1,5 @@
 ﻿using Engine.Scenes;
+using Microsoft.Xna.Framework;
 using Safari.Model;
 
 namespace Safari.Scenes;
@@ -21,5 +22,12 @@ public class GameScene : Scene {
 
 		model = new GameModel("test park", 6000, GameDifficulty.Normal);
 		base.Load();
+	}
+
+	public override void Update(GameTime gameTime) {
+		for (int i = 0; i < model.SpeedMultiplier; i++) {
+			model.Advance(gameTime);
+		}
+		base.Update(gameTime);
 	}
 }
