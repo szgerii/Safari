@@ -111,8 +111,10 @@ public class Game : Engine.Game {
 					case GameSpeed.Paused: speedName = "Paused"; break;
 				}
 				DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
-				DebugInfoManager.AddInfo("Day/Night cycle:", model.TimeOfDay < 0.5 ? "Day" : "Night", DebugInfoPosition.BottomLeft);
-				DebugInfoManager.AddInfo("Irl time passed: ", TimeSpan.FromSeconds(model.CurrentTime).ToString(), DebugInfoPosition.BottomLeft);
+				DebugInfoManager.AddInfo("Day/Night cycle", model.TimeOfDay < 0.5 ? "Day" : "Night", DebugInfoPosition.BottomLeft);
+				DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(), DebugInfoPosition.BottomLeft);
+				DebugInfoManager.AddInfo("In-game days passed", model.IngameDays.ToString(), DebugInfoPosition.BottomLeft);
+				DebugInfoManager.AddInfo("In-game date", model.IngameDate.ToString(), DebugInfoPosition.BottomLeft);
 			}
 		}
 	}

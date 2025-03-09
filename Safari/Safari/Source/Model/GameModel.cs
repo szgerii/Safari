@@ -38,6 +38,7 @@ public class GameModel {
 	private GameSpeed gameSpeed;
 	private GameSpeed prevSpeed;
 	private double currentTime;
+	private DateTime startDate;
 
 	public string ParkName => parkName;
 	public int Funds {
@@ -75,7 +76,6 @@ public class GameModel {
 	}
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
-	/// Use in victory timer, animal behaviour and day/night calculations
 	/// </summary>
 	public double CurrentTime => currentTime;
 	/// <summary>
@@ -90,10 +90,20 @@ public class GameModel {
 		}
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty) {
+	/// <summary>
+	/// Time passed (in in-game days) since the start of the game
+	/// </summary>
+	public double IngameDays => currentTime / dayLength;
+	/// <summary>
+	/// The current in-game date
+	/// </summary>
+	public DateTime IngameDate => startDate.AddDays(currentTime / dayLength);
+
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		this.parkName = parkName;
 		this.funds = funds;
 		this.difficulty = difficulty;
+		this.startDate = startDate;
 		this.tourPrice = 250;
 		this.gameSpeed = GameSpeed.Slow;
 		this.currentTime = 0;

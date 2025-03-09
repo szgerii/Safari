@@ -1,6 +1,7 @@
 ﻿using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Safari.Model;
+using System;
 
 namespace Safari.Scenes;
 
@@ -20,7 +21,10 @@ public class GameScene : Scene {
 		// CollisionManager.Init(numOfCellsInRow, numOfCellsInCol, cellSize);
 		// PostUpdate += CollisionManager.PostUpdate;
 
-		model = new GameModel("test park", 6000, GameDifficulty.Normal);
+		// The start of the game is always <date of creation> 6 am
+		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+		startDate = startDate.AddHours(6);
+		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
 		base.Load();
 	}
 
