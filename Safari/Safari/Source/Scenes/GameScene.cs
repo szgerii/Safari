@@ -1,9 +1,13 @@
 ﻿using Engine.Scenes;
+using Safari.Model;
 
 namespace Safari.Scenes;
 
 public class GameScene : Scene {
+	private GameModel model;
 	public static GameScene Active => SceneManager.Active as GameScene;
+	public GameModel Model => model;
+
 
 	public override void Unload() {
 		// PostUpdate -= CollisionManager.PostUpdate;
@@ -15,6 +19,7 @@ public class GameScene : Scene {
 		// CollisionManager.Init(numOfCellsInRow, numOfCellsInCol, cellSize);
 		// PostUpdate += CollisionManager.PostUpdate;
 
+		model = new GameModel("test park", 6000, GameDifficulty.Normal);
 		base.Load();
 	}
 }
