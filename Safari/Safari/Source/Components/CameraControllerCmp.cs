@@ -42,6 +42,10 @@ public class CameraControllerCmp : Component, IUpdatable {
 		Camera.Zoom += GetInputZoom(gameTime);
 		Camera.Zoom = Math.Clamp(Camera.Zoom, MinZoom, MaxZoom);
 
+		if (InputManager.Actions.JustPressed("reset-zoom")) {
+			Camera.Zoom = 1f;
+		}
+
 		// clamp pos
 		if (Bounds != null) {
 			Rectangle bounds = Bounds.Value;

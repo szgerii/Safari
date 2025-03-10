@@ -91,6 +91,12 @@ public class GameModel {
 	}
 
 	/// <summary>
+	/// Indicates whether it is currently day time in-game
+	/// (TimeOfDay < 0.5)
+	/// </summary>
+	public bool IsDaytime => TimeOfDay < 0.5f;
+
+	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
 	/// </summary>
 	public double IngameDays => currentTime / dayLength;

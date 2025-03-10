@@ -139,8 +139,8 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
 
 		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.NumPad0, Keys.D0]));
-		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.L]));
-		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.K]));
+		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.O]));
+		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.I]));
 
 		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
@@ -165,7 +165,7 @@ public class Game : Engine.Game {
 			case GameSpeed.Paused: speedName = "Paused"; break;
 		}
 		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Day/Night cycle", model.TimeOfDay < 0.5 ? "Day" : "Night", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Day/Night cycle", model.IsDaytime ? "Day" : "Night", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
