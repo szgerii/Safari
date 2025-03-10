@@ -7,15 +7,15 @@ using System;
 
 namespace Safari.Components;
 
-// TODO: separate offset
 public class CameraControllerCmp : Component, IUpdatable {
-	public float PanSpeed { get; set; } = 100f;
-	public float FastPanModifier { get; set; } = 1.8f;
-	public float SlowPanModifier { get; set; } = 0.5f;
+	public float ScrollSpeed { get; set; } = 100f;
 
-	public float ZoomSpeed { get; set; } = 0.1f;
-	public float MinZoom { get; set; } = 0.6f;
-	public float MaxZoom { get; set; } = 1.75f;
+	public float ZoomSpeed { get; set; } = 0.05f;
+	public float MinZoom { get; set; } = 0.5f;
+	public float MaxZoom { get; set; } = 2f;
+
+	public float FastModifier { get; set; } = 1.8f;
+	public float SlowModifier { get; set; } = 0.5f;
 
 	public Rectangle? Bounds { get; set; } = null;
 
@@ -32,20 +32,26 @@ public class CameraControllerCmp : Component, IUpdatable {
 	public void Update(GameTime gameTime) {
 		Vector2 prevPos = Owner.Position;
 
+		// pos
 		Vector2 posDelta = GetInputPan(gameTime);
 		Owner.Position += posDelta;
 		Owner.Position = Utils.Round(Owner.Position).ToVector2();
 
-		float zoomDelta = GetInputZoom(gameTime);
-		Camera.Zoom += zoomDelta;
+		// zoom
+		float prevZoom = Camera.Zoom;
+		Camera.Zoom += GetInputZoom(gameTime);
 		Camera.Zoom = Math.Clamp(Camera.Zoom, MinZoom, MaxZoom);
 
+		// clamp pos
 		if (Bounds != null) {
-			Rectangle realBounds = Bounds.Value;
-			realBounds.Offset(Camera.ScreenWidth * 0.5f, Camera.ScreenHeight * 0.5f);
+			Rectangle bounds = Bounds.Value;
 
-			//realBounds.Location = (realBounds.Location.ToVector2() * Camera.Zoom).ToPoint();
-			//realBounds.Size -= (Camera.Zoom * Bounds.Value.Size.ToVector2()).ToPoint();
+			float camScale = 1f / Camera.Zoom;
+			int realWidth = Utils.Round(bounds.Width - Camera.ScreenWidth * camScale);
+			int realHeight = Utils.Round(bounds.Height - Camera.ScreenHeight * camScale);
+
+			Point realSize = new Point(realWidth, realHeight);
+			Rectangle realBounds = new Rectangle(bounds.Location, realSize);
 
 			Owner.Position = realBounds.Clamp(Owner.Position);
 		}
@@ -86,13 +92,13 @@ public class CameraControllerCmp : Component, IUpdatable {
 			delta.Y = Math.Sign(delta.Y) * 2;
 		}
 
-		delta *= PanSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+		delta *= ScrollSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-		if (InputManager.Actions.IsDown("fast-pan")) {
-			delta *= FastPanModifier;
+		if (InputManager.Actions.IsDown("fast-mod")) {
+			delta *= FastModifier;
 		}
-		if (InputManager.Actions.IsDown("slow-pan")) {
-			delta *= SlowPanModifier;
+		if (InputManager.Actions.IsDown("slow-mod")) {
+			delta *= SlowModifier;
 		}
 
 		return delta;
@@ -104,12 +110,25 @@ public class CameraControllerCmp : Component, IUpdatable {
 	/// <param name="gameTime">The current game time</param>
 	/// <returns>The calculated zoom delta</returns>
 	private float GetInputZoom(GameTime gameTime) {
-		if (!InputManager.Mouse.ScrollChanged) {
-			return 0f;
+		float scaleDelta = InputManager.Mouse.ScrollMovement;
+
+		if (scaleDelta == 0f) {
+			if (InputManager.Actions.IsDown("increase-zoom")) {
+				scaleDelta += 10f;
+			}
+			if (InputManager.Actions.IsDown("decrease-zoom")) {
+				scaleDelta -= 10f;
+			}
 		}
 
-		float scaleDelta = InputManager.Mouse.ScrollMovement;
 		scaleDelta *= ZoomSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+		if (InputManager.Actions.IsDown("fast-mod")) {
+			scaleDelta *= FastModifier;
+		}
+		if (InputManager.Actions.IsDown("slow-mod")) {
+			scaleDelta *= SlowModifier;
+		}
 
 		return scaleDelta;
 	}

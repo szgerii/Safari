@@ -171,4 +171,13 @@ public static class Utils {
 			return $"({vec.X:0}, {vec.Y:0})" + (includeLength ? $": {vec.Length():0}" : "");
 		}
 	}
+
+	/// <summary>
+	/// Formats a Rectangle for displaying on screen
+	/// </summary>
+	/// <param name="rect">The rectangle to format</param>
+	/// <returns>The formatted text</returns>
+	public static string Format(this Rectangle rect) {
+		return $"({rect.X}, {rect.Y}) - ({rect.X + rect.Width}, {rect.Y + rect.Height}): {rect.Size.X}, {rect.Size.Y}";
+	}
 }

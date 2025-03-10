@@ -23,6 +23,7 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		base.Initialize();
 
+		//DisplayManager.SetTargetFPS(60, false);
 		DisplayManager.SetVSync(true, true);
 
 		InputSetup();
@@ -137,8 +138,12 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("left", new InputAction(keys: [Keys.A, Keys.Left]));
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
 
-		InputManager.Actions.Register("fast-pan", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
-		InputManager.Actions.Register("slow-pan", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
+		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.NumPad0, Keys.D0]));
+		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.L]));
+		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.K]));
+
+		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
+		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
 		// debug
 		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));

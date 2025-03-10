@@ -1,6 +1,4 @@
-using System;
 using Engine;
-using Engine.Components;
 using Engine.Objects;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
@@ -8,8 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Model;
 using Safari.Objects;
 using Safari.Components;
-using Engine.Input;
-using Safari.Debug;
+using System;
 
 namespace Safari.Scenes;
 
@@ -38,8 +35,8 @@ public class GameScene : Scene {
 		// test scene
 		Texture2D brushTex = Game.ContentManager.Load<Texture2D>("assets/sprites/bush");
 
-		int hCount = (Game.RenderTarget.Width / 32) * 2;
-		int vCount = (Game.RenderTarget.Height / 32) * 2;
+		int hCount = (Game.RenderTarget.Width * 2 / 32);
+		int vCount = (Game.RenderTarget.Height * 2 / 32);
 		for (int i = 0; i < hCount; i++) {
 			for (int j = 0; j < vCount; j++) {
 				int x = i * 32;
@@ -60,8 +57,8 @@ public class GameScene : Scene {
 			new Rectangle(
 				0,
 				0,
-				hCount * 32 - Game.RenderTarget.Width,
-				vCount * 32 - Game.RenderTarget.Height
+				hCount * 32,
+				vCount * 32
 			)
 		);
 
@@ -76,7 +73,6 @@ public class GameScene : Scene {
 	}
 
 	private void CreateCamera(Rectangle bounds) {
-		// TODO: delete test code
 		Camera.Active = new Camera();
 
 		CameraControllerCmp controllerCmp = new(bounds);
