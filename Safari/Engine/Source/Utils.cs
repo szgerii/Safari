@@ -164,7 +164,11 @@ public static class Utils {
 	/// <param name="vec">The vector to format</param>
 	/// <param name="includeLength">Include length of the vector</param>
 	/// <returns>The formatted text</returns>
-	public static string Format(this Vector2 vec, bool includeLength = true) {
-		return $"({vec.X:0.00}, {vec.Y:0.00})" + (includeLength ? $": {vec.Length():0.00}" : "");
+	public static string Format(this Vector2 vec, bool includeLength = true, bool includeDecimal = true) {
+		if (includeDecimal) {
+			return $"({vec.X:0.00}, {vec.Y:0.00})" + (includeLength ? $": {vec.Length():0.00}" : "");
+		} else {
+			return $"({vec.X:0}, {vec.Y:0})" + (includeLength ? $": {vec.Length():0}" : "");
+		}
 	}
 }

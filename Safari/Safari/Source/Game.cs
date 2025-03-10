@@ -24,12 +24,16 @@ public class Game : Engine.Game {
 		base.Initialize();
 
 		DisplayManager.SetVSync(true, true);
-		//DisplayManager.SetTargetFPS(90, true);
 
 		InputSetup();
 
 		GameScene scn = new();
 		SceneManager.Load(scn);
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
+			SceneManager.Load(new GameScene());
+		}));
+		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
 
 		// GeonBit
 

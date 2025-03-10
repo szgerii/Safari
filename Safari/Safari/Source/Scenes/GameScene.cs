@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Model;
 using Safari.Objects;
 using Safari.Components;
+using Engine.Input;
+using Safari.Debug;
 
 namespace Safari.Scenes;
 
@@ -47,7 +49,9 @@ public class GameScene : Scene {
 					continue;
 				}
 
-				AddObject(new Tile(new Vector2(x, y), brushTex));
+				Tile t = new Tile(new Vector2(x, y), brushTex);
+				t.GetComponent<SpriteCmp>().Tint = new Color(i / (float)hCount, j / (float)vCount, 1);
+				AddObject(t);
 			}
 		}
 
@@ -76,7 +80,6 @@ public class GameScene : Scene {
 		Camera.Active = new Camera();
 
 		CameraControllerCmp controllerCmp = new(bounds);
-		//controllerCmp.SetTargetObject(to);
 		Camera.Active.Attach(controllerCmp);
 
 		AddObject(Camera.Active);

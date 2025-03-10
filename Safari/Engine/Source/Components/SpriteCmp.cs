@@ -34,6 +34,10 @@ public class SpriteCmp : Component, IDrawable {
 	/// </summary>
 	public Rectangle? SourceRectangle { get; set; }
 	/// <summary>
+	/// The overlay color of the sprite
+	/// </summary>
+	public Color Tint { get; set; }
+	/// <summary>
 	/// The base layer depth used when determining the order of things on the screen
 	/// </summary>
 	public float LayerDepth { get; set; }
@@ -65,20 +69,21 @@ public class SpriteCmp : Component, IDrawable {
 	public bool Visible { get; set; } = true;
 #endregion
 
-	public SpriteCmp(Texture2D texture, Vector2? origin = null, float rotation = 0, float scale = 1, SpriteEffects flip = SpriteEffects.None, Rectangle? sourceRectangle = null, float layerDepth = 1) {
+	public SpriteCmp(Texture2D texture, Vector2? origin = null, float rotation = 0, float scale = 1, SpriteEffects flip = SpriteEffects.None, Rectangle? sourceRectangle = null, Color? tint = null, float layerDepth = 1) {
 		Texture = texture;
 		Origin = origin ?? Vector2.Zero;
 		Rotation = rotation;
 		Scale = scale;
 		Flip = flip;
 		SourceRectangle = sourceRectangle;
+		Tint = tint ?? Color.White;
 		LayerDepth = layerDepth;
 	}
 
 	public virtual void Draw(GameTime gameTime) {
 		if (Visible) {
 			Vector2 pos = new Vector2(Utils.Round(Owner.Position.X), Utils.Round(Owner.Position.Y));
-			Game.SpriteBatch.Draw(Texture, pos, SourceRectangle, Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
+			Game.SpriteBatch.Draw(Texture, pos, SourceRectangle, Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 		}
 	}
 }

@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Safari.Debug;
 using System;
 
 namespace Engine.Objects;
 
 public class Camera : GameObject {
 	public static Camera Active { get; set; }
-
-	public Vector2 Offset { get; set; }
 
 	public float Zoom { get; set; } = 1.0f;
 
@@ -28,9 +27,16 @@ public class Camera : GameObject {
 		}
 	}
 
-	public Point ScreenSize => new Point(Game.RenderTarget.Width, Game.RenderTarget.Height);
+	public Point ScreenSize => Game.RenderTarget.Bounds.Size;
 	public int ScreenWidth => ScreenSize.X;
 	public int ScreenHeight => ScreenSize.Y;
 
 	public Camera(Vector2? position = null) : base(position ?? new Vector2(Game.RenderTarget.Width * 0.5f, Game.RenderTarget.Height * 0.5f)) { }
+
+	public override void Update(GameTime gameTime) {
+		base.Update(gameTime);
+
+		DebugInfoManager.AddInfo("cam pos", Position.Format(false, false), DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("cam zoom", $"x{Zoom:0.00}", DebugInfoPosition.BottomRight);
+	}
 }
