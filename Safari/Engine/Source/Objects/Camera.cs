@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Safari.Debug;
 using System;
 
 namespace Engine.Objects;
 
 public class Camera : GameObject {
 	public static Camera Active { get; set; }
-
-	public Vector2 Offset { get; set; }
 
 	public float Zoom { get; set; } = 1.0f;
 
@@ -18,19 +17,23 @@ public class Camera : GameObject {
 		}
 	}
 
-	public Matrix TransformMatrix {
-		get {
-			return
-				Matrix.CreateTranslation(-Position.X, -Position.Y, 0) *
-				Matrix.CreateRotationZ(Rotation) *
-				Matrix.CreateScale(Zoom) *
-				Matrix.CreateTranslation(ScreenWidth * 0.5f, ScreenHeight * 0.5f, 0f);
-		}
-	}
+	public Matrix TransformMatrix { get; private set; }
+	public Matrix ViewToWorld => Matrix.Invert(TransformMatrix);
 
-	public Point ScreenSize => new Point(Game.RenderTarget.Width, Game.RenderTarget.Height);
+	public Point ScreenSize => Game.RenderTarget.Bounds.Size;
 	public int ScreenWidth => ScreenSize.X;
 	public int ScreenHeight => ScreenSize.Y;
 
-	public Camera(Vector2? position = null) : base(position ?? new Vector2(Game.RenderTarget.Width * 0.5f, Game.RenderTarget.Height * 0.5f)) { }
+	public Camera(Vector2? position = null) : base(position ?? Vector2.Zero) { }
+
+	public override void Update(GameTime gameTime) {
+		base.Update(gameTime);
+
+		TransformMatrix =
+			Matrix.CreateTranslation(-Position.X, -Position.Y, 0) *
+			Matrix.CreateRotationZ(Rotation) *
+			Matrix.CreateScale(Zoom, Zoom, 1f);
+
+		DebugInfoManager.AddInfo("cam", $"{Position.Format(false, false)}, x{Zoom:0.00}, {Rotation:0.00} rad", DebugInfoPosition.BottomRight);
+	}
 }

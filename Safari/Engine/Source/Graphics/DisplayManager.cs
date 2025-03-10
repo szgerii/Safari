@@ -154,4 +154,18 @@ public static class DisplayManager {
 			ApplyChanges();
         }
     }
+
+	public static void SetTargetFPS(int fps, bool apply = true) {
+		TargetFPS = fps;
+		if (apply) {
+			ApplyChanges();
+		}
+	}
+
+	public static void SetVSync(bool useVSync, bool apply = true) {
+		VSync = useVSync;
+		if (apply) {
+			ApplyChanges();
+		}
+	}
 }

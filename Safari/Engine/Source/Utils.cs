@@ -6,11 +6,6 @@ namespace Engine;
 
 public static class Utils {
 	/// <summary>
-	/// Shorthand for new Point(0, 0)
-	/// </summary>
-	public static Point ZeroP => new Point(0, 0);
-
-	/// <summary>
 	/// Generates a single color Texture2D
 	/// </summary>
 	/// <param name="width">The width of the texture</param>
@@ -113,6 +108,16 @@ public static class Utils {
 	}
 
 	/// <summary>
+	/// Converts a Vector2 to a Point using rounding
+	/// </summary>
+	/// <param name="vec">The vector to round</param>
+	/// <returns>The rounded data</returns>
+	public static Point Round(Vector2 vec) {
+		vec.Round();
+		return vec.ToPoint();
+	}
+
+	/// <summary>
 	/// Returns a Point clamped to the inclusive range of <paramref name="min"/> and <paramref name="max"/>
 	/// </summary>
 	/// <param name="value">The Point to clamp</param>
@@ -152,4 +157,27 @@ public static class Utils {
 	/// <param name="point">The point to clamp</param>
 	/// <returns>The clamped point object</returns>
 	public static Point Clamp(this Rectangle bounds, Point point) => point.Clamp(bounds.Location, bounds.Location + bounds.Size);
+
+	/// <summary>
+	/// Formats a Vector2 for displaying on screen
+	/// </summary>
+	/// <param name="vec">The vector to format</param>
+	/// <param name="includeLength">Include length of the vector</param>
+	/// <returns>The formatted text</returns>
+	public static string Format(this Vector2 vec, bool includeLength = true, bool includeDecimal = true) {
+		if (includeDecimal) {
+			return $"({vec.X:0.00}, {vec.Y:0.00})" + (includeLength ? $": {vec.Length():0.00}" : "");
+		} else {
+			return $"({vec.X:0}, {vec.Y:0})" + (includeLength ? $": {vec.Length():0}" : "");
+		}
+	}
+
+	/// <summary>
+	/// Formats a Rectangle for displaying on screen
+	/// </summary>
+	/// <param name="rect">The rectangle to format</param>
+	/// <returns>The formatted text</returns>
+	public static string Format(this Rectangle rect) {
+		return $"({rect.X}, {rect.Y}) - ({rect.X + rect.Width}, {rect.Y + rect.Height}): {rect.Size.X}, {rect.Size.Y}";
+	}
 }

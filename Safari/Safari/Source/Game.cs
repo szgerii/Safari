@@ -23,14 +23,24 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		base.Initialize();
 
+		//DisplayManager.SetTargetFPS(60, false);
+		DisplayManager.SetVSync(true, true);
+
 		InputSetup();
 
 		GameScene scn = new();
 		SceneManager.Load(scn);
 
+		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
+			SceneManager.Load(new GameScene());
+		}));
+		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
+
 		// GeonBit
-		UserInterface.Initialize(Content, BuiltinThemes.hd);
+
+		UserInterface.Initialize(Content, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
+		UserInterface.Active.GlobalScale = 1.25f;
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			debugInfoParagraphs[pos] = new Paragraph();
 		}
@@ -102,6 +112,8 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("avg", $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms (out of {tickTime.Capacity})");
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 
+			DebugInfoManager.AddInfo("FPS (Update)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+		
 			if (SceneManager.Active is GameScene) {
 				PrintModelDebugInfos();
 			}
@@ -109,6 +121,7 @@ public class Game : Engine.Game {
 	}
 
 	protected override void Draw(GameTime gameTime) {
+		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
 		DebugInfoManager.PreDraw();
 
 		DateTime start = DateTime.Now;
@@ -124,6 +137,13 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("down", new InputAction(keys: [Keys.S, Keys.Down]));
 		InputManager.Actions.Register("left", new InputAction(keys: [Keys.A, Keys.Left]));
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
+
+		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.NumPad0, Keys.D0]));
+		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.O]));
+		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.I]));
+
+		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
+		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
 		// debug
 		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
@@ -145,7 +165,7 @@ public class Game : Engine.Game {
 			case GameSpeed.Paused: speedName = "Paused"; break;
 		}
 		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Day/Night cycle", model.TimeOfDay < 0.5 ? "Day" : "Night", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Day/Night cycle", model.IsDaytime ? "Day" : "Night", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);

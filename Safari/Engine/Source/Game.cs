@@ -64,20 +64,38 @@ public class Game : Microsoft.Xna.Framework.Game {
 	protected override void Draw(GameTime gameTime) {
 		float scaleX = Graphics.PreferredBackBufferWidth / (float)RenderTarget.Width;
 		float scaleY = Graphics.PreferredBackBufferHeight / (float)RenderTarget.Height;
-		float scale = Math.Max(scaleX, scaleY);
+		float scale = Math.Min(scaleX, scaleY);
+
+		float diffX = Graphics.PreferredBackBufferWidth - scale * RenderTarget.Width;
+		float diffY = Graphics.PreferredBackBufferHeight - scale * RenderTarget.Height;
+
+		Vector2 offset = Vector2.Zero;
+		if (diffX != 0) {
+			offset.X = diffX / 2;
+		}
+		if (diffY != 0) {
+			offset.Y = diffY / 2;
+		}
 
 		GraphicsDevice.SetRenderTarget(RenderTarget);
 		GraphicsDevice.Clear(Color.Black);
 
 		Matrix trMatrix = (Camera.Active != null) ? Camera.Active.TransformMatrix : Matrix.Identity;
-		SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, samplerState: SamplerState.PointClamp, transformMatrix: trMatrix, rasterizerState: RasterizerState.CullNone);
+		SpriteBatch.Begin(
+			sortMode: SpriteSortMode.BackToFront,
+			samplerState: SamplerState.PointClamp,
+			transformMatrix: trMatrix
+		);
 		SceneManager.Active.Draw(gameTime);
 		SpriteBatch.End();
 		
 		GraphicsDevice.SetRenderTarget(null);
 		GraphicsDevice.Clear(Color.Black);
 
-		SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+		SpriteBatch.Begin(
+			samplerState: SamplerState.PointClamp,
+			transformMatrix: Matrix.CreateTranslation(offset.X, offset.Y, 0)
+		);
 		SpriteBatch.Draw(RenderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
 		SpriteBatch.End();
 
