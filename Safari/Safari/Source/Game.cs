@@ -11,6 +11,7 @@ using GeonBit.UI;
 using GeonBit.UI.Entities;
 using System.Collections.Generic;
 using Safari.Debug;
+using Safari.Model;
 
 namespace Safari;
 
@@ -58,6 +59,27 @@ public class Game : Engine.Game {
 			}
 		}));
 
+		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
+			if (SceneManager.Active is GameScene) {
+				GameModel model = GameScene.Active.Model;
+				switch (model.GameSpeed) {
+					case GameSpeed.Slow: model.GameSpeed = GameSpeed.Medium; break;
+					case GameSpeed.Medium: model.GameSpeed = GameSpeed.Fast; break;
+					case GameSpeed.Fast: model.GameSpeed = GameSpeed.Slow; break;
+				}
+			}
+		}));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
+			if (SceneManager.Active is GameScene) {
+				GameModel model = GameScene.Active.Model;
+				switch (model.GameSpeed) {
+					case GameSpeed.Paused: model.Resume(); break;
+					default: model.Pause(); break;
+				}
+			}
+		}));
+
 		DebugMode.Enable();
 	}
 
@@ -79,6 +101,10 @@ public class Game : Engine.Game {
 		if (DisplayDebugInfos) {
 			DebugInfoManager.AddInfo("avg", $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms (out of {tickTime.Capacity})");
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
+
+			if (SceneManager.Active is GameScene) {
+				PrintModelDebugInfos();
+			}
 		}
 	}
 
@@ -104,5 +130,24 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));		
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
+		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
+		InputManager.Keyboard.OnPressed(Keys.L, () => DebugMode.Execute("toggle-simulation"));
+	}
+
+	private void PrintModelDebugInfos() {
+		GameModel model = GameScene.Active.Model;
+
+		string speedName = "";
+		switch (model.GameSpeed) {
+			case GameSpeed.Slow: speedName = "Slow"; break;
+			case GameSpeed.Medium: speedName = "Medium"; break;
+			case GameSpeed.Fast: speedName = "Fast"; break;
+			case GameSpeed.Paused: speedName = "Paused"; break;
+		}
+		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Day/Night cycle", model.TimeOfDay < 0.5 ? "Day" : "Night", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
 	}
 }
