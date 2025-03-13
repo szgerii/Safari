@@ -1,0 +1,17 @@
+﻿using Safari.Objects.Entities.Animals;
+using System;
+
+namespace Safari.Objects.Entities.Tourists;
+
+public class SawAnimalEventArgs : EventArgs {
+	private Animal animal;
+
+	public Animal Animal {
+		get => animal;
+		set => animal = value;
+	}
+
+	public SawAnimalEventArgs(Animal animal) {
+		this.animal = animal;
+	}
+}
