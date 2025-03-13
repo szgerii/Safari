@@ -9,6 +9,7 @@ public class Tourist : Entity {
 	private static Queue<Tourist> jeepQueue = new Queue<Tourist>();
 	private int[] recentRatings = new int[30];
 	private bool inQueue = true;
+	private Jeep? vehicle;
 
 	public int AvgRating {
 		get {
@@ -23,8 +24,13 @@ public class Tourist : Entity {
 	}
 	public float Rating => rating;
 	public static int QueueLength => jeepQueue.Count;
+	public Jeep? Vehicle {
+		get => vehicle;
+		set => vehicle = value;
+	}
 
 	public event EventHandler<SawAnimalEventArgs>? SawAnimal;
+	public event EventHandler<JeepAvailableEventArgs>? JeepAvailable;
 
 	public Tourist(Vector2 pos) : base(pos) {
 		displayName = "Tourist";

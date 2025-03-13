@@ -11,7 +11,7 @@ public class SawAnimalEventArgs : EventArgs {
 		set => animal = value;
 	}
 
-	public SawAnimalEventArgs(Animal animal) {
+	public SawAnimalEventArgs(Animal animal) : base() {
 		this.animal = animal;
 	}
 }

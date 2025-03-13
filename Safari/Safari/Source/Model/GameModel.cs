@@ -34,7 +34,6 @@ public class GameModel {
 	private string parkName;
 	private int funds;
 	private GameDifficulty difficulty;
-	private int tourPrice;
 	private GameSpeed gameSpeed;
 	private GameSpeed prevSpeed;
 	private double currentTime;
@@ -48,12 +47,6 @@ public class GameModel {
 		}
 	}
 	public GameDifficulty Difficulty => difficulty;
-	public int TourPrice {
-		get => tourPrice;
-		set {
-			tourPrice = value;
-		}
-	}
 
 	public GameSpeed GameSpeed {
 		get => gameSpeed;
