@@ -33,7 +33,7 @@ public class GameScene : Scene {
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
 	
 		// test scene
-		Texture2D brushTex = Game.ContentManager.Load<Texture2D>("assets/sprites/bush");
+		Texture2D brushTex = Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush1");
 
 		int hCount = (Game.RenderTarget.Width * 2 / 32);
 		int vCount = (Game.RenderTarget.Height * 2 / 32);
