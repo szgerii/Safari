@@ -103,7 +103,6 @@ public class GameModel {
 		this.funds = funds;
 		this.difficulty = difficulty;
 		this.startDate = startDate;
-		this.tourPrice = 250;
 		this.gameSpeed = GameSpeed.Slow;
 		this.currentTime = 0;
 	}
