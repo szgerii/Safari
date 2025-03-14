@@ -34,10 +34,18 @@ public class GameModel {
 	private string parkName;
 	private int funds;
 	private GameDifficulty difficulty;
-	private GameSpeed gameSpeed;
+	private GameSpeed gameSpeed = GameSpeed.Slow;
 	private GameSpeed prevSpeed;
-	private double currentTime;
+	private double currentTime = 0;
 	private DateTime startDate;
+	private int entityCount = 0;
+	private int animalCount = 0;
+	private int carnivoreCount = 0;
+	private int herbivoreCount = 0;
+	private int touristCount = 0;
+	private int jeepCount = 0;
+	private int poacherCount = 0;
+	private int rangerCount = 0;
 
 	public string ParkName => parkName;
 	public int Funds {
@@ -98,13 +106,44 @@ public class GameModel {
 	/// </summary>
 	public DateTime IngameDate => startDate.AddDays(currentTime / dayLength);
 
+	public int EntityCount {
+		get => entityCount;
+		set => entityCount = value;
+	}
+	public int AnimalCount {
+		get => animalCount;
+		set => animalCount = value;
+	}
+	public int CarnivoreCount {
+		get => carnivoreCount;
+		set => carnivoreCount = value;
+	}
+	public int HerbivoreCount {
+		get => herbivoreCount;
+		set => herbivoreCount = value;
+	}
+	public int TouristCount {
+		get => touristCount;
+		set => touristCount = value;
+	}
+	public int JeepCount {
+		get => jeepCount;
+		set => jeepCount = value;
+	}
+	public int PoacherCount {
+		get => poacherCount;
+		set => poacherCount = value;
+	}
+	public int RangerCount {
+		get => rangerCount;
+		set => rangerCount = value;
+	}
+
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		this.parkName = parkName;
 		this.funds = funds;
 		this.difficulty = difficulty;
 		this.startDate = startDate;
-		this.gameSpeed = GameSpeed.Slow;
-		this.currentTime = 0;
 	}
 
 	/// <summary>
