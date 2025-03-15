@@ -14,6 +14,12 @@ class AlertMenu : PopupMenu {
 
     public event EventHandler<bool>? Chosen;
 
+    /// <summary>
+    /// Creates a popup alert with one button. When the button is pressed Chosen event is called with the value true.
+    /// </summary>
+    /// <param name="header">Header text</param>
+    /// <param name="text">Main body of text for the popup</param>
+    /// <param name="button1">Button text</param>
     public AlertMenu(string header, string text, string button1) {
         PrepareUIElements(header, text);
 
@@ -29,6 +35,13 @@ class AlertMenu : PopupMenu {
         this.panel.AddChild(this.button1);
     }
 
+    /// <summary>
+    /// Creates a popup alert with two buttons. When a button is pressed Chosen event is called with a bool value.
+    /// </summary>
+    /// <param name="header">Header text</param>
+    /// <param name="text">Main body of text for the popup</param>
+    /// <param name="button1">Button text for the button that returns true</param>
+    /// <param name="button2">Button text for the button that returns false</param>
     public AlertMenu(string header, string text, string button1, string button2) {
         PrepareUIElements(header, text);
 
@@ -55,11 +68,12 @@ class AlertMenu : PopupMenu {
         this.panel.AddChild(this.button2);
     }
 
+    //Prepares the static elements that doesn't depend on the number of buttons.
     private void PrepareUIElements(string header, string text) {
         this.header = new Header(header, Anchor.TopCenter);
         this.header.Size = new Vector2(0f, 0.2f);
         this.header.Padding = new Vector2(0);
-        
+
         this.paragraph = new Paragraph(text, Anchor.Center);
         this.paragraph.Size = new Vector2(0f, 0.6f);
         this.paragraph.Padding = new Vector2(0);
@@ -69,6 +83,9 @@ class AlertMenu : PopupMenu {
         this.panel.MaxSize = new Vector2(500, 500);
     }
 
+    /// <summary>
+    /// Shows the popup.
+    /// </summary>
     public void Show() {
         UserInterface.Active.AddEntity(this.panel);
     }
