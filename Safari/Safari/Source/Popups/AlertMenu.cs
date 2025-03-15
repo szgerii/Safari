@@ -1,12 +1,10 @@
-﻿using GeonBit.UI;
-using GeonBit.UI.Entities;
+﻿using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using System;
 
 namespace Safari.Source.Popups;
 
 class AlertMenu : PopupMenu {
-    private Panel panel;
     private Header header;
     private Paragraph paragraph;
     private Button button1;
@@ -81,17 +79,6 @@ class AlertMenu : PopupMenu {
 
         this.panel = new Panel(new Vector2(0.4f, 0.6f), PanelSkin.Default, Anchor.Center);
         this.panel.MaxSize = new Vector2(500, 500);
-    }
-
-    /// <summary>
-    /// Shows the popup.
-    /// </summary>
-    public void Show() {
-        UserInterface.Active.AddEntity(this.panel);
-    }
-
-    private void Hide() {
-        UserInterface.Active.RemoveEntity(this.panel);
     }
 
     private void Agree(Entity entity) {
