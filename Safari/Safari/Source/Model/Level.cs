@@ -1,7 +1,10 @@
 ﻿using Engine;
+using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Safari.Debug;
 using Safari.Model.Tiles;
+using Safari.Input;
 using System;
 
 namespace Safari.Model;
@@ -96,6 +99,8 @@ public class Level : GameObject {
 		if (!tile.Loaded) {
 			Game.AddObject(tile);
 		}
+
+		UpdateAutoTilesAround(new Point(x, y));
 	}
 
 	/// <summary>
@@ -122,6 +127,8 @@ public class Level : GameObject {
 		tiles[x, y] = null;
 
 		Game.RemoveObject(t);
+
+		UpdateAutoTilesAround(new Point(x, y));
 	}
 
 	/// <summary>
@@ -161,15 +168,78 @@ public class Level : GameObject {
 		base.Unload();
 	}
 
+	// TODO: remove this whole tile placement part once not needed
+	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree)];
+	private int brushIndex = 0;
+	public override void Update(GameTime gameTime) {
+		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
+			brushIndex = Math.Max(0, brushIndex - 1);
+		}
+		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.M)) {
+			brushIndex = Math.Min(brushes.Length - 1, brushIndex + 1);
+		}
+		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
+
+		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
+
+		if (!IsOutOfBounds((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize)) {
+			Tile targetTile = GetTile((mousePosWorld / TileSize).ToPoint());
+
+			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];
+			if (InputManager.Mouse.IsDown(MouseButtons.LeftButton) && !alreadyPainted) {
+				Tile tile;
+
+				if (brushes[brushIndex] == typeof(Tree)) {
+					tile = (Tree)Activator.CreateInstance(brushes[brushIndex], [TreeType.Digitata]);
+				} else {
+					tile = (Tile)Activator.CreateInstance(brushes[brushIndex]);
+				}
+
+				SetTile((mousePosWorld / TileSize).ToPoint(), tile);
+			}
+
+			bool alreadyEmpty = targetTile == null;
+			if (InputManager.Mouse.IsDown(MouseButtons.RightButton) && !alreadyEmpty) {
+				ClearTile((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize);
+			}
+		}
+
+		base.Update(gameTime);
+	}
+
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
 			Game.SpriteBatch.Draw(Background, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 		}
+
+		// TODO: remove once not needed
+		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
+		Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
 		base.Draw(gameTime);
 	}
 
 	public void PostDraw(object _, GameTime gameTime) {
 		Game.SpriteBatch.Draw(debugGridTex, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+	}
+
+	/// <summary>
+	/// Forces all of the autotiles around a given position to refresh
+	/// </summary>
+	/// <param name="pos">The tilemap position to refresh around</param>
+	public void UpdateAutoTilesAround(Point pos) {
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (i == 0 && j == 0) continue;
+
+				Point destPos = pos + new Point(i, j);
+
+				if (IsOutOfBounds(destPos.X, destPos.Y)) continue;
+
+				if (GetTile(destPos.X, destPos.Y) is AutoTile at) {
+					at.NeedsUpdate = true;
+				}
+			}
+		}
 	}
 }
