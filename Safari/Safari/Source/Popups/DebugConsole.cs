@@ -41,7 +41,7 @@ class DebugConsole : PopupMenu {
         this.input = new TextInput(true, new Vector2(0.9f, 0.2f), Anchor.BottomLeft, null);
         this.input.Identifier = "debug-console-input";
         this.input.OnValueChange = ProccesInput;
-        this.input.PlaceholderText = "Text here";
+        this.input.PlaceholderText = "Type here";
 
         //initialize the close button and style it
         this.closeButton = new Button("", ButtonSkin.Default, Anchor.BottomRight, new Vector2(0.1f, 0.2f));
@@ -88,7 +88,7 @@ class DebugConsole : PopupMenu {
         ScrollConsoleDown();
     }
 
-    //Checks if the user had hit an Enter and if yes, outputs it and tries to run the entered text as debug command.
+    //Checks if the user had hit an Enter and if yes, outputs it and tries to run the entered text as a debug command.
     private void ProccesInput(Entity entity) {
         if (this.input.Value.Length == 0) {
             return;
