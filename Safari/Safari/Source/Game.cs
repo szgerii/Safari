@@ -13,6 +13,7 @@ using GeonBit.UI.Entities;
 using System.Collections.Generic;
 using Safari.Debug;
 using Safari.Model;
+using Safari.Popups;
 
 namespace Safari;
 
@@ -150,8 +151,9 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
-		// debug
-		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
+        // debug
+        InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
+        InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));		
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
