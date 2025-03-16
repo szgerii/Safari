@@ -78,7 +78,7 @@ class DebugConsole : PopupMenu {
     }
 
     /// <summary>
-    /// This method provies a way to write text to the console.
+    /// This method provides a way to write text to the console.
     /// </summary>
     /// <param name="text">The text you want to output to the console.</param>
     public void WriteToConsole(string text) {
