@@ -5,8 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Objects;
 
-public class Tile : GameObject {
-	public Tile(Vector2 pos, Texture2D tex, float ySortOffset = 0, float layerDepth = 0.5f) : base(pos) {
+public class StaticObject : GameObject {
+	public StaticObject(Vector2 pos, Texture2D tex, float ySortOffset = 0, float layerDepth = 0.5f) : base(pos) {
 		SpriteCmp sprite = new(tex) {
 			YSortEnabled = true,
 			YSortOffset = ySortOffset,

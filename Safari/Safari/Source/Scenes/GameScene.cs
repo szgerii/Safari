@@ -1,10 +1,8 @@
 using Engine.Objects;
-using Engine.Components;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Model;
-using Safari.Objects;
+using Engine.Collision;
 using Safari.Components;
 using System;
 
@@ -17,48 +15,28 @@ public class GameScene : Scene {
 
 
 	public override void Unload() {
-		// PostUpdate -= CollisionManager.PostUpdate;
-		
 		base.Unload();
+
+		PostUpdate -= CollisionManager.PostUpdate;
+		Game.ContentManager.Unload();
 	}
 
 	public override void Load() {
-		// CollisionManager.Init(numOfCellsInRow, numOfCellsInCol, cellSize);
-		// PostUpdate += CollisionManager.PostUpdate;
-
 		// init game model
 		// The start of the game is always <date of creation> 6 am
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
-	
-		// test scene
-		Texture2D brushTex = Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush1");
 
-		int hCount = (Game.RenderTarget.Width * 2 / 32);
-		int vCount = (Game.RenderTarget.Height * 2 / 32);
-		for (int i = 0; i < hCount; i++) {
-			for (int j = 0; j < vCount; j++) {
-				int x = i * 32;
-				int y = j * 32;
-
-				if (x % 64 == y % 64) {
-					continue;
-				}
-
-				Tile t = new Tile(new Vector2(x, y), brushTex);
-				t.GetComponent<SpriteCmp>().Tint = new Color(i / (float)hCount, j / (float)vCount, 1);
-				AddObject(t);
-			}
-		}
+		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
+		PostUpdate += CollisionManager.PostUpdate;
 
 		// init camera
 		CreateCamera(
 			new Rectangle(
-				0,
-				0,
-				hCount * 32,
-				vCount * 32
+				0, 0,
+				model.Level.MapWidth * model.Level.TileSize,
+				model.Level.MapHeight * model.Level.TileSize
 			)
 		);
 

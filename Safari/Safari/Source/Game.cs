@@ -6,6 +6,7 @@ using Safari.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
 using System;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
@@ -23,7 +24,7 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		base.Initialize();
 
-		//DisplayManager.SetTargetFPS(60, false);
+		// DisplayManager.SetTargetFPS(90, false);
 		DisplayManager.SetVSync(true, true);
 
 		InputSetup();
@@ -38,9 +39,13 @@ public class Game : Engine.Game {
 
 		// GeonBit
 
-		UserInterface.Initialize(Content, BuiltinThemes.editor);
+		// create separate content manager for geonbit, so we can unload our assets in peace
+		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
+
+		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
+
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			debugInfoParagraphs[pos] = new Paragraph();
 		}
@@ -152,6 +157,7 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
 		InputManager.Keyboard.OnPressed(Keys.L, () => DebugMode.Execute("toggle-simulation"));
+		InputManager.Keyboard.OnPressed(Keys.G, () => DebugMode.ToggleFeature("draw-grid"));
 	}
 
 	private void PrintModelDebugInfos() {
