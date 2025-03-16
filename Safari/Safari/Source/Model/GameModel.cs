@@ -1,5 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+using Engine.Debug;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Safari.Model.Tiles;
 using System;
+using System.Collections.Generic;
 
 namespace Safari.Model;
 
@@ -34,11 +38,18 @@ public class GameModel {
 	private string parkName;
 	private int funds;
 	private GameDifficulty difficulty;
-	private int tourPrice;
-	private GameSpeed gameSpeed;
+	private GameSpeed gameSpeed = GameSpeed.Slow;
 	private GameSpeed prevSpeed;
-	private double currentTime;
+	private double currentTime = 0;
 	private DateTime startDate;
+	private int entityCount = 0;
+	private int animalCount = 0;
+	private int carnivoreCount = 0;
+	private int herbivoreCount = 0;
+	private int touristCount = 0;
+	private int jeepCount = 0;
+	private int poacherCount = 0;
+	private int rangerCount = 0;
 
 	public string ParkName => parkName;
 	public int Funds {
@@ -48,12 +59,6 @@ public class GameModel {
 		}
 	}
 	public GameDifficulty Difficulty => difficulty;
-	public int TourPrice {
-		get => tourPrice;
-		set {
-			tourPrice = value;
-		}
-	}
 
 	public GameSpeed GameSpeed {
 		get => gameSpeed;
@@ -105,14 +110,58 @@ public class GameModel {
 	/// </summary>
 	public DateTime IngameDate => startDate.AddDays(currentTime / dayLength);
 
+	/// <summary>
+	/// The current game level's tilemap
+	/// </summary>
+	public Level Level { get; set; }
+
+	public int EntityCount {
+		get => entityCount;
+		set => entityCount = value;
+	}
+	public int AnimalCount {
+		get => animalCount;
+		set => animalCount = value;
+	}
+	public int CarnivoreCount {
+		get => carnivoreCount;
+		set => carnivoreCount = value;
+	}
+	public int HerbivoreCount {
+		get => herbivoreCount;
+		set => herbivoreCount = value;
+	}
+	public int TouristCount {
+		get => touristCount;
+		set => touristCount = value;
+	}
+	public int JeepCount {
+		get => jeepCount;
+		set => jeepCount = value;
+	}
+	public int PoacherCount {
+		get => poacherCount;
+		set => poacherCount = value;
+	}
+	public int RangerCount {
+		get => rangerCount;
+		set => rangerCount = value;
+	}
+
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		this.parkName = parkName;
 		this.funds = funds;
 		this.difficulty = difficulty;
 		this.startDate = startDate;
-		this.tourPrice = 250;
-		this.gameSpeed = GameSpeed.Slow;
-		this.currentTime = 0;
+
+		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
+		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
+
+		GenerateTestLevel();
+
+		Game.AddObject(Level);
+
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
 
 	/// <summary>
@@ -133,6 +182,41 @@ public class GameModel {
 	public void Resume() {
 		if (gameSpeed == GameSpeed.Paused) {
 			gameSpeed = prevSpeed;
+		}
+	}
+
+	// TODO: remove once not needed
+	private void GenerateTestLevel() {
+		List<List<Tile>> tiles = new();
+		tiles.Add([
+			new Bush(),
+			new WideBush()
+		]);
+		tiles.Add([
+			new Tree(TreeType.Digitata),
+			new Tree(TreeType.Grandideri),
+			new Tree(TreeType.ShortGrandideri),
+			new Tree(TreeType.Gregorii),
+		]);
+		tiles.Add([
+			new Tree(TreeType.Rubrostipa),
+			new Tree(TreeType.Suarazensis),
+			new Tree(TreeType.Za)
+		]);
+
+		int x = 0, y = 0;
+		foreach (List<Tile> row in tiles) {
+			x = 0;
+
+			int maxY = -1;
+			foreach (Tile tile in row) {
+				Level.SetTile(x + tile.AnchorTile.X, y + tile.AnchorTile.Y, tile);
+
+				x += tile.Size.X;
+				if (tile.Size.Y > maxY) maxY = tile.Size.Y;
+			}
+
+			y += maxY;
 		}
 	}
 }

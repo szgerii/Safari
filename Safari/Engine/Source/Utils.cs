@@ -5,6 +5,8 @@ using System;
 namespace Engine;
 
 public static class Utils {
+	private static readonly Random rand = new Random();
+
 	/// <summary>
 	/// Generates a single color Texture2D
 	/// </summary>
@@ -99,6 +101,72 @@ public static class Utils {
 	}
 
 	/// <summary>
+	/// Places a texture on top of another
+	/// </summary>
+	/// <param name="tex1">The base texture</param>
+	/// <param name="tex2">The texture to overlay onto the base texture</param>
+	/// <returns>The merged texture</returns>
+	/// <exception cref="ArgumentException"></exception>
+	public static Texture2D MergeTextures(Texture2D tex1, Texture2D tex2) {
+		if (tex1.Bounds != tex2.Bounds) {
+			throw new ArgumentException("Cannot merge textures of different sizes");
+		}
+
+		Color[] tex1Data = new Color[tex1.Width * tex1.Height];
+		tex1.GetData(tex1Data);
+		Color[] tex2Data = new Color[tex2.Width * tex2.Height];
+		tex2.GetData(tex2Data);
+
+		Texture2D result = new Texture2D(Game.Graphics.GraphicsDevice, tex1.Width, tex1.Height);
+		Color[] resultData = new Color[result.Width * result.Height];
+
+		for (int i = 0; i < tex1Data.Length; i++) {
+			resultData[i] = tex2Data[i].A > 0 ? tex2Data[i] : tex1Data[i];
+		}
+
+		result.SetData(resultData);
+		return result;
+	}
+
+	/// <summary>
+	/// Calculates the ideal Y-Sort offset for a (sub)texture by measuring the empty space at its bottom
+	/// </summary>
+	/// <param name="texture">The texture to analyze</param>
+	/// <param name="sourceRect">The source rectangle of the displayed area</param>
+	/// <returns>The ideal offset from the bottom of the texture area</returns>
+	public static int GetYSortOffset(Texture2D texture, Rectangle? sourceRect = null) {
+		Rectangle src = sourceRect ?? texture.Bounds;
+
+		Color[] texData = new Color[texture.Width * texture.Height];
+		texture.GetData(texData);
+
+		Point lastPos = src.Location + src.Size - new Point(1);
+		int lastIndex = lastPos.Y * texture.Width + lastPos.X;
+		Point firstPos = src.Location;
+		int firstIndex = firstPos.Y * texture.Width + firstPos.X;
+
+		int i = lastIndex;
+		while (i >= firstIndex) {
+			int x = i % texture.Width;
+
+			// OPTIMIZE: this could be optimized, i'm just too tired to figure out the exact jump amount
+			if (x < firstPos.X || x > lastPos.X) {
+				i--;
+				continue;
+			}
+
+			if (texData[i].A > 0f) {
+				int y = i / texture.Width;
+				return src.Height - (lastPos.Y - y);
+			}
+
+			i--;
+		}
+
+		return 0;
+	}
+
+	/// <summary>
 	/// Returns the rounded value of the double as an integer
 	/// </summary>
 	/// <param name="value">The number to round</param>
@@ -126,6 +194,19 @@ public static class Utils {
 	/// <returns>The clamped point object</returns>
 	public static Point Clamp(this Point value, Point min, Point max) {
 		return new Point(Math.Clamp(value.X, min.X, max.X), Math.Clamp(value.Y, min.Y, max.Y));
+	}
+
+	/// <summary>
+	/// Divides a point's components by the given amount
+	/// </summary>
+	/// <param name="point">The point to divide</param>
+	/// <param name="value">The number to divide with</param>
+	/// <returns>The divided Point</returns>
+	/// <exception cref="DivideByZeroException"></exception>
+	public static Point Divide(this Point point, float value) {
+		if (value == 0) throw new DivideByZeroException("Cannot divide Point by zero");
+
+		return new Point((int)(point.X / value), (int)(point.Y / value));
 	}
 
 	/// <summary>
@@ -179,5 +260,16 @@ public static class Utils {
 	/// <returns>The formatted text</returns>
 	public static string Format(this Rectangle rect) {
 		return $"({rect.X}, {rect.Y}) - ({rect.X + rect.Width}, {rect.Y + rect.Height}): {rect.Size.X}, {rect.Size.Y}";
+	}
+
+	/// <summary>
+	/// Returns a random value from a given enum
+	/// </summary>
+	/// <typeparam name="EnumType">The type of the enum</typeparam>
+	/// <returns>A random value from the enum's possible values</returns>
+	public static EnumType GetRandomEnumValue<EnumType>() where EnumType : Enum {
+		Array values = Enum.GetValues(typeof(EnumType));
+		Random rand = new();
+		return (EnumType)values.GetValue(rand.Next(values.Length));
 	}
 }
