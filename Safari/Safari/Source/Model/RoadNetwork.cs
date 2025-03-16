@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -30,8 +31,11 @@ public class RoadNetwork {
 		this.width = width;
 		this.height = height;
 		network = new RoadState[width, height];
+		SetAt(start, RoadState.Road);
+		SetAt(end, RoadState.Road);
 		this.start = start;
 		this.end = end;
+		cachedRoutes = new();
 	}
 
 	/// <summary>
@@ -45,7 +49,7 @@ public class RoadNetwork {
 		}
 		if (!GetRoad(x, y)) {
 			network[x, y] = RoadState.Road;
-			UpdateNetwork();
+			//UpdateNetwork();
 		}
 	}
 	/// <summary>
@@ -115,15 +119,85 @@ public class RoadNetwork {
 	}
 
 	// Must be called every time a road tile changes
-	private void UpdateNetwork() {
+	public void UpdateNetwork() {
 		cachedRoutes = new();
 		CalculateAllRoutes();
 		NetworkCleanup();
 	}
 
+	private void SaveRoute(List<Point> route) {
+		cachedRoutes.Add(new List<Point>(route));
+	}
+
+	private RoadState StateAt(Point p) => BoundsCheck(p.X, p.Y) ? network[p.X, p.Y] : RoadState.Empty;
+
+	private void SetAt(Point p, RoadState state) => network[p.X, p.Y] = state;
+
 	// Iterate through all possible valid, acyclic routes from the start point to the end point, 
 	// and save all completed routes into cachedRoutes
 	private void CalculateAllRoutes() {
-		// TODO
+		if (StateAt(start) != RoadState.Road || StateAt(end) != RoadState.Road) {
+			return;
+		}
+		Point current = start; // The point the algorithm is currently on
+		List<Point> route = new List<Point>() { current };
+		do {
+			if (current == end) {
+				// save current route and step back (maybe maxroute, maybe primary and secondary direction)
+				SaveRoute(route);
+
+				route.RemoveAt(route.Count - 1);
+				current = route.Last();
+				continue;
+			}
+
+			// try stepping up
+			if (StateAt(current) == RoadState.Road) {
+				Point next = new Point(current.X, current.Y - 1);
+				SetAt(current, RoadState.UsedUp);
+				if (StateAt(next) == RoadState.Road) {
+					current = next;
+					route.Add(current);
+					continue;
+				}
+			}
+			// try stepping right
+			if (StateAt(current) == RoadState.UsedUp) {
+				Point next = new Point(current.X + 1, current.Y);
+				SetAt(current, RoadState.UsedRight);
+				if (StateAt(next) == RoadState.Road) {
+					current = next;
+					route.Add(current);
+					continue;
+				}
+			}
+			// try stepping down
+			if (StateAt(current) == RoadState.UsedRight) {
+				Point next = new Point(current.X, current.Y + 1);
+				SetAt(current, RoadState.UsedDown);
+				if (StateAt(next) == RoadState.Road) {
+					current = next;
+					route.Add(current);
+					continue;
+				}
+			}
+			// try stepping left
+			if (StateAt(current) == RoadState.UsedDown) {
+				Point next = new Point(current.X - 1, current.Y);
+				SetAt(current, RoadState.UsedLeft);
+				if (StateAt(next) == RoadState.Road) {
+					current = next;
+					route.Add(current);
+					continue;
+				}
+			}
+
+			// step back, all routes from the current route have been discovered
+			if (StateAt(current) == RoadState.UsedLeft && current != start) {
+				SetAt(current, RoadState.Road);
+				route.RemoveAt(route.Count - 1);
+				current = route.Last();
+			}
+		} while (current != start || StateAt(current) != RoadState.UsedLeft);
 	}
 }
