@@ -46,8 +46,9 @@ public class Game : Engine.Game {
 		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
+        UserInterface.Active.UseRenderTarget = true;
 
-		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
+        foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			debugInfoParagraphs[pos] = new Paragraph();
 		}
 
@@ -132,9 +133,12 @@ public class Game : Engine.Game {
 
 		DateTime start = DateTime.Now;
 
-		base.Draw(gameTime);
 		UserInterface.Active.Draw(SpriteBatch);
 
+		base.Draw(gameTime);
+        
+		UserInterface.Active.DrawMainRenderTarget(SpriteBatch);
+        
 		drawTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 	}
 
