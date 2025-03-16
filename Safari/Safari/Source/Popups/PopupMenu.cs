@@ -1,7 +1,7 @@
 ﻿using GeonBit.UI;
 using GeonBit.UI.Entities;
 
-namespace Safari.Source.Popups;
+namespace Safari.Popups;
 
 abstract class PopupMenu {
     protected Panel panel;
@@ -13,8 +13,10 @@ abstract class PopupMenu {
         UserInterface.Active.AddEntity(this.panel);
     }
 
-    //Hides the popup
-    protected void Hide() {
+    /// <summary>
+    /// Hides the popup.
+    /// </summary>
+    public virtual void Hide() {
         UserInterface.Active.RemoveEntity(this.panel);
     }
 }

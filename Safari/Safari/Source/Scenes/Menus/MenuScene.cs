@@ -2,7 +2,7 @@
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 
-namespace Safari.Source.Scenes.Menus;
+namespace Safari.Scenes.Menus;
 abstract class MenuScene : Scene {
     private Panel container;
 

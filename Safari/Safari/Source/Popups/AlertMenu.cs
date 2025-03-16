@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Safari.Source.Popups;
+namespace Safari.Popups;
 
 class AlertMenu : PopupMenu {
     private Header header;
@@ -17,11 +17,11 @@ class AlertMenu : PopupMenu {
     /// </summary>
     /// <param name="header">Header text</param>
     /// <param name="text">Main body of text for the popup</param>
-    /// <param name="button1">Button text</param>
-    public AlertMenu(string header, string text, string button1) {
+    /// <param name="button">Button text</param>
+    public AlertMenu(string header, string text, string button = "OK") {
         PrepareUIElements(header, text);
 
-        this.button1 = new Button(button1, ButtonSkin.Default, Anchor.BottomCenter);
+        this.button1 = new Button(button, ButtonSkin.Default, Anchor.BottomCenter);
         this.button1.OnClick = Agree;
         this.button1.Size = new Vector2(0.4f, 0.2f);
         this.button1.Offset = new Vector2(0.1f, 0.1f);
@@ -38,13 +38,13 @@ class AlertMenu : PopupMenu {
     /// </summary>
     /// <param name="header">Header text</param>
     /// <param name="text">Main body of text for the popup</param>
-    /// <param name="button1">Button text for the button that returns true</param>
-    /// <param name="button2">Button text for the button that returns false</param>
-    public AlertMenu(string header, string text, string button1, string button2) {
+    /// <param name="agreeButton">Button text for the button that returns true</param>
+    /// <param name="disagreeButton">Button text for the button that returns false</param>
+    public AlertMenu(string header, string text, string agreeButton, string disagreeButton) {
         PrepareUIElements(header, text);
 
         //Button 1 styling
-        this.button1 = new Button(button1, ButtonSkin.Default, Anchor.BottomLeft);
+        this.button1 = new Button(agreeButton, ButtonSkin.Default, Anchor.BottomLeft);
         this.button1.OnClick = Agree;
         this.button1.Size = new Vector2(0.4f, 0.2f);
         this.button1.Offset = new Vector2(0.1f, 0.1f);
@@ -52,7 +52,7 @@ class AlertMenu : PopupMenu {
         this.button1.MaxSize = new Vector2(200, 100);
 
         //Button 2 styling
-        this.button2 = new Button(button2, ButtonSkin.Default, Anchor.BottomRight);
+        this.button2 = new Button(disagreeButton, ButtonSkin.Default, Anchor.BottomRight);
         this.button2.OnClick = Disagree;
         this.button2.Size = new Vector2(0.4f, 0.2f);
         this.button2.Offset = new Vector2(0.1f, 0.1f);
