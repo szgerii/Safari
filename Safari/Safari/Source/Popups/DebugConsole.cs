@@ -1,21 +1,20 @@
 ﻿using Engine.Debug;
-using Engine.Input;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Safari.Debug;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Safari.Popups;
 class DebugConsole : PopupMenu {
     private static DebugConsole instance = new DebugConsole();
     private Panel consoleTextPanel;
-    private Paragraph consoleText;
+    private Paragraph consoleTextLog;
     private TextInput input;
     private Button closeButton;
     private bool visible;
 
+    /// <summary>
+    /// This provides accessibility to the debug console and its methods.
+    /// </summary>
     public static DebugConsole Instance => instance;
 
     private DebugConsole() {
@@ -33,10 +32,10 @@ class DebugConsole : PopupMenu {
         this.consoleTextPanel.Scrollbar.AdjustMaxAutomatically = true;
 
         //initialize the console text container
-        this.consoleText = new Paragraph("");
-        this.consoleText.Padding = new Vector2(0);
+        this.consoleTextLog = new Paragraph("");
+        this.consoleTextLog.Padding = new Vector2(0);
 
-        this.consoleTextPanel.AddChild(this.consoleText);
+        this.consoleTextPanel.AddChild(this.consoleTextLog);
 
         //initialize the text input and style it
         this.input = new TextInput(true, new Vector2(0.9f, 0.2f), Anchor.BottomLeft, null);
@@ -45,7 +44,7 @@ class DebugConsole : PopupMenu {
         this.input.PlaceholderText = "Text here";
 
         //initialize the close button and style it
-        this.closeButton = new Button("", ButtonSkin.Default, Anchor.BottomRight, new Vector2(0.1f,0.2f));
+        this.closeButton = new Button("", ButtonSkin.Default, Anchor.BottomRight, new Vector2(0.1f, 0.2f));
         this.closeButton.Padding = new Vector2(0);
         this.closeButton.ClearChildren();
         Paragraph p = new Paragraph("X", Anchor.Center, new Vector2(0));
@@ -60,6 +59,9 @@ class DebugConsole : PopupMenu {
         this.panel.AddChild(this.consoleTextPanel);
     }
 
+    /// <summary>
+    /// Shows or hides the debug console. Default hotkey: F1
+    /// </summary>
     public void ToggleDebugConsole() {
         if (visible) {
             UserInterface.Active.RemoveEntity(this.panel);
@@ -70,22 +72,28 @@ class DebugConsole : PopupMenu {
         }
     }
 
+    //Scrolls the text log to the bottom.
     private void ScrollConsoleDown() {
-        this.consoleTextPanel.Scrollbar.Value = this.consoleTextPanel.Scrollbar.Max+50;
+        this.consoleTextPanel.Scrollbar.Value = this.consoleTextPanel.Scrollbar.Max + 50;
     }
 
+    /// <summary>
+    /// This method provies a way to write text to the console.
+    /// </summary>
+    /// <param name="text">The text you want to output to the console.</param>
     public void WriteToConsole(string text) {
-        this.consoleText.Text += "> ";
-        this.consoleText.Text += text;
-        this.consoleText.Text += '\n';
+        this.consoleTextLog.Text += "> ";
+        this.consoleTextLog.Text += text;
+        this.consoleTextLog.Text += '\n';
         ScrollConsoleDown();
     }
-    
+
+    //Checks if the user had hit an Enter and if yes, outputs it and tries to run the entered text as debug command.
     private void ProccesInput(Entity entity) {
         if (this.input.Value.Length == 0) {
             return;
         }
-        if(this.input.Value[this.input.Value.Length-1] == '\n' || this.input.Value[this.input.Value.Length - 1] == '\r') {
+        if (this.input.Value[this.input.Value.Length - 1] == '\n' || this.input.Value[this.input.Value.Length - 1] == '\r') {
             string input = this.input.Value.TrimEnd('\r', '\n');
             WriteToConsole(input);
             ScrollConsoleDown();
@@ -96,7 +104,7 @@ class DebugConsole : PopupMenu {
 
             }
             try {
-                DebugMode.ToggleFeature(input); 
+                DebugMode.ToggleFeature(input);
             } catch {
 
             }
