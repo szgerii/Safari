@@ -14,10 +14,22 @@ public abstract class Entity : GameObject {
 
 	public Entity(Vector2 pos) : base(pos) { }
 
+	/// <summary>
+	/// Invoked every time an in-game hour passes for this entity
+	/// </summary>
 	public event EventHandler? HourPassed;
+	/// <summary>
+	/// Invoked every time an in-game day passes for this entity
+	/// </summary>
 	public event EventHandler? DayPassed;
+	/// <summary>
+	/// Invoked every time an in-game week passes for this entity
+	/// </summary>
 	public event EventHandler? WeekPassed;
 
+	/// <summary>
+	/// Entity name to display in the shop / manager screens
+	/// </summary>
 	public string DisplayName => displayName;
 
 	public override void Load() {
