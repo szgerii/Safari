@@ -72,6 +72,10 @@ public class Actions {
 	private Dictionary<string, ReleasedCallback> releasedCallbacks = new Dictionary<string, ReleasedCallback>();
 
 	internal void UpdateEvents() {
+		if (!InputManager.IsGameFocused) {
+			return;
+		}
+
 		foreach (string name in pressedCallbacks.Keys) {
 			if (JustPressed(name)) {
 				pressedCallbacks[name]();
@@ -194,6 +198,10 @@ public class Actions {
 	}
 
 	internal bool IsDown(KeyboardState ks, MouseState ms, GamePadState gps, ActionSegment action) {
+		if (!InputManager.IsGameFocused) {
+			return false;
+		}
+		
 		if (InputManager.ActiveDevice == ActiveDevice.KeyboardMouse || !LockToActiveDevice) {
 			foreach (Keys key in action.keys) {
 				if (ks.IsKeyDown(key)) {

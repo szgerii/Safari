@@ -2,6 +2,7 @@ using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Engine.Debug;
 
@@ -33,6 +34,10 @@ public class DebugMode {
 
 	public static void AddFeature(ExecutedDebugFeature feature) => ExecutedFeatures.Add(feature);
 	public static void AddFeature(LoopedDebugFeature feature) => LoopedFeatures.Add(feature);
+
+	public static bool HasFeature(string name) => HasExecutedFeature(name) || HasLoopedFeature(name);
+	public static bool HasExecutedFeature(string name) => ExecutedFeatures.Any(e => e.Name == name);
+	public static bool HasLoopedFeature(string name) => LoopedFeatures.Any(e => e.Name == name);
 
 	public static void Execute(string name) => Execute(GetExecutedFeature(name));
 	private static void Execute(ExecutedDebugFeature feature) {

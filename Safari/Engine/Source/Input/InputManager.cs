@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using GeonBit.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
 
@@ -28,6 +29,8 @@ public static class InputManager {
 	public static event EventHandler<ActiveDevice> ActiveDeviceChanged;
 	public static int ActiveGamepad { get; private set; } = 1;
 	public static bool ShowCursor { get; set; } = true;
+
+	public static bool IsGameFocused => UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
 
 	public static void Initialize() {
 		currentKS = Microsoft.Xna.Framework.Input.Keyboard.GetState();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using GeonBit.UI;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
@@ -20,6 +21,10 @@ public class Keyboard {
 	private Dictionary<Keys, ReleasedCallback> releasedCallbacks = new Dictionary<Keys, ReleasedCallback>();
 
 	internal void UpdateEvents() {
+		if (!InputManager.IsGameFocused) {
+			return;
+		}
+
 		foreach (Keys key in pressedCallbacks.Keys) {
 			if (JustPressed(key)) {
 				pressedCallbacks[key]();
@@ -36,7 +41,7 @@ public class Keyboard {
 	/// <summary>
 	/// Checks whether the given key is down in the current frame
 	/// </summary>
-	public bool IsDown(Keys key) => CurrentKS.IsKeyDown(key);
+	public bool IsDown(Keys key) => InputManager.IsGameFocused && CurrentKS.IsKeyDown(key);
 
 	/// <summary>
 	/// Checks whether the given key is up in the current frame
@@ -47,13 +52,13 @@ public class Keyboard {
 	/// Checks whether the given key was just pressed in this frame,
 	/// meaning it wasn't down in the previous frame, but now is
 	/// </summary>
-	public bool JustPressed(Keys key) => CurrentKS.IsKeyDown(key) && !PrevKS.IsKeyDown(key);
+	public bool JustPressed(Keys key) => InputManager.IsGameFocused && CurrentKS.IsKeyDown(key) && !PrevKS.IsKeyDown(key);
 
 	/// <summary>
 	/// Checks whether the given key was just released in this frame,
 	/// meaning it was down in the previous frame, but now isn't
 	/// </summary>
-	public bool JustReleased(Keys key) => CurrentKS.IsKeyUp(key) && !PrevKS.IsKeyUp(key);
+	public bool JustReleased(Keys key) => InputManager.IsGameFocused && CurrentKS.IsKeyUp(key) && !PrevKS.IsKeyUp(key);
 
 	/// <summary>
 	/// Checks whether a given key is down, and ensures that, using this function, 
