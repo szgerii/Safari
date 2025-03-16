@@ -16,6 +16,15 @@ public class Game : Microsoft.Xna.Framework.Game {
 	public static RenderTarget2D RenderTarget { get; protected set; }
 	public static ContentManager ContentManager => Instance.Content;
 
+	public static float RenderTargetScale {
+		get {
+			float scaleX = Graphics.PreferredBackBufferWidth / (float)RenderTarget.Width;
+			float scaleY = Graphics.PreferredBackBufferHeight / (float)RenderTarget.Height;
+
+			return Math.Min(scaleX, scaleY);
+		}
+	}
+
 	#region SHORTHANDS
 	public static void AddObject(GameObject obj) => SceneManager.Active.AddObject(obj);
 	public static void RemoveObject(GameObject obj) => SceneManager.Active.RemoveObject(obj);
@@ -62,9 +71,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 	}
 
 	protected override void Draw(GameTime gameTime) {
-		float scaleX = Graphics.PreferredBackBufferWidth / (float)RenderTarget.Width;
-		float scaleY = Graphics.PreferredBackBufferHeight / (float)RenderTarget.Height;
-		float scale = Math.Min(scaleX, scaleY);
+		float scale = RenderTargetScale;
 
 		float diffX = Graphics.PreferredBackBufferWidth - scale * RenderTarget.Width;
 		float diffY = Graphics.PreferredBackBufferHeight - scale * RenderTarget.Height;

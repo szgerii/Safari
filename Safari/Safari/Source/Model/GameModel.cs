@@ -1,5 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+using Engine.Debug;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Safari.Model.Tiles;
 using System;
+using System.Collections.Generic;
 
 namespace Safari.Model;
 
@@ -106,6 +110,11 @@ public class GameModel {
 	/// </summary>
 	public DateTime IngameDate => startDate.AddDays(currentTime / dayLength);
 
+	/// <summary>
+	/// The current game level's tilemap
+	/// </summary>
+	public Level Level { get; set; }
+
 	public int EntityCount {
 		get => entityCount;
 		set => entityCount = value;
@@ -144,6 +153,15 @@ public class GameModel {
 		this.funds = funds;
 		this.difficulty = difficulty;
 		this.startDate = startDate;
+
+		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
+		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
+
+		GenerateTestLevel();
+
+		Game.AddObject(Level);
+
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
 
 	/// <summary>
@@ -164,6 +182,41 @@ public class GameModel {
 	public void Resume() {
 		if (gameSpeed == GameSpeed.Paused) {
 			gameSpeed = prevSpeed;
+		}
+	}
+
+	// TODO: remove once not needed
+	private void GenerateTestLevel() {
+		List<List<Tile>> tiles = new();
+		tiles.Add([
+			new Bush(),
+			new WideBush()
+		]);
+		tiles.Add([
+			new Tree(TreeType.Digitata),
+			new Tree(TreeType.Grandideri),
+			new Tree(TreeType.ShortGrandideri),
+			new Tree(TreeType.Gregorii),
+		]);
+		tiles.Add([
+			new Tree(TreeType.Rubrostipa),
+			new Tree(TreeType.Suarazensis),
+			new Tree(TreeType.Za)
+		]);
+
+		int x = 0, y = 0;
+		foreach (List<Tile> row in tiles) {
+			x = 0;
+
+			int maxY = -1;
+			foreach (Tile tile in row) {
+				Level.SetTile(x + tile.AnchorTile.X, y + tile.AnchorTile.Y, tile);
+
+				x += tile.Size.X;
+				if (tile.Size.Y > maxY) maxY = tile.Size.Y;
+			}
+
+			y += maxY;
 		}
 	}
 }
