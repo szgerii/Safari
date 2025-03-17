@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace Safari.Objects.Entities;
 
+[SimulationActor]
 public abstract class Entity : GameObject {
 	/// <summary>
 	/// Invoked every time an in-game hour passes for this entity

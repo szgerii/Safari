@@ -5,6 +5,8 @@ using Safari.Model;
 using Engine.Collision;
 using Safari.Components;
 using System;
+using Engine;
+using System.Collections.Generic;
 
 namespace Safari.Scenes;
 
@@ -13,6 +15,9 @@ public class GameScene : Scene {
 	public static GameScene Active => SceneManager.Active as GameScene;
 	public GameModel Model => model;
 
+	private readonly List<GameObject> simulationActors = [];
+	private readonly Queue<GameObject> simulationActorAddQueue = new();
+	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
 	public override void Unload() {
 		base.Unload();
@@ -44,11 +49,54 @@ public class GameScene : Scene {
 	}
 
 	public override void Update(GameTime gameTime) {
-		for (int i = 0; i < model.SpeedMultiplier; i++) {
-			model.Advance(gameTime);
+		PerformPreUpdate(gameTime);
+
+		model.Advance(gameTime);
+		foreach (GameObject obj in GameObjects) {
+			obj.Update(gameTime);
 		}
 
-		base.Update(gameTime);
+		for (int i = 0; i < model.SpeedMultiplier - 1; i++) {
+			model.Advance(gameTime);
+
+			foreach (GameObject actor in simulationActors) {
+				actor.Update(gameTime);
+			}
+		}
+
+		PerformPostUpdate(gameTime);
+	}
+
+	public override void AddObject(GameObject obj) {
+		if (Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+			simulationActorAddQueue.Enqueue(obj);
+		}
+
+		base.AddObject(obj);
+	}
+
+	public override void RemoveObject(GameObject obj) {
+		if (Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+			simulationActorRemoveQueue.Enqueue(obj);
+		}
+
+		base.RemoveObject(obj);
+	}
+
+	public override void PerformObjectAdditions() {
+		while (simulationActorAddQueue.Count > 0) {
+			simulationActors.Add(simulationActorAddQueue.Dequeue());
+		}
+
+		base.PerformObjectAdditions();
+	}
+
+	public override void PerformObjectRemovals() {
+		while (simulationActorRemoveQueue.Count > 0) {
+			simulationActors.Remove(simulationActorRemoveQueue.Dequeue());
+		}
+
+		base.PerformObjectRemovals();
 	}
 
 	private void CreateCamera(Rectangle bounds) {
