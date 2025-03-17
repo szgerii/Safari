@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Objects.Entities.Animals;
+using Safari.Scenes;
 
 namespace Safari.Objects.Entities;
 public class Ranger : Entity {
@@ -28,6 +29,18 @@ public class Ranger : Entity {
 	}
 
 	public Ranger(Vector2 pos) : base(pos) {
-		displayName = "Ranger";
+		DisplayName = "Ranger";
+	}
+
+	public override void Load() {
+		GameScene.Active.Model.RangerCount++;
+
+		base.Load();
+	}
+
+	public override void Unload() {
+		GameScene.Active.Model.RangerCount--;
+
+		base.Unload();
 	}
 }

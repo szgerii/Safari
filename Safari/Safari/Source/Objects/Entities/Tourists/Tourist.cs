@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
@@ -52,6 +53,18 @@ public class Tourist : Entity {
 	public event EventHandler<JeepAvailableEventArgs>? JeepAvailable;
 
 	public Tourist(Vector2 pos) : base(pos) {
-		displayName = "Tourist";
+		DisplayName = "Tourist";
+	}
+
+	public override void Load() {
+		GameScene.Active.Model.TouristCount++;
+
+		base.Load();
+	}
+
+	public override void Unload() {
+		GameScene.Active.Model.TouristCount--;
+
+		base.Unload();
 	}
 }

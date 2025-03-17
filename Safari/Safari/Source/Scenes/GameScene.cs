@@ -5,9 +5,6 @@ using Safari.Model;
 using Engine.Collision;
 using Safari.Components;
 using System;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
-using Safari.Objects.Entities;
 
 namespace Safari.Scenes;
 
@@ -50,44 +47,8 @@ public class GameScene : Scene {
 		for (int i = 0; i < model.SpeedMultiplier; i++) {
 			model.Advance(gameTime);
 		}
+
 		base.Update(gameTime);
-	}
-
-	private void ChangeEntityCount(Engine.GameObject obj, int value) {
-		if (obj is Entity) {
-			model.EntityCount += value;
-			if (obj is Animal) {
-				model.AnimalCount += value;
-				if (obj is Lion || obj is Tiger) {
-					model.CarnivoreCount += value;
-				}
-				if (obj is Elephant || obj is Zebra) {
-					model.HerbivoreCount += value;
-				}
-			}
-			if (obj is Tourist) {
-				model.TouristCount += value;
-			}
-			if (obj is Jeep) {
-				model.JeepCount += value;
-			}
-			if (obj is Poacher) {
-				model.PoacherCount += value;
-			}
-			if (obj is Ranger) {
-				model.RangerCount += value;
-			}
-		}
-	}
-
-	public override void AddObject(Engine.GameObject obj) {
-		ChangeEntityCount(obj, 1);
-		base.AddObject(obj);
-	}
-
-	public override void RemoveObject(Engine.GameObject obj) {
-		ChangeEntityCount(obj, -1);
-		base.RemoveObject(obj);
 	}
 
 	private void CreateCamera(Rectangle bounds) {
