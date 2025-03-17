@@ -1,19 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices.Marshalling;
 
 namespace Safari.Model;
 
 public enum RoadState {
 	Empty,
 	Road, // when calculating routes, this means "unused"
-	
+
 	// only used during route calculations
-	UsedUp, 
+	UsedUp,
 	UsedRight,
 	UsedDown,
 	UsedLeft
@@ -25,7 +22,27 @@ public class RoadNetwork {
 	private RoadState[,] network;
 	private Point start;
 	private Point end;
-	private List<List<Point>> cachedRoutes;
+	private List<List<Point>> cachedRoutes = new();
+	private bool upToDate = false;
+	private Random rand = new Random();
+
+	public IReadOnlyList<List<Point>> Routes {
+		get {
+			if (!upToDate) {
+				UpdateNetwork();
+			}
+			return cachedRoutes;
+		}
+	}
+
+	public List<Point> RandomRoute {
+		get {
+			if (!upToDate) {
+				UpdateNetwork();
+			}
+			return cachedRoutes[rand.Next(cachedRoutes.Count)];
+		}
+	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {
 		this.width = width;
@@ -35,7 +52,6 @@ public class RoadNetwork {
 		SetAt(end, RoadState.Road);
 		this.start = start;
 		this.end = end;
-		cachedRoutes = new();
 	}
 
 	/// <summary>
@@ -49,7 +65,9 @@ public class RoadNetwork {
 		}
 		if (!GetRoad(x, y)) {
 			network[x, y] = RoadState.Road;
-			//UpdateNetwork();
+			if (upToDate) {
+				upToDate = false;
+			}
 		}
 	}
 	/// <summary>
@@ -69,7 +87,9 @@ public class RoadNetwork {
 		}
 		if (GetRoad(x, y)) {
 			network[x, y] = RoadState.Empty;
-			UpdateNetwork();
+			if (upToDate) {
+				upToDate = false;
+			}
 		}
 	}
 	/// <summary>
@@ -101,7 +121,7 @@ public class RoadNetwork {
 	private bool BoundsCheck(int x, int y) {
 		return (
 			x >= 0 &&
-			y >=0 &&
+			y >= 0 &&
 			x < width &&
 			y < height
 		);
@@ -119,9 +139,13 @@ public class RoadNetwork {
 	}
 
 	// Must be called every time a road tile changes
-	public void UpdateNetwork() {
+	private void UpdateNetwork() {
 		cachedRoutes = new();
 		CalculateAllRoutes();
+		if (cachedRoutes.Count == 0) {
+			// maybe try finding fastest route instead?
+		}
+		upToDate = true;
 		NetworkCleanup();
 	}
 
