@@ -25,8 +25,17 @@ public class RoadNetwork {
 	private List<List<Point>> cachedRoutes = new();
 	private bool upToDate = false;
 	private Random rand = new Random();
+	private const int max_routes = 10000;
+	private const int max_backtracks = 1000000;
 
-	public IReadOnlyList<List<Point>> Routes {
+	/// <summary>
+	/// Retrieve all routes in the network <br />
+	/// A route includes both the start point and the end point <br />
+	/// (if the network has changed since the last time a route has been
+	/// requested, all routes are recalculated) <br />
+	/// Note that this could be an empty list
+	/// </summary>
+	public List<List<Point>> Routes {
 		get {
 			if (!upToDate) {
 				UpdateNetwork();
@@ -35,12 +44,19 @@ public class RoadNetwork {
 		}
 	}
 
-	public List<Point> RandomRoute {
+	/// <summary>
+	/// Retrieve a random route from the network <br />
+	/// A route includes both the start point and the end points <br />
+	/// (if the network has changed since the last time a route has been
+	/// requested, all routes are recalculated) <br />
+	/// Note that his could be null, which means that there are no valid routes
+	/// </summary>
+	public List<Point>? RandomRoute {
 		get {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes[rand.Next(cachedRoutes.Count)];
+			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : null;
 		}
 	}
 
@@ -142,11 +158,11 @@ public class RoadNetwork {
 	private void UpdateNetwork() {
 		cachedRoutes = new();
 		CalculateAllRoutes();
+		NetworkCleanup();
 		if (cachedRoutes.Count == 0) {
 			// maybe try finding fastest route instead?
 		}
 		upToDate = true;
-		NetworkCleanup();
 	}
 
 	private void SaveRoute(List<Point> route) {
@@ -165,11 +181,16 @@ public class RoadNetwork {
 		}
 		Point current = start; // The point the algorithm is currently on
 		List<Point> route = new List<Point>() { current };
+		int backtracks = 0;
+		int routes = 0;
 		do {
 			if (current == end) {
-				// save current route and step back (maybe maxroute, maybe primary and secondary direction)
+				// save current route and step back (maybe primary and secondary direction)
 				SaveRoute(route);
-
+				routes++;
+				if (routes >= max_routes) {
+					return;
+				}
 				route.RemoveAt(route.Count - 1);
 				current = route.Last();
 				continue;
@@ -221,6 +242,10 @@ public class RoadNetwork {
 				SetAt(current, RoadState.Road);
 				route.RemoveAt(route.Count - 1);
 				current = route.Last();
+				backtracks++;
+				if (backtracks >= max_backtracks) {
+					return;
+				}
 			}
 		} while (current != start || StateAt(current) != RoadState.UsedLeft);
 	}
