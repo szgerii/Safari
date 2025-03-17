@@ -1,7 +1,9 @@
 using Engine.Debug;
+using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Model.Tiles;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
@@ -147,6 +149,50 @@ public class GameModel {
 		get => rangerCount;
 		set => rangerCount = value;
 	}
+
+	static GameModel() {
+        DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
+            if (SceneManager.Active is GameScene) {
+                GameModel model = GameScene.Active.Model;
+                switch (model.GameSpeed) {
+                    case GameSpeed.Slow: model.GameSpeed = GameSpeed.Medium; break;
+                    case GameSpeed.Medium: model.GameSpeed = GameSpeed.Fast; break;
+                    case GameSpeed.Fast: model.GameSpeed = GameSpeed.Slow; break;
+                }
+            }
+        }));
+
+        DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", () => {
+            if (SceneManager.Active is GameScene) {
+                GameModel model = GameScene.Active.Model;
+                model.GameSpeed = GameSpeed.Slow;
+            }
+        }));
+
+        DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", () => {
+            if (SceneManager.Active is GameScene) {
+                GameModel model = GameScene.Active.Model;
+                model.GameSpeed = GameSpeed.Medium;
+            }
+        }));
+
+        DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", () => {
+            if (SceneManager.Active is GameScene) {
+                GameModel model = GameScene.Active.Model;
+                model.GameSpeed = GameSpeed.Fast;
+            }
+        }));
+
+        DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
+            if (SceneManager.Active is GameScene) {
+                GameModel model = GameScene.Active.Model;
+                switch (model.GameSpeed) {
+                    case GameSpeed.Paused: model.Resume(); break;
+                    default: model.Pause(); break;
+                }
+            }
+        }));
+    }
 
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		this.parkName = parkName;

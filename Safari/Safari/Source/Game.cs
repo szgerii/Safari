@@ -76,27 +76,6 @@ public class Game : Engine.Game {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
-			if (SceneManager.Active is GameScene) {
-				GameModel model = GameScene.Active.Model;
-				switch (model.GameSpeed) {
-					case GameSpeed.Slow: model.GameSpeed = GameSpeed.Medium; break;
-					case GameSpeed.Medium: model.GameSpeed = GameSpeed.Fast; break;
-					case GameSpeed.Fast: model.GameSpeed = GameSpeed.Slow; break;
-				}
-			}
-		}));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
-			if (SceneManager.Active is GameScene) {
-				GameModel model = GameScene.Active.Model;
-				switch (model.GameSpeed) {
-					case GameSpeed.Paused: model.Resume(); break;
-					default: model.Pause(); break;
-				}
-			}
-		}));
-
 		DebugMode.Enable();
 	}
 
