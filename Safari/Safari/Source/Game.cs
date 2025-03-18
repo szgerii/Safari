@@ -6,6 +6,7 @@ using Safari.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
 using System;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
@@ -23,13 +24,18 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		base.Initialize();
 
-		//DisplayManager.SetTargetFPS(60, false);
+		// DisplayManager.SetTargetFPS(90, false);
 		DisplayManager.SetVSync(true, true);
 
 		InputSetup();
 
-		GameScene scn = new();
-		SceneManager.Load(scn);
+		SceneManager.LoadedScene += (object sender, Scene s) => {
+			if (s is GameScene gs) {
+				gs.Model.GenerateTestLevel();
+			}
+		};
+
+		SceneManager.Load(new GameScene());
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
@@ -38,9 +44,13 @@ public class Game : Engine.Game {
 
 		// GeonBit
 
-		UserInterface.Initialize(Content, BuiltinThemes.editor);
+		// create separate content manager for geonbit, so we can unload our assets in peace
+		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
+
+		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
+
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			debugInfoParagraphs[pos] = new Paragraph();
 		}
@@ -172,12 +182,13 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
 		// debug
-		InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
-		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));		
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
 		InputManager.Keyboard.OnPressed(Keys.L, () => DebugMode.Execute("toggle-simulation"));
+		InputManager.Keyboard.OnPressed(Keys.G, () => DebugMode.ToggleFeature("draw-grid"));
+		InputManager.Keyboard.OnPressed(Keys.H, () => DebugMode.ToggleFeature("animal-indicators"));
+		InputManager.Keyboard.OnPressed(Keys.X, () => DebugMode.ToggleFeature("entity-interact-bounds"));
 	}
 
 	private void PrintModelDebugInfos() {
@@ -195,5 +206,7 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
 	}
 }

@@ -1,12 +1,12 @@
 using Engine.Objects;
-using Engine.Components;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Model;
-using Safari.Objects;
+using Engine.Collision;
 using Safari.Components;
 using System;
+using Engine;
+using System.Collections.Generic;
 
 namespace Safari.Scenes;
 
@@ -15,50 +15,33 @@ public class GameScene : Scene {
 	public static GameScene Active => SceneManager.Active as GameScene;
 	public GameModel Model => model;
 
+	private readonly List<GameObject> simulationActors = [];
+	private readonly Queue<GameObject> simulationActorAddQueue = new();
+	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
 	public override void Unload() {
-		// PostUpdate -= CollisionManager.PostUpdate;
-		
 		base.Unload();
+
+		PostUpdate -= CollisionManager.PostUpdate;
+		Game.ContentManager.Unload();
 	}
 
 	public override void Load() {
-		// CollisionManager.Init(numOfCellsInRow, numOfCellsInCol, cellSize);
-		// PostUpdate += CollisionManager.PostUpdate;
-
 		// init game model
 		// The start of the game is always <date of creation> 6 am
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
-	
-		// test scene
-		Texture2D brushTex = Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush1");
 
-		int hCount = (Game.RenderTarget.Width * 2 / 32);
-		int vCount = (Game.RenderTarget.Height * 2 / 32);
-		for (int i = 0; i < hCount; i++) {
-			for (int j = 0; j < vCount; j++) {
-				int x = i * 32;
-				int y = j * 32;
-
-				if (x % 64 == y % 64) {
-					continue;
-				}
-
-				Tile t = new Tile(new Vector2(x, y), brushTex);
-				t.GetComponent<SpriteCmp>().Tint = new Color(i / (float)hCount, j / (float)vCount, 1);
-				AddObject(t);
-			}
-		}
+		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
+		PostUpdate += CollisionManager.PostUpdate;
 
 		// init camera
 		CreateCamera(
 			new Rectangle(
-				0,
-				0,
-				hCount * 32,
-				vCount * 32
+				0, 0,
+				model.Level.MapWidth * model.Level.TileSize,
+				model.Level.MapHeight * model.Level.TileSize
 			)
 		);
 
@@ -66,10 +49,59 @@ public class GameScene : Scene {
 	}
 
 	public override void Update(GameTime gameTime) {
-		for (int i = 0; i < model.SpeedMultiplier; i++) {
+		PerformPreUpdate(gameTime);
+
+		if (model.GameSpeed != GameSpeed.Paused) {
 			model.Advance(gameTime);
 		}
-		base.Update(gameTime);
+
+		foreach (GameObject obj in GameObjects) {
+			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+				obj.Update(gameTime);
+			}
+		}
+
+		for (int i = 0; i < model.SpeedMultiplier - 1; i++) {
+			model.Advance(gameTime);
+
+			foreach (GameObject actor in simulationActors) {
+				actor.Update(gameTime);
+			}
+		}
+
+		PerformPostUpdate(gameTime);
+	}
+
+	public override void AddObject(GameObject obj) {
+		if (Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+			simulationActorAddQueue.Enqueue(obj);
+		}
+
+		base.AddObject(obj);
+	}
+
+	public override void RemoveObject(GameObject obj) {
+		if (Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+			simulationActorRemoveQueue.Enqueue(obj);
+		}
+
+		base.RemoveObject(obj);
+	}
+
+	public override void PerformObjectAdditions() {
+		while (simulationActorAddQueue.Count > 0) {
+			simulationActors.Add(simulationActorAddQueue.Dequeue());
+		}
+
+		base.PerformObjectAdditions();
+	}
+
+	public override void PerformObjectRemovals() {
+		while (simulationActorRemoveQueue.Count > 0) {
+			simulationActors.Remove(simulationActorRemoveQueue.Dequeue());
+		}
+
+		base.PerformObjectRemovals();
 	}
 
 	private void CreateCamera(Rectangle bounds) {
