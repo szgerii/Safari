@@ -1,4 +1,5 @@
 ﻿using Engine.Debug;
+using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using System.Text;
@@ -11,6 +12,7 @@ class DebugConsole : PopupMenu {
     private TextInput input;
     private bool visible;
     private StringBuilder builder;
+    private int scrollNeeded;
 
     /// <summary>
     /// This provides accessibility to the debug console and its methods.
@@ -39,17 +41,28 @@ class DebugConsole : PopupMenu {
         consoleTextPanel.AddChild(this.consoleTextLog);
 
         //initialize the text input and style it
-        input = new TextInput(true, new Vector2(0f, 0.15f), Anchor.BottomLeft, null);
+        input = new TextInput(true, new Vector2(0f, 60), Anchor.BottomLeft, null);
+        input.MaxSize = new Vector2(0f, 100);
         input.Identifier = "debug-console-input";
         input.OnValueChange = ProccesInput;
         input.PlaceholderText = "Type here";
-        input.Padding = new Vector2(20, 10);
+        input.Padding = new Vector2(10, 15);
 
         builder = new StringBuilder();
 
         //set up the main panel
         panel.AddChild(this.input);
         panel.AddChild(this.consoleTextPanel);
+
+        scrollNeeded = 0;
+
+        //autoscroll to the bottom
+        consoleTextLog.AfterDraw = (Entity entity) => {
+            if(scrollNeeded > 0) {
+                consoleTextPanel.Scrollbar.Value = consoleTextPanel.Scrollbar.Max;
+                --scrollNeeded;
+            }
+        };
     }
 
     /// <summary>
@@ -103,7 +116,6 @@ class DebugConsole : PopupMenu {
             Error($"{consoleInput} is not a command");
         }
 
-        ScrollConsoleDown();
         input.Value = "";
     }
 
@@ -162,7 +174,7 @@ class DebugConsole : PopupMenu {
 
     //Scrolls the text log to the bottom.
     private void ScrollConsoleDown() {
-        consoleTextPanel.Scrollbar.Value = consoleTextPanel.Scrollbar.Max;
+        scrollNeeded = 3;   
     }
 
     //skips a line in the console, without the > char
