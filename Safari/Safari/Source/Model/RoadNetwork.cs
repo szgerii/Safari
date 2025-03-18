@@ -1,5 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine;
+using Engine.Debug;
+using Engine.Scenes;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,10 +66,73 @@ public class RoadNetwork {
 	}
 
 	/// <summary>
+	/// The example route used for debugging / presenting
+	/// </summary>
+	public List<Point> DebugRoute { get; set; } = new List<Point>();
+	private static Texture2D? debugTexture = null;
+
+	/// <summary>
 	/// Use this event any time an object store a route from this network.
 	/// This event gets invoked when the extisting, saved routes are invalidated.
 	/// </summary>
 	public event EventHandler? RoadChanged;
+
+	static RoadNetwork() {
+		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
+			if (SceneManager.Active is GameScene) {
+				RoadNetwork network = GameScene.Active.Model.Level.Network;
+				network.DebugRoute = network.RandomRoute;
+			}
+		}));
+
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", (object sender, GameTime gameTime) => {
+			if (debugTexture == null) {
+				debugTexture = Utils.GenerateTexture(1, 1, Color.DarkCyan);
+			}
+			if (SceneManager.Active is GameScene) {
+				Level level = GameScene.Active.Model.Level;
+				List<Point> dr = level.Network.DebugRoute;
+				if (dr.Count > 0) {
+					for (int i = 1; i < dr.Count; i++) {
+						Point a = dr[i - 1];
+						Point b = dr[i];
+						DrawSegment(a, b, level);
+					}
+				}
+			}
+		}, GameLoopStage.POST_DRAW));
+	}
+
+	private static void DrawSegment(Point a, Point b, Level level) {
+		int width2 = 6;
+		Point middleA = new Point(a.X * level.TileSize, a.Y * level.TileSize);
+		middleA += new Point(level.TileSize / 2, level.TileSize / 2);
+		
+		Point middleB = new Point(b.X * level.TileSize, b.Y * level.TileSize);
+		middleB += new Point(level.TileSize / 2, level.TileSize / 2);
+		Point loc = new Point(0, 0);
+		Point size = new Point(0, 0);
+		if (a.X == b.X) {
+			// vertical
+			if (middleA.Y < middleB.Y) {
+				loc = middleA - new Point(width2, 0);
+				size = new Point(width2 * 2, middleB.Y - middleA.Y);
+			} else {
+				loc = middleB - new Point(width2, 0);
+				size = new Point(width2 * 2, middleA.Y - middleB.Y);
+			}
+		} else {
+			// horizontal
+			if (middleA.X < middleB.X) {
+				loc = middleA - new Point(0, width2);
+				size = new Point(middleB.X - middleA.X, width2 * 2);
+			} else {
+				loc = middleB - new Point(0, width2);
+				size = new Point(middleA.X - middleB.X, width2 * 2);
+			}
+		}
+		Game.SpriteBatch.Draw(debugTexture, new Rectangle(loc, size), Color.White);
+	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {
 		this.width = width;
@@ -74,6 +142,7 @@ public class RoadNetwork {
 		SetAt(end, RoadState.Road);
 		this.start = start;
 		this.end = end;
+		RoadChanged += (object sender, EventArgs e) => DebugRoute = new List<Point>();
 	}
 
 	/// <summary>
