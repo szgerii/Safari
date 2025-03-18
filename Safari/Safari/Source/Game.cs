@@ -126,7 +126,6 @@ public class Game : Engine.Game {
 				}
 			}
 		}
-		var routes = network.Routes;
 	}
 
 	protected override void LoadContent() {
@@ -208,5 +207,9 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
+
+		Level level = model.Level;
+		// lassu a cleannetwork miatt :(
+		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
 	}
 }

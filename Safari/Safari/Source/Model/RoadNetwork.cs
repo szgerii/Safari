@@ -166,7 +166,6 @@ public class RoadNetwork {
 	private void UpdateNetwork() {
 		cachedRoutes = new();
 		CalculateAllRoutes();
-		NetworkCleanup();
 		upToDate = true;
 	}
 
@@ -186,7 +185,6 @@ public class RoadNetwork {
 			return;
 		}
 		HashSet<Point> set = GatherPoints();
-		NetworkCleanup();
 		if (!set.Contains(end)) {
 			return;
 		}
@@ -195,21 +193,16 @@ public class RoadNetwork {
 		while (set.Count > 0) {
 			Point p = PickRandom(set);
 			RemoveRange(set, p, 2);
-			NetworkCleanup();
 			List<Point> route1 = GetPath(start, p);
-			NetworkCleanup();
 			List<Point> route2 = GetPath(p, end);
-			NetworkCleanup();
 			List<Point> route = new List<Point>(route1.Count + route2.Count - 1);
 			for (int i = 0; i < route1.Count; i++) {
 				route.Add(route1[i]);
 				RemoveRange(set, route[i], 1);
-				NetworkCleanup();
 			}
 			for (int i = 1; i < route2.Count; i++) {
 				route.Add(route2[i]);
 				RemoveRange(set, route2[i], 1);
-				NetworkCleanup();
 			}
 			SaveRoute(route);
 		}
@@ -218,8 +211,10 @@ public class RoadNetwork {
 	// Calculates the shortest path between two points
 	private List<Point> GetPath(Point from, Point to) {
 		Queue<Point> points = new();
+		HashSet<Point> used = new();
 		points.Enqueue(from);
 		SetAt(from, RoadState.FromNone);
+		used.Add(from);
 		bool finished = false;
 		while (points.Count > 0) {
 			Point current = points.Dequeue();
@@ -233,18 +228,22 @@ public class RoadNetwork {
 			Point down = new Point(current.X, current.Y + 1);
 			if (FreeAt(left)) {
 				SetAt(left, RoadState.FromRight);
+				used.Add(left);
 				points.Enqueue(left);
 			}
 			if (FreeAt(right)) {
 				SetAt(right, RoadState.FromLeft);
+				used.Add(right);
 				points.Enqueue(right);
 			}
 			if (FreeAt(up)) {
 				SetAt(up, RoadState.FromBottom);
+				used.Add(up);
 				points.Enqueue(up);
 			}
 			if (FreeAt(down)) {
 				SetAt(down, RoadState.FromTop);
+				used.Add(down);
 				points.Enqueue(down);
 			}
 		}
@@ -274,6 +273,9 @@ public class RoadNetwork {
 		}
 		route.Add(from);
 		route.Reverse();
+		foreach (Point p1 in used) {
+			SetAt(p1, RoadState.Road);
+		}
 		return route;
 	}
 
@@ -286,12 +288,16 @@ public class RoadNetwork {
 	// Remove a point, and its neighbours in a given range, from a set
 	private void RemoveRange(HashSet<Point> set, Point p, int range) {
 		Queue<(Point, int)> points = new();
+		HashSet<Point> used = new();
 		points.Enqueue((p, range));
 		SetAt(p, RoadState.FromNone);
 		while (points.Count > 0) {
 			(Point current, int fuel) = points.Dequeue();
 			if (set.Contains(current)) {
 				set.Remove(current);
+			}
+			if (!used.Contains(current)) {
+				used.Add(current);
 			}
 			if (fuel > 0) {
 				Point left = new Point(current.X - 1, current.Y);
@@ -315,6 +321,9 @@ public class RoadNetwork {
 					points.Enqueue((down, fuel - 1));
 				}
 			}
+		}
+		foreach (Point p1 in used) {
+			SetAt(p1, RoadState.Road);
 		}
 	}
 
@@ -349,6 +358,9 @@ public class RoadNetwork {
 				SetAt(down, RoadState.FromTop);
 				points.Enqueue(down);
 			}
+		}
+		foreach (Point p in result) {
+			SetAt(p, RoadState.Road);
 		}
 		return result;
 	}

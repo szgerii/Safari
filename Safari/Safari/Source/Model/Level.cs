@@ -36,6 +36,11 @@ public class Level : GameObject {
 	private readonly Texture2D debugGridTex;
 	private readonly Texture2D selectedTileTex;
 
+	/// <summary>
+	/// The network managing the roads and paths in this level
+	/// </summary>
+	public RoadNetwork Network { get; init; }
+
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
 		MapWidth = width;
@@ -53,6 +58,22 @@ public class Level : GameObject {
 		Texture2D outline = Utils.GenerateTexture(TileSize, TileSize, new Color(0f, 0f, 1f, 1f), true);
 		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
 		selectedTileTex = Utils.MergeTextures(fill, outline);
+
+		// start and end locations are not final
+		Point start = new Point(0, height / 2);
+		Point end = new Point(width / 2, 0);
+		Network = new RoadNetwork(width, height, start, end);
+		SetTile(start, new Road());
+		SetTile(end, new Road());
+		Point current = new Point(start.X, start.Y);
+		while (current.X < end.X) {
+			current.X++;
+			SetTile(current, new Road());
+		}
+		while (current.Y > end.Y) {
+			current.Y--;
+			SetTile(current, new Road());
+		}
 	}
 
 	/// <summary>
@@ -119,6 +140,9 @@ public class Level : GameObject {
 		}
 
 		tile.Position = new Vector2(x * TileSize, y * TileSize) - tile.AnchorTile.ToVector2() * TileSize;
+		if (tile is Road) {
+			Network.AddRoad(x, y);
+		}
 		tiles[x, y] = tile;
 
 		if (!tile.Loaded) {
@@ -149,6 +173,10 @@ public class Level : GameObject {
 		if (tiles[x, y] == null) return;
 
 		Tile t = tiles[x, y];
+		if (t is Road) {
+			Network.ClearRoad(x, y);
+		}
+
 		tiles[x, y] = null;
 
 		Game.RemoveObject(t);
