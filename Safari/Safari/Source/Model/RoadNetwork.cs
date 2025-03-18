@@ -60,6 +60,12 @@ public class RoadNetwork {
 		}
 	}
 
+	/// <summary>
+	/// Use this event any time an object store a route from this network.
+	/// This event gets invoked when the extisting, saved routes are invalidated.
+	/// </summary>
+	public event EventHandler? RoadChanged;
+
 	public RoadNetwork(int width, int height, Point start, Point end) {
 		this.width = width;
 		this.height = height;
@@ -83,6 +89,7 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Road;
 			if (upToDate) {
 				upToDate = false;
+				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 	}
@@ -105,6 +112,7 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Empty;
 			if (upToDate) {
 				upToDate = false;
+				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 	}
