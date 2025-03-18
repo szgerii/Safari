@@ -17,11 +17,6 @@ public abstract class Tile : GameObject {
 		=> (Position / GameScene.Active.Model.Level.TileSize).ToPoint();
 
 	/// <summary>
-	/// The game world position of the tile's center point
-	/// </summary>
-	public Point CenterPosition => new Point((int)Position.X + Texture.Width / 2, (int)Position.Y + Texture.Height / 2);
-
-	/// <summary>
 	/// The Sprite component responsible for rendering this tile
 	/// </summary>
 	public SpriteCmp Sprite { get; init; }

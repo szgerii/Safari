@@ -6,6 +6,7 @@ using Safari.Debug;
 using Safari.Model.Tiles;
 using Safari.Input;
 using System;
+using System.Collections.Generic;
 
 namespace Safari.Model;
 
@@ -76,6 +77,30 @@ public class Level : GameObject {
 	/// <returns>The tile at the given position, or null if the cell's empty</returns>
 	/// <exception cref="ArgumentException"></exception>
 	public Tile GetTile(Point pos) => GetTile(pos.X, pos.Y);
+
+	public List<Tile> GetTilesInArea(Rectangle tilemapArea) {
+		List<Tile> tiles = new();
+
+		for (int x = tilemapArea.X; x < tilemapArea.Right; x++) {
+			for (int y = tilemapArea.Y; y < tilemapArea.Bottom; y++) {
+				if (IsOutOfBounds(x, y)) continue;
+
+				Tile tile = GetTile(x, y);
+
+				if (tile == null) continue;
+
+				tiles.Add(tile);
+			}
+		}
+
+		return tiles;
+	}
+
+	public List<Tile> GetTilesInWorldArea(Rectangle worldArea) {
+		Rectangle tilemapArea = new Rectangle(worldArea.Location / new Point(TileSize), worldArea.Size / new Point(TileSize));
+
+		return GetTilesInArea(tilemapArea);
+	}
 
 	/// <summary>
 	/// Places or modifies a tile at a tilemap position

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
@@ -32,28 +31,30 @@ public class Scene : IUpdatable, IDrawable {
 	}
 
 	public virtual void Update(GameTime gameTime) {
-		PreUpdate?.Invoke(null, gameTime);
+		PerformPreUpdate(gameTime);
 
 		foreach (GameObject obj in GameObjects) {
 			obj.Update(gameTime);
 		}
 
-		PostUpdate?.Invoke(null, gameTime);
+		PerformPostUpdate(gameTime);
 	}
 
 	public virtual void Draw(GameTime gameTime) {
-		PreDraw?.Invoke(null, gameTime);
+		PerformPreDraw(gameTime);
 
 		foreach (GameObject obj in GameObjects) {
 			obj.Draw(gameTime);
 		}
 
-		PostDraw?.Invoke(null, gameTime);
+		PerformPostDraw(gameTime);
 	}
 
 	public virtual void AddObject(GameObject obj) {
 		if (Loaded) {
-			objAddBuffer.Enqueue(obj);
+			if (!objAddBuffer.Contains(obj)) {
+				objAddBuffer.Enqueue(obj);
+			}
 		} else {
 			GameObjects.Add(obj);
 		}
@@ -61,7 +62,9 @@ public class Scene : IUpdatable, IDrawable {
 
 	public virtual void RemoveObject(GameObject obj) {
 		if (Loaded) {
-			objRemoveBuffer.Enqueue(obj);
+			if (!objRemoveBuffer.Contains(obj)) {
+				objRemoveBuffer.Enqueue(obj);
+			}
 		} else {
 			GameObjects.Remove(obj);
 		}
@@ -84,4 +87,9 @@ public class Scene : IUpdatable, IDrawable {
 			GameObjects.Remove(obj);
 		}
 	}
+
+	protected void PerformPreUpdate(GameTime gameTime) => PreUpdate?.Invoke(this, gameTime);
+	protected void PerformPostUpdate(GameTime gameTime) => PostUpdate?.Invoke(this, gameTime);
+	protected void PerformPreDraw(GameTime gameTime) => PreDraw?.Invoke(this, gameTime);
+	protected void PerformPostDraw(GameTime gameTime) => PostDraw?.Invoke(this, gameTime);
 }

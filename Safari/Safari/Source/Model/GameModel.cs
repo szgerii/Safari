@@ -1,7 +1,11 @@
 using Engine.Debug;
+using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Model.Tiles;
+using Safari.Objects.Entities;
+using Safari.Objects.Entities.Animals;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
@@ -42,14 +46,6 @@ public class GameModel {
 	private GameSpeed prevSpeed;
 	private double currentTime = 0;
 	private DateTime startDate;
-	private int entityCount = 0;
-	private int animalCount = 0;
-	private int carnivoreCount = 0;
-	private int herbivoreCount = 0;
-	private int touristCount = 0;
-	private int jeepCount = 0;
-	private int poacherCount = 0;
-	private int rangerCount = 0;
 
 	public string ParkName => parkName;
 	public int Funds {
@@ -115,38 +111,14 @@ public class GameModel {
 	/// </summary>
 	public Level Level { get; set; }
 
-	public int EntityCount {
-		get => entityCount;
-		set => entityCount = value;
-	}
-	public int AnimalCount {
-		get => animalCount;
-		set => animalCount = value;
-	}
-	public int CarnivoreCount {
-		get => carnivoreCount;
-		set => carnivoreCount = value;
-	}
-	public int HerbivoreCount {
-		get => herbivoreCount;
-		set => herbivoreCount = value;
-	}
-	public int TouristCount {
-		get => touristCount;
-		set => touristCount = value;
-	}
-	public int JeepCount {
-		get => jeepCount;
-		set => jeepCount = value;
-	}
-	public int PoacherCount {
-		get => poacherCount;
-		set => poacherCount = value;
-	}
-	public int RangerCount {
-		get => rangerCount;
-		set => rangerCount = value;
-	}
+	public int EntityCount { get; set; }
+	public int AnimalCount { get; set; }
+	public int CarnivoreCount { get; set; }
+	public int HerbivoreCount { get; set; }
+	public int TouristCount { get; set; }
+	public int JeepCount { get; set; }
+	public int PoacherCount { get; set; }
+	public int RangerCount { get; set; }
 
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		this.parkName = parkName;
@@ -156,8 +128,6 @@ public class GameModel {
 
 		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
-
-		GenerateTestLevel();
 
 		Game.AddObject(Level);
 
@@ -186,7 +156,9 @@ public class GameModel {
 	}
 
 	// TODO: remove once not needed
-	private void GenerateTestLevel() {
+	public void GenerateTestLevel() {
+		// tiles
+
 		List<List<Tile>> tiles = new();
 		tiles.Add([
 			new Bush(),
@@ -217,6 +189,22 @@ public class GameModel {
 			}
 
 			y += maxY;
+		}
+
+		// animals
+
+		Random rand = new Random();
+		Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant), typeof(Lion), typeof(Tiger), typeof(TigerWhite) ];
+		//Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant) ];
+		for (int i = 0; i < 20; i++) {
+			//int randX = rand.Next(100, Level.MapWidth * Level.TileSize - 100);
+			//int randY = rand.Next(100, Level.MapHeight * Level.TileSize - 100);
+			int randX = rand.Next(10, 400);
+			int randY = rand.Next(10, 400);
+			int randType = rand.Next(0, animalTypes.Length);
+
+			Animal anim = (Animal)Activator.CreateInstance(animalTypes[randType], [ new Vector2(randX, randY), (rand.Next(2) == 0 ? Gender.Male : Gender.Female) ]);
+			Game.AddObject(anim);
 		}
 	}
 }
