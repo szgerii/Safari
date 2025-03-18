@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,12 @@ public enum RoadState {
 	Empty,
 	Road, // when calculating routes, this means "unused"
 
-	// only used during route calculations
-	UsedUp,
-	UsedRight,
-	UsedDown,
-	UsedLeft
+	// For BFS & floodfill algos
+	FromTop,
+	FromBottom,
+	FromLeft,
+	FromRight,
+	FromNone
 }
 
 public class RoadNetwork {
@@ -25,8 +27,6 @@ public class RoadNetwork {
 	private List<List<Point>> cachedRoutes = new();
 	private bool upToDate = false;
 	private Random rand = new Random();
-	private const int max_routes = 10000;
-	private const int max_backtracks = 1000000;
 
 	/// <summary>
 	/// Retrieve all routes in the network <br />
@@ -49,14 +49,14 @@ public class RoadNetwork {
 	/// A route includes both the start point and the end points <br />
 	/// (if the network has changed since the last time a route has been
 	/// requested, all routes are recalculated) <br />
-	/// Note that his could be null, which means that there are no valid routes
+	/// Note that his could be an empty list, which means that there are no valid routes
 	/// </summary>
-	public List<Point>? RandomRoute {
+	public List<Point> RandomRoute {
 		get {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : null;
+			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : new List<Point>();
 		}
 	}
 
@@ -159,94 +159,189 @@ public class RoadNetwork {
 		cachedRoutes = new();
 		CalculateAllRoutes();
 		NetworkCleanup();
-		if (cachedRoutes.Count == 0) {
-			// maybe try finding fastest route instead?
-		}
 		upToDate = true;
 	}
 
+	// Saves the copy of a route to the cached routes
 	private void SaveRoute(List<Point> route) {
 		cachedRoutes.Add(new List<Point>(route));
 	}
 
+	// A collection of helper functions for manipulating the network
 	private RoadState StateAt(Point p) => BoundsCheck(p.X, p.Y) ? network[p.X, p.Y] : RoadState.Empty;
-
 	private void SetAt(Point p, RoadState state) => network[p.X, p.Y] = state;
+	private bool FreeAt(Point p) => StateAt(p) == RoadState.Road;
 
-	// Iterate through all possible valid, acyclic routes from the start point to the end point, 
-	// and save all completed routes into cachedRoutes
+	// Calculates a number of different, relatively interesting routes using the middle point method
 	private void CalculateAllRoutes() {
-		if (StateAt(start) != RoadState.Road || StateAt(end) != RoadState.Road) {
+		if (!FreeAt(start) || !FreeAt(end)) {
 			return;
 		}
-		Point current = start; // The point the algorithm is currently on
-		List<Point> route = new List<Point>() { current };
-		int backtracks = 0;
-		int routes = 0;
-		do {
-			if (current == end) {
-				// save current route and step back (maybe primary and secondary direction)
-				SaveRoute(route);
-				routes++;
-				if (routes >= max_routes) {
-					return;
-				}
-				route.RemoveAt(route.Count - 1);
-				current = route.Last();
-				continue;
+		HashSet<Point> set = GatherPoints();
+		NetworkCleanup();
+		if (!set.Contains(end)) {
+			return;
+		}
+		set.Remove(start);
+		set.Remove(end);
+		while (set.Count > 0) {
+			Point p = PickRandom(set);
+			RemoveRange(set, p, 2);
+			NetworkCleanup();
+			List<Point> route1 = GetPath(start, p);
+			NetworkCleanup();
+			List<Point> route2 = GetPath(p, end);
+			NetworkCleanup();
+			List<Point> route = new List<Point>(route1.Count + route2.Count - 1);
+			for (int i = 0; i < route1.Count; i++) {
+				route.Add(route1[i]);
+				RemoveRange(set, route[i], 1);
+				NetworkCleanup();
 			}
+			for (int i = 1; i < route2.Count; i++) {
+				route.Add(route2[i]);
+				RemoveRange(set, route2[i], 1);
+				NetworkCleanup();
+			}
+			SaveRoute(route);
+		}
+	}
 
-			// try stepping up
-			if (StateAt(current) == RoadState.Road) {
-				Point next = new Point(current.X, current.Y - 1);
-				SetAt(current, RoadState.UsedUp);
-				if (StateAt(next) == RoadState.Road) {
-					current = next;
-					route.Add(current);
-					continue;
-				}
+	// Calculates the shortest path between two points
+	private List<Point> GetPath(Point from, Point to) {
+		Queue<Point> points = new();
+		points.Enqueue(from);
+		SetAt(from, RoadState.FromNone);
+		bool finished = false;
+		while (points.Count > 0) {
+			Point current = points.Dequeue();
+			if (current == to) {
+				finished = true;
+				break;
 			}
-			// try stepping right
-			if (StateAt(current) == RoadState.UsedUp) {
-				Point next = new Point(current.X + 1, current.Y);
-				SetAt(current, RoadState.UsedRight);
-				if (StateAt(next) == RoadState.Road) {
-					current = next;
-					route.Add(current);
-					continue;
-				}
+			Point left = new Point(current.X - 1, current.Y);
+			Point right = new Point(current.X + 1, current.Y);
+			Point up = new Point(current.X, current.Y - 1);
+			Point down = new Point(current.X, current.Y + 1);
+			if (FreeAt(left)) {
+				SetAt(left, RoadState.FromRight);
+				points.Enqueue(left);
 			}
-			// try stepping down
-			if (StateAt(current) == RoadState.UsedRight) {
-				Point next = new Point(current.X, current.Y + 1);
-				SetAt(current, RoadState.UsedDown);
-				if (StateAt(next) == RoadState.Road) {
-					current = next;
-					route.Add(current);
-					continue;
-				}
+			if (FreeAt(right)) {
+				SetAt(right, RoadState.FromLeft);
+				points.Enqueue(right);
 			}
-			// try stepping left
-			if (StateAt(current) == RoadState.UsedDown) {
-				Point next = new Point(current.X - 1, current.Y);
-				SetAt(current, RoadState.UsedLeft);
-				if (StateAt(next) == RoadState.Road) {
-					current = next;
-					route.Add(current);
-					continue;
-				}
+			if (FreeAt(up)) {
+				SetAt(up, RoadState.FromBottom);
+				points.Enqueue(up);
 			}
+			if (FreeAt(down)) {
+				SetAt(down, RoadState.FromTop);
+				points.Enqueue(down);
+			}
+		}
+		Point back = to;
+		List<Point> route = new();
+		if (!finished) {
+			return route;
+		}
+		while (back != from) {
+			route.Add(back);
+			switch (StateAt(back)) {
+				case RoadState.FromTop:
+					back = new Point(back.X, back.Y - 1);
+					break;
+				case RoadState.FromBottom:
+					back = new Point(back.X, back.Y + 1);
+					break;
+				case RoadState.FromLeft:
+					back = new Point(back.X - 1, back.Y);
+					break;
+				case RoadState.FromRight:
+					back = new Point(back.X + 1, back.Y);
+					break;
+				default:
+					throw new Exception("Impossible state reached");
+			}
+		}
+		route.Add(from);
+		route.Reverse();
+		return route;
+	}
 
-			// step back, all routes from the current route have been discovered
-			if (StateAt(current) == RoadState.UsedLeft && current != start) {
-				SetAt(current, RoadState.Road);
-				route.RemoveAt(route.Count - 1);
-				current = route.Last();
-				backtracks++;
-				if (backtracks >= max_backtracks) {
-					return;
+	// Pick a random point from a set
+	private Point PickRandom(HashSet<Point> set) {
+		Point[] points = set.ToArray();
+		return points[rand.Next(points.Length)];
+	}
+
+	// Remove a point, and its neighbours in a given range, from a set
+	private void RemoveRange(HashSet<Point> set, Point p, int range) {
+		Queue<(Point, int)> points = new();
+		points.Enqueue((p, range));
+		SetAt(p, RoadState.FromNone);
+		while (points.Count > 0) {
+			(Point current, int fuel) = points.Dequeue();
+			if (set.Contains(current)) {
+				set.Remove(current);
+			}
+			if (fuel > 0) {
+				Point left = new Point(current.X - 1, current.Y);
+				Point right = new Point(current.X + 1, current.Y);
+				Point up = new Point(current.X, current.Y - 1);
+				Point down = new Point(current.X, current.Y + 1);
+				if (FreeAt(left)) {
+					SetAt(left, RoadState.FromRight);
+					points.Enqueue((left, fuel - 1));
+				}
+				if (FreeAt(right)) {
+					SetAt(right, RoadState.FromLeft);
+					points.Enqueue((right, fuel - 1));
+				}
+				if (FreeAt(up)) {
+					SetAt(up, RoadState.FromBottom);
+					points.Enqueue((up, fuel - 1));
+				}
+				if (FreeAt(down)) {
+					SetAt(down, RoadState.FromTop);
+					points.Enqueue((down, fuel - 1));
 				}
 			}
-		} while (current != start || StateAt(current) != RoadState.UsedLeft);
+		}
+	}
+
+	// Using flood fill, tries to grab all accessible points from 'start'
+	private HashSet<Point> GatherPoints() {
+		HashSet<Point> result = new();
+		Queue<Point> points = new();
+		points.Enqueue(start);
+		SetAt(start, RoadState.FromNone);
+		while (points.Count > 0) {
+			Point current = points.Dequeue();
+			if (!result.Contains(current)) {
+				result.Add(current);
+			}
+			Point left = new Point(current.X - 1, current.Y);
+			Point right = new Point(current.X + 1, current.Y);
+			Point up = new Point(current.X, current.Y - 1);
+			Point down = new Point(current.X, current.Y + 1);
+			if (FreeAt(left)) {
+				SetAt(left, RoadState.FromRight);
+				points.Enqueue(left);
+			}
+			if (FreeAt(right)) {
+				SetAt(right, RoadState.FromLeft);
+				points.Enqueue(right);
+			}
+			if (FreeAt(up)) {
+				SetAt(up, RoadState.FromBottom);
+				points.Enqueue(up);
+			}
+			if (FreeAt(down)) {
+				SetAt(down, RoadState.FromTop);
+				points.Enqueue(down);
+			}
+		}
+		return result;
 	}
 }
