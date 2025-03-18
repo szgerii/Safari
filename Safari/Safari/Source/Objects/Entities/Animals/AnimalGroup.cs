@@ -8,6 +8,9 @@ using System.Collections.Generic;
 
 namespace Safari.Objects.Entities.Animals;
 
+/// <summary>
+/// The possible states of an animal group
+/// </summary>
 public enum AnimalGroupState {
 	Idle,
 	Wandering,
@@ -17,6 +20,10 @@ public enum AnimalGroupState {
 	Drinking
 }
 
+/// <summary>
+/// A class for unifying several animal's behavior
+/// Every animal starts with a group of its own by default
+/// </summary>
 [SimulationActor]
 public class AnimalGroup : GameObject {
 	private const int MAX_SIZE = 20;
@@ -24,12 +31,27 @@ public class AnimalGroup : GameObject {
 	private readonly List<Vector2> knownFoodSpots = [];
 	private readonly List<Vector2> knownWaterSpots = [];
 
+	/// <summary>
+	/// The species of the animals inside the group
+	/// </summary>
 	public AnimalSpecies Species { get; private init; }
+	/// <summary>
+	/// The state that determines which activity the group is currently performing
+	/// </summary>
 	public AnimalGroupState State { get; private set; }
 
+	/// <summary>
+	/// A list of the animals inside the group
+	/// </summary>
 	public List<Animal> Members { get; private init; } = [];
+	/// <summary>
+	/// The size of the group
+	/// </summary>
 	public int Size => Members.Count;
 
+	/// <summary>
+	/// Whether the group has a hungry animal inside it
+	/// </summary>
 	public bool HasHungryMember {
 		get {
 			foreach (Animal member in Members) {
@@ -42,6 +64,9 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Whether the group has a thirsty animals inside it
+	/// </summary>
 	public bool HasThirstyMember {
 		get {
 			foreach (Animal member in Members) {
@@ -61,10 +86,20 @@ public class AnimalGroup : GameObject {
 		Game.AddObject(this);
 	}
 
+	/// <summary>
+	/// Checks if the group can be merged with another one
+	/// </summary>
+	/// <param name="other">The other group in the merge</param>
+	/// <returns>Whether a merge is possible</returns>
 	public bool CanMergeWith(AnimalGroup other) {
 		return other.Species == Species && (Size + other.Size) <= MAX_SIZE;
 	}
 
+	/// <summary>
+	/// Merges another group into this one
+	/// </summary>
+	/// <param name="other">The group to merge in</param>
+	/// <exception cref="ArgumentException"></exception>
 	public void MergeWith(AnimalGroup other) {
 		if (!CanMergeWith(other)) {
 			throw new ArgumentException("Cannot merge with the given animal group");
@@ -84,6 +119,11 @@ public class AnimalGroup : GameObject {
 		Game.RemoveObject(other);
 	}
 
+	/// <summary>
+	/// Removes an animal from the group
+	/// </summary>
+	/// <param name="animal">The animal to remove</param>
+	/// <exception cref="InvalidOperationException"></exception>
 	public void Leave(Animal animal) {
 		if (!Members.Contains(animal)) {
 			throw new InvalidOperationException("The specified animal isn't inside the group it is being removed from");
@@ -100,6 +140,10 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Registers a food source position into the group's memory
+	/// </summary>
+	/// <param name="foodSpot">The food source position to add</param>
 	public void AddFoodSpot(Vector2 foodSpot) {
 		if (!knownFoodSpots.Contains(foodSpot)) {
 			knownFoodSpots.Add(foodSpot);
@@ -111,6 +155,10 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Registers a water source position into the group's memory
+	/// </summary>
+	/// <param name="waterSpot">The water source position to add</param>
 	public void AddWaterSpot(Vector2 waterSpot) {
 		if (!knownWaterSpots.Contains(waterSpot)) {
 			knownWaterSpots.Add(waterSpot);

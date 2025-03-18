@@ -34,6 +34,7 @@ public abstract class Animal : Entity {
 	/// The number of days an animal can live
 	/// </summary>
 	private const int MAX_AGE = 100;
+
 	private const float FEEDING_SPEED = 10f;
 	private const float DRINKING_SPEED = 10f;
 
@@ -49,14 +50,37 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public event EventHandler GotThirsty;
 
+	/// <summary>
+	/// Represents how hungry the animal currently is (goes down with time)s
+	/// </summary>
 	public float HungerLevel { get; protected set; } = 100f;
+	/// <summary>
+	/// Represents how thirsty the animal currently is (goes down with time)s
+	/// </summary>
 	public float ThirstLevel { get; protected set; } = 100f;
+	/// <summary>
+	/// Determines how fast the animal's hunger level drops
+	/// </summary>
 	public float HungerDecay => (1f + (float)Age / MAX_AGE) * INITIAL_HUNGER_DECAY;
+	/// <summary>
+	/// Determines how fast the animal's thirst level drops
+	/// </summary>
 	public float ThirstDecay => (1f + (float)Age / MAX_AGE) * INITIAL_THIRST_DECAY;
 
+	/// <summary>
+	/// Whether the animal is currently hungry
+	/// (i.e. hunger level has fallen under the hunger threshold)
+	/// </summary>
 	public bool IsHungry => HungerLevel < HUNGER_THRESHOLD;
+	/// <summary>
+	/// Whether the animal is currently thirsty
+	/// (i.e. thirst level has fallen under the thirst threshold)
+	/// </summary>
 	public bool IsThirsty => ThirstLevel < THIRST_THRESHOLD;
 
+	/// <summary>
+	/// Whether the animal is currently being escorted by a poacher
+	/// </summary>
 	public bool IsCaught { get; protected set; }
 
 	/// <summary>
@@ -67,16 +91,31 @@ public abstract class Animal : Entity {
 	/// The species of this animal
 	/// </summary>
 	public AnimalSpecies Species { get; init; }
+	/// <summary>
+	/// Whether the animal feeds on other, herbivorous animals
+	/// </summary>
 	public bool IsCarnivorous => Species.IsCarnivorous();
 	/// <summary>
 	/// The age of this animal in in-game days!
 	/// </summary>
 	public int Age => (int)(GameScene.Active.Model.IngameDate - birthTime).TotalDays;
+	/// <summary>
+	/// Whether the animal is old enough to mate
+	/// </summary>
 	public bool IsMature => Age >= 15;
+	/// <summary>
+	/// Whether the animal is capable of mating currently
+	/// </summary>
 	public bool CanMate => IsMature && (lastMatingTime == null || (GameScene.Active.Model.IngameDate - lastMatingTime.Value).TotalDays > MATING_COOLDOWN_DAYS);
 
+	/// <summary>
+	/// The current selling price of the animal
+	/// </summary>
 	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
 
+	/// <summary>
+	/// The group this animal belongs to
+	/// </summary>
 	public AnimalGroup Group { get; set; }
 
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
@@ -165,6 +204,11 @@ public abstract class Animal : Entity {
 		base.Draw(gameTime);
 	}
 
+	/// <summary>
+	/// Increases the animal's hunger level according to its feeding speed
+	/// (for continous feeding)
+	/// </summary>
+	/// <param name="gameTime">The current game time</param>
 	public void Feed(GameTime gameTime) {
 		HungerLevel += FEEDING_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -173,6 +217,11 @@ public abstract class Animal : Entity {
 		}
 	}
 
+	/// <summary>
+	/// Increases the animal's thirst level according to its drinking speed
+	/// (for continous drinking)
+	/// </summary>
+	/// <param name="gameTime">The current game time</param>
 	public void Drink(GameTime gameTime) {
 		ThirstLevel += DRINKING_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -181,15 +230,25 @@ public abstract class Animal : Entity {
 		}
 	}
 
+	/// <summary>
+	/// Sells the animal and removes it from the park
+	/// </summary>
 	public void Sell() {
 		GameScene.Active.Model.Funds += Price;
 		Die();
 	}
 
+	/// <summary>
+	/// Removes the animal from the park
+	/// </summary>
 	public void Die() {
 		Game.RemoveObject(this);
 	}
 
+	/// <summary>
+	/// Resets the animal's mating cooldown
+	/// </summary>
+	/// <exception cref="InvalidOperationException"></exception>
 	public void Mate() {
 		if (!CanMate) {
 			throw new InvalidOperationException("Trying to invoke mating on an animal that doesn't meet the required criteria");
@@ -198,6 +257,10 @@ public abstract class Animal : Entity {
 		lastMatingTime = GameScene.Active.Model.IngameDate;
 	}
 
+	/// <summary>
+	/// Simulates a poacher catching an animal
+	/// </summary>
+	/// <exception cref="InvalidOperationException"></exception>
 	public void Catch() {
 		if (IsCaught) {
 			throw new InvalidOperationException("Cannot catch an animal that has already been caught");
@@ -208,6 +271,11 @@ public abstract class Animal : Entity {
 		IsCaught = true;
 	}
 
+	/// <summary>
+	/// Simulates a poacher releasing an animal
+	/// </summary>
+	/// <param name="releasePosition">The position to release the animal at</param>
+	/// <exception cref="InvalidOperationException"></exception>
 	public void Release(Vector2 releasePosition) {
 		if (!IsCaught) {
 			throw new InvalidOperationException("Cannot release an animal that hasn't been caught");
@@ -218,6 +286,10 @@ public abstract class Animal : Entity {
 	}
 
 	private Texture2D indicatorTex = null, indicatorOutline = null;
+	/// <summary>
+	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
+	/// </summary>
+	/// <param name="gameTime">The current game time</param>
 	public void DrawIndicators(GameTime gameTime) {
 		if (IsCaught) return;
 

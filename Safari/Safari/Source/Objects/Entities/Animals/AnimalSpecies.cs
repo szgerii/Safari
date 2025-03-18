@@ -2,6 +2,9 @@
 
 namespace Safari.Objects.Entities.Animals;
 
+/// <summary>
+/// The different animal species found inside the park
+/// </summary>
 public enum AnimalSpecies {
 	Zebra,
 	Elephant,
@@ -12,6 +15,11 @@ public enum AnimalSpecies {
 }
 
 public static class AnimalSpeciesExtensions {
+	/// <summary>
+	/// Gets the proper Animal sub-class for a given species
+	/// </summary>
+	/// <param name="species">The species to use</param>
+	/// <returns>The Animal sub-class Type belonging to the species</returns>
 	public static Type GetAnimalType(this AnimalSpecies species) {
 		return species switch {
 			AnimalSpecies.Zebra => typeof(Zebra),
@@ -24,6 +32,11 @@ public static class AnimalSpeciesExtensions {
 		};
 	}
 
+	/// <summary>
+	/// Checks if a given species is carnivorous in their diet
+	/// </summary>
+	/// <param name="species">The species to check</param>
+	/// <returns>Whether the species is carnivorous</returns>
 	public static bool IsCarnivorous(this AnimalSpecies species) {
 		return species switch {
 			AnimalSpecies.Zebra or AnimalSpecies.Elephant or AnimalSpecies.Giraffe => false,
@@ -32,6 +45,12 @@ public static class AnimalSpeciesExtensions {
 		};
 	}
 
+	/// <summary>
+	/// Retrieves the base price for a given species
+	/// (how much a new-born is worth from the species)
+	/// </summary>
+	/// <param name="species">The species to use</param>
+	/// <returns>The base price of the species</returns>
 	public static int GetPrice(this AnimalSpecies species) {
 		return species switch {
 			AnimalSpecies.Zebra => 100,
