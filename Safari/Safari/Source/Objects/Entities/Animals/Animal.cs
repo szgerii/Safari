@@ -20,12 +20,12 @@ public abstract class Animal : Entity {
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD = 50;
-	private const float INITIAL_HUNGER_DECAY = 0.5f;
+	private const float INITIAL_HUNGER_DECAY = 0.4f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.75f;
+	private const float INITIAL_THIRST_DECAY = 0.8f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
@@ -34,8 +34,8 @@ public abstract class Animal : Entity {
 	/// The number of days an animal can live
 	/// </summary>
 	private const int MAX_AGE = 100;
-	private const float FEEDING_SPEED = 1f;
-	private const float DRINKING_SPEED = 1f;
+	private const float FEEDING_SPEED = 10f;
+	private const float DRINKING_SPEED = 10f;
 
 	protected DateTime birthTime;
 	protected DateTime? lastMatingTime = null;
@@ -77,6 +77,8 @@ public abstract class Animal : Entity {
 
 	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
 
+	public AnimalGroup Group { get; set; }
+
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
 		Species = species;
 		Gender = gender;
@@ -87,6 +89,8 @@ public abstract class Animal : Entity {
 		sprite.LayerDepth = 0.5f;
 		sprite.YSortEnabled = true;
 		Attach(sprite);
+
+		Group = new AnimalGroup(this);
 	}
 
 	static Animal() {
@@ -111,6 +115,8 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Unload() {
+		System.Diagnostics.Debug.WriteLine("Unloading " + GetHashCode());
+
 		GameModel model = GameScene.Active.Model;
 
 		model.AnimalCount--;
@@ -197,7 +203,7 @@ public abstract class Animal : Entity {
 			throw new InvalidOperationException("Cannot catch an animal that has already been caught");
 		}
 
-		// TODO: leave group
+		Group.Leave(this);
 
 		IsCaught = true;
 	}
@@ -237,11 +243,11 @@ public abstract class Animal : Entity {
 	private void CheckSurroundings() {
 		foreach (Tile tile in GetTilesInSight()) {
 			if (tile.IsFoodSource) {
-				// TODO: save food source location to group
+				Group.AddFoodSpot(tile.Position);
 			}
 
 			if (tile.IsWaterSource) {
-				// TODO: save water source location to group
+				Group.AddWaterSpot(tile.Position);
 			}
 		}
 
@@ -250,7 +256,9 @@ public abstract class Animal : Entity {
 				continue;
 			}
 
-			// TODO: group merging
+			if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
+				Group.MergeWith(anim.Group);
+			}
 
 			if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
 				if (CanReach(anim)) {

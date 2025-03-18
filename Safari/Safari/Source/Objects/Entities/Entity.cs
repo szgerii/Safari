@@ -133,8 +133,23 @@ public abstract class Entity : GameObject {
 		Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 	}
 
-	protected List<Entity> GetEntitiesInSight() => GetEntitiesInArea(SightArea);
-	protected List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea(SightArea);
-	protected bool CanReach(Vector2 pos) => ReachArea.Contains(pos);
-	protected bool CanReach(GameObject obj) => CanReach(obj.Position);
+	public bool CanSee(Vector2 pos) => SightArea.Contains(pos);
+	public bool CanSee(GameObject obj) => CanSee(obj.Position);
+	public bool CanReach(Vector2 pos) => ReachArea.Contains(pos);
+	public bool CanReach(GameObject obj) => CanReach(obj.Position);
+
+	public List<Entity> GetEntitiesInSight() {
+		List<Entity> result = GetEntitiesInArea(SightArea);
+		result.Remove(this);
+		return result;
+	}
+
+	public List<Entity> GetEntitiesInReach() {
+		List<Entity> result = GetEntitiesInArea(ReachArea);
+		result.Remove(this);
+		return result;
+	}
+
+	public List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea(SightArea);
+	public List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea(ReachArea);
 }

@@ -51,9 +51,14 @@ public class GameScene : Scene {
 	public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
 
-		model.Advance(gameTime);
+		if (model.GameSpeed != GameSpeed.Paused) {
+			model.Advance(gameTime);
+		}
+
 		foreach (GameObject obj in GameObjects) {
-			obj.Update(gameTime);
+			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+				obj.Update(gameTime);
+			}
 		}
 
 		for (int i = 0; i < model.SpeedMultiplier - 1; i++) {

@@ -195,28 +195,16 @@ public class GameModel {
 
 		Random rand = new Random();
 		Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant), typeof(Lion), typeof(Tiger), typeof(TigerWhite) ];
-		for (int i = 0; i < 10; i++) {
-			int randX = rand.Next(100, Level.MapWidth * Level.TileSize - 100);
-			int randY = rand.Next(100, Level.MapHeight * Level.TileSize - 100);
+		//Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant) ];
+		for (int i = 0; i < 20; i++) {
+			//int randX = rand.Next(100, Level.MapWidth * Level.TileSize - 100);
+			//int randY = rand.Next(100, Level.MapHeight * Level.TileSize - 100);
+			int randX = rand.Next(10, 400);
+			int randY = rand.Next(10, 400);
 			int randType = rand.Next(0, animalTypes.Length);
 
 			Animal anim = (Animal)Activator.CreateInstance(animalTypes[randType], [ new Vector2(randX, randY), (rand.Next(2) == 0 ? Gender.Male : Gender.Female) ]);
 			Game.AddObject(anim);
 		}
-
-		Lion lion = new Lion(new Vector2(10 * Level.TileSize, 10 * Level.TileSize), Gender.Male);
-		Game.AddObject(lion);
-		Zebra zebra = new Zebra(new Vector2(11 * Level.TileSize, 11 * Level.TileSize), Gender.Female);
-		Game.AddObject(zebra);
-		zebra = new Zebra(new Vector2(13 * Level.TileSize, 13 * Level.TileSize), Gender.Female);
-		Game.AddObject(zebra);
-
-		InputManager.Keyboard.OnPressed(Microsoft.Xna.Framework.Input.Keys.C, () => {
-			if (zebra.IsCaught) {
-				zebra.Release(new Vector2(15 * 32, 15 * 32));
-			} else {
-				zebra.Catch();
-			}
-		});
 	}
 }

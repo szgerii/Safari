@@ -52,7 +52,9 @@ public class Scene : IUpdatable, IDrawable {
 
 	public virtual void AddObject(GameObject obj) {
 		if (Loaded) {
-			objAddBuffer.Enqueue(obj);
+			if (!objAddBuffer.Contains(obj)) {
+				objAddBuffer.Enqueue(obj);
+			}
 		} else {
 			GameObjects.Add(obj);
 		}
@@ -60,7 +62,9 @@ public class Scene : IUpdatable, IDrawable {
 
 	public virtual void RemoveObject(GameObject obj) {
 		if (Loaded) {
-			objRemoveBuffer.Enqueue(obj);
+			if (!objRemoveBuffer.Contains(obj)) {
+				objRemoveBuffer.Enqueue(obj);
+			}
 		} else {
 			GameObjects.Remove(obj);
 		}
