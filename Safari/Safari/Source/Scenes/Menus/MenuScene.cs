@@ -3,7 +3,7 @@ using GeonBit.UI;
 using GeonBit.UI.Entities;
 
 namespace Safari.Scenes.Menus;
-abstract class MenuScene : Scene {
+public abstract class MenuScene : Scene {
     private Panel container;
 
     public override void Load() {

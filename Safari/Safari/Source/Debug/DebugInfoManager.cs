@@ -14,6 +14,7 @@ public static class DebugInfoManager {
 	static DebugInfoManager() {
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			Paragraph p = new Paragraph();
+			p.ClickThrough = true;
 			p.Offset = new Vector2(15);
 
 			switch (pos) {

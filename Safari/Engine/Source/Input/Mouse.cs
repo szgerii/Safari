@@ -59,6 +59,8 @@ public class Mouse {
 	private HScrollWheelChangedCallback hScrollWheelChangedCallback = null;
 
 	internal void UpdateEvents() {
+		if (!InputManager.IsGameFocused) return;
+
 		foreach (MouseButtons mouseButton in pressedCallbacks.Keys) {
 			if (JustPressed(mouseButton)) {
 				pressedCallbacks[mouseButton]();
@@ -87,26 +89,26 @@ public class Mouse {
 	/// <summary>
 	/// Checks whether the given mouse button is down in the current frame
 	/// </summary>
-	public bool IsDown(MouseButtons mouseButton) => IsDown(CurrentMS, mouseButton);
+	public bool IsDown(MouseButtons mouseButton) => InputManager.IsGameFocused && IsDown(CurrentMS, mouseButton);
 
 	/// <summary>
 	/// Checks whether the given mouse button is up in the current frame
 	/// </summary>
-	public bool IsUp(MouseButtons mouseButton) => !IsDown(CurrentMS, mouseButton);
+	public bool IsUp(MouseButtons mouseButton) => !InputManager.IsGameFocused || !IsDown(CurrentMS, mouseButton);
 
 	/// <summary>
 	/// Checks whether the given mouse button was just pressed in this frame,
 	/// meaning it wasn't down in the previous frame, but now is
 	/// </summary>
 	public bool JustPressed(MouseButtons mouseButton)
-		=> IsDown(CurrentMS, mouseButton) && !IsDown(PrevMS, mouseButton);
+		=> InputManager.IsGameFocused && IsDown(CurrentMS, mouseButton) && !IsDown(PrevMS, mouseButton);
 
 	/// <summary>
 	/// Checks whether the given mouse button was just released in this frame,
 	/// meaning it was down in the previous frame, but now isn't
 	/// </summary>
 	public bool JustReleased(MouseButtons mouseButton)
-		=> !IsDown(CurrentMS, mouseButton) && IsDown(PrevMS, mouseButton);
+		=> IsDown(PrevMS, mouseButton) && (InputManager.JustLostFocus || !IsDown(CurrentMS, mouseButton));
 
 	/// <summary>
 	/// Checks whether a given mouse button is down, and ensures that, using this function, 
@@ -128,7 +130,7 @@ public class Mouse {
 	/// </summary>
 	/// <param name="timeout">The minimum number of milliseconds that has to pass before a true value for this mouse button can be returned again.</param>
 	public bool TimedIsDown(MouseButtons mouseButton, int milliseconds = 200)
-		=> TimedIsDown(mouseButton, TimeSpan.FromMilliseconds(milliseconds));
+		=> InputManager.IsGameFocused && TimedIsDown(mouseButton, TimeSpan.FromMilliseconds(milliseconds));
 
 	/// <summary>
 	/// Registers a callback for the pressed event of a given mouse button
@@ -179,13 +181,13 @@ public class Mouse {
 	/// Stores whether the mouse has just moved, 
 	/// meaning its position in this frame is different from it in the previous frame
 	/// </summary>
-	public bool JustMoved => CurrentMS.Position != PrevMS.Position;
+	public bool JustMoved => InputManager.IsGameFocused && CurrentMS.Position != PrevMS.Position;
 
 	/// <summary>
 	/// The vector representing the mouse's movement since the previous frame
 	/// </summary>
 	public Vector2 Movement
-		=> new Vector2(CurrentMS.Position.X - PrevMS.Position.X, CurrentMS.Position.Y - PrevMS.Position.Y);
+		=> !InputManager.IsGameFocused ? Vector2.Zero : new Vector2(CurrentMS.Position.X - PrevMS.Position.X, CurrentMS.Position.Y - PrevMS.Position.Y);
 
 	/// <summary>
 	/// The current value of the mouse scroll wheel
@@ -195,12 +197,12 @@ public class Mouse {
 	/// <summary>
 	/// Stores whether the value of the mouse scroll wheel has changed since the last frame
 	/// </summary>
-	public bool ScrollChanged => CurrentMS.ScrollWheelValue != PrevMS.ScrollWheelValue;
+	public bool ScrollChanged => InputManager.IsGameFocused && CurrentMS.ScrollWheelValue != PrevMS.ScrollWheelValue;
 
 	/// <summary>
 	/// Returns how much the scroll wheel has moved since the previous frame
 	/// </summary>
-	public int ScrollMovement => CurrentMS.ScrollWheelValue - PrevMS.ScrollWheelValue;
+	public int ScrollMovement => !InputManager.IsGameFocused ? 0 : CurrentMS.ScrollWheelValue - PrevMS.ScrollWheelValue;
 
 	/// <summary>
 	/// Returns the current value of the horizontal mouse scroll wheel
@@ -210,12 +212,12 @@ public class Mouse {
 	/// <summary>
 	/// Checks whether the value of the horizontal mouse scroll wheel has changed since the last frame
 	/// </summary>
-	public bool HScrollChanged => CurrentMS.HorizontalScrollWheelValue != PrevMS.HorizontalScrollWheelValue;
+	public bool HScrollChanged => InputManager.IsGameFocused && CurrentMS.HorizontalScrollWheelValue != PrevMS.HorizontalScrollWheelValue;
 
 	/// <summary>
 	/// Returns how much the horizonal scroll wheel has moved since the previous frame
 	/// </summary>
-	public int HScrollMovement => CurrentMS.HorizontalScrollWheelValue - PrevMS.HorizontalScrollWheelValue;
+	public int HScrollMovement => !InputManager.IsGameFocused ? 0 : CurrentMS.HorizontalScrollWheelValue - PrevMS.HorizontalScrollWheelValue;
 
 	/// <summary>
 	/// Registers a callback for the mouse moved event

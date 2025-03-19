@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using GeonBit.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
 
@@ -29,6 +30,13 @@ public static class InputManager {
 	public static int ActiveGamepad { get; private set; } = 1;
 	public static bool ShowCursor { get; set; } = true;
 
+	/// <summary>
+	/// Whether the game had focus in the previous frame
+	/// </summary>
+	public static bool WasGameFocused { get; private set; } = true;
+	public static bool IsGameFocused { get; private set; } = true;
+	public static bool JustLostFocus => WasGameFocused && !IsGameFocused;
+
 	public static void Initialize() {
 		currentKS = Microsoft.Xna.Framework.Input.Keyboard.GetState();
 		prevKS = currentKS;
@@ -45,6 +53,13 @@ public static class InputManager {
 	}
 
 	public static void Update(GameTime gameTime) {
+		// update focus
+		bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
+		bool passiveFocused = UserInterface.Active.ActiveEntity.Tag == "PassiveFocus";
+
+		WasGameFocused = IsGameFocused;
+		IsGameFocused = rootFocused || passiveFocused;
+
 		// Update states
 		prevKS = currentKS;
 		prevMS = currentMS;

@@ -1,4 +1,4 @@
-﻿using Engine.Scenes;
+using Engine.Scenes;
 using Engine.Debug;
 using Engine.Input;
 using Engine.Graphics;
@@ -13,13 +13,12 @@ using GeonBit.UI.Entities;
 using System.Collections.Generic;
 using Safari.Debug;
 using Safari.Model;
+using Safari.Popups;
 
 namespace Safari;
 
 public class Game : Engine.Game {
 	public bool DisplayDebugInfos { get; private set; } = false;
-
-	private Dictionary<DebugInfoPosition, Paragraph> debugInfoParagraphs = new();
 
 	protected override void Initialize() {
 		base.Initialize();
@@ -50,10 +49,7 @@ public class Game : Engine.Game {
 		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
-
-		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
-			debugInfoParagraphs[pos] = new Paragraph();
-		}
+        UserInterface.Active.UseRenderTarget = true;
 
 		// debug stuff
 
@@ -79,27 +75,6 @@ public class Game : Engine.Game {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
-			if (SceneManager.Active is GameScene) {
-				GameModel model = GameScene.Active.Model;
-				switch (model.GameSpeed) {
-					case GameSpeed.Slow: model.GameSpeed = GameSpeed.Medium; break;
-					case GameSpeed.Medium: model.GameSpeed = GameSpeed.Fast; break;
-					case GameSpeed.Fast: model.GameSpeed = GameSpeed.Slow; break;
-				}
-			}
-		}));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
-			if (SceneManager.Active is GameScene) {
-				GameModel model = GameScene.Active.Model;
-				switch (model.GameSpeed) {
-					case GameSpeed.Paused: model.Resume(); break;
-					default: model.Pause(); break;
-				}
-			}
-		}));
-
 		DebugMode.Enable();
 	}
 
@@ -110,11 +85,12 @@ public class Game : Engine.Game {
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
+		DebugConsole.Instance?.Update(gameTime);
 
 		DateTime start = DateTime.Now;
 
-		base.Update(gameTime);
 		UserInterface.Active.Update(gameTime);
+		base.Update(gameTime);
 
 		tickTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 		
@@ -132,13 +108,17 @@ public class Game : Engine.Game {
 
 	protected override void Draw(GameTime gameTime) {
 		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+
 		DebugInfoManager.PreDraw();
 
 		DateTime start = DateTime.Now;
 
-		base.Draw(gameTime);
 		UserInterface.Active.Draw(SpriteBatch);
 
+		base.Draw(gameTime);
+        
+		UserInterface.Active.DrawMainRenderTarget(SpriteBatch);
+        
 		drawTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 	}
 
@@ -155,7 +135,10 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
-		// debug
+        // debug
+        InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
+        InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
+		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
