@@ -103,7 +103,6 @@ public class Game : Engine.Game {
 
 	protected override void Draw(GameTime gameTime) {
 		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
-		DebugInfoManager.AddInfo("active entity", UserInterface.Active.ActiveEntity.ToString(), DebugInfoPosition.BottomRight);
 
 		DebugInfoManager.PreDraw();
 
