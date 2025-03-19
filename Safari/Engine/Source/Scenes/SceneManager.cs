@@ -1,4 +1,6 @@
-﻿namespace Engine.Scenes;
+﻿using System;
+
+namespace Engine.Scenes;
 
 struct ScheduledScene {
 	public Scene scene;
@@ -17,6 +19,8 @@ public static class SceneManager {
 	public static bool HasLoadingScheduled => scheduledScene != null;
 	private static ScheduledScene? scheduledScene = null;
 
+	public static event EventHandler<Scene> LoadedScene;
+
 	public static void Load(Scene scene, bool load = true, bool unload = true) {
 		scheduledScene = new ScheduledScene(scene, load, unload);
 
@@ -34,6 +38,8 @@ public static class SceneManager {
 		if (scheduledScene.Value.load && !scheduledScene.Value.scene.Loaded) {
 			Active.Load();
 		}
+
+		LoadedScene?.Invoke(null, Active);
 
 		scheduledScene = null;
 	}

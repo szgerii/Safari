@@ -1,4 +1,4 @@
-﻿using Engine.Scenes;
+using Engine.Scenes;
 using Engine.Debug;
 using Engine.Input;
 using Engine.Graphics;
@@ -28,8 +28,13 @@ public class Game : Engine.Game {
 
 		InputSetup();
 
-		GameScene scn = new();
-		SceneManager.Load(scn);
+		SceneManager.LoadedScene += (object sender, Scene s) => {
+			if (s is GameScene gs) {
+				gs.Model.GenerateTestLevel();
+			}
+		};
+
+		SceneManager.Load(new GameScene());
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
@@ -133,12 +138,16 @@ public class Game : Engine.Game {
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
         InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
-		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));		
+		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
 		InputManager.Keyboard.OnPressed(Keys.L, () => DebugMode.Execute("toggle-simulation"));
 		InputManager.Keyboard.OnPressed(Keys.G, () => DebugMode.ToggleFeature("draw-grid"));
+		InputManager.Keyboard.OnPressed(Keys.H, () => DebugMode.ToggleFeature("animal-indicators"));
+		InputManager.Keyboard.OnPressed(Keys.X, () => DebugMode.ToggleFeature("entity-interact-bounds"));
+		InputManager.Keyboard.OnPressed(Keys.Z, () => DebugMode.Execute("request-route"));
+		InputManager.Keyboard.OnPressed(Keys.U, () => DebugMode.ToggleFeature("draw-route"));
 	}
 
 	private void PrintModelDebugInfos() {
@@ -158,5 +167,10 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
+
+		// network debug stuff
+		Level level = model.Level;
+		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 	}
 }

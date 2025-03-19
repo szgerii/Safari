@@ -47,7 +47,7 @@ public class SpriteCmp : Component, IDrawable {
 	/// </summary>
 	public bool YSortEnabled { get; set; } = false;
 	/// <summary>
-	/// The amount of empty space between the bottom of the texture and its actual content
+	/// The amount of pixel rows between the top of the texture and the bottom of its actual content
 	/// This is used for determining the actual Y position of the sprite
 	/// </summary>
 	public float YSortOffset { get; set; } = 0f;

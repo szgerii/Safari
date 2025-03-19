@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
@@ -38,6 +39,18 @@ public class Jeep : Entity {
 	public event EventHandler? Returned;
 
 	public Jeep(Vector2 pos) : base(pos) {
-		displayName = "Jeep";
+		DisplayName = "Jeep";
+	}
+
+	public override void Load() {
+		GameScene.Active.Model.JeepCount++;
+
+		base.Load();
+	}
+
+	public override void Unload() {
+		GameScene.Active.Model.JeepCount--;
+
+		base.Unload();
 	}
 }
