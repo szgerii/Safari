@@ -1,11 +1,11 @@
 ﻿using Engine;
 using Engine.Debug;
 using Engine.Input;
-using Engine.Scenes;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Safari.Popups;
@@ -19,6 +19,8 @@ class DebugConsole : PopupMenu, IUpdatable {
     private int scrollNeeded;
     private bool tryFocusInput = true;
 	private Vector2? mousePosStorage = null;
+    private LinkedList<string> commandHistory = new();
+    private LinkedListNode<string> currentHistoryNode = null;
 
 	/// <summary>
 	/// This provides accessibility to the debug console and its methods.
@@ -124,6 +126,11 @@ class DebugConsole : PopupMenu, IUpdatable {
             Error($"{consoleInput} is not a command");
         }
 
+        if (commandHistory.First?.Value != consoleInput) {
+            commandHistory.AddFirst(consoleInput);
+        }
+        currentHistoryNode = null;
+
         input.Value = "";
     }
 
@@ -190,9 +197,27 @@ class DebugConsole : PopupMenu, IUpdatable {
 
 		if (InputManager.IsGameFocused) return;
 
-		bool wasUp = InputManager.Keyboard.PrevKS.IsKeyUp(Keys.F1);
-		bool isDown = InputManager.Keyboard.CurrentKS.IsKeyDown(Keys.F1);
-		if (wasUp && isDown) {
+        if (input.IsFocused) {
+            if (JustPressed(Keys.Up)) {
+                if (currentHistoryNode == null) {
+                    currentHistoryNode = commandHistory.First;
+                } else if (currentHistoryNode.Next != null) {
+                    currentHistoryNode = currentHistoryNode.Next;
+                }
+
+                input.Value = currentHistoryNode?.Value ?? "";
+                input.Caret = -1;
+            } else if (JustPressed(Keys.Down)) {
+				if (currentHistoryNode != null) {
+					currentHistoryNode = currentHistoryNode.Previous;
+				}
+
+				input.Value = currentHistoryNode?.Value ?? "";
+                input.Caret = -1;
+			}
+		}
+
+		if (JustPressed(Keys.F1)) {
 			ToggleDebugConsole();
 			UserInterface.Active.MouseInputProvider.DoClick();
 		}
@@ -225,4 +250,11 @@ class DebugConsole : PopupMenu, IUpdatable {
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }
+
+    private bool JustPressed(Keys key) {
+		bool wasUp = InputManager.Keyboard.PrevKS.IsKeyUp(key);
+		bool isDown = InputManager.Keyboard.CurrentKS.IsKeyDown(key);
+
+        return wasUp && isDown;
+	}
 }
