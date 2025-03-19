@@ -8,9 +8,9 @@ class AlertMenu : PopupMenu {
     private Header header;
     private Paragraph paragraph;
     private Button button1;
-    private Button? button2;
+    private Button button2 = null;
 
-    public event EventHandler<bool>? Chosen;
+    public event EventHandler<bool> Chosen;
 
     /// <summary>
     /// Creates a popup alert with one button. When the button is pressed Chosen event is called with the value true.

@@ -10,7 +10,7 @@ public class Tourist : Entity {
 	private static Queue<Tourist> jeepQueue = new Queue<Tourist>();
 	private static int[] recentRatings = new int[30];
 	private bool inQueue = true;
-	private Jeep? vehicle;
+	private Jeep vehicle;
 
 	/// <summary>
 	/// The average rating of the park based on the 30 newest ratings by tourist
@@ -38,7 +38,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// The jeep this tourist is assigned to
 	/// </summary>
-	public Jeep? Vehicle {
+	public Jeep Vehicle {
 		get => vehicle;
 		set => vehicle = value;
 	}
@@ -46,11 +46,11 @@ public class Tourist : Entity {
 	/// <summary>
 	/// Invoked every time this tourist sees an animal during the tour
 	/// </summary>
-	public event EventHandler<SawAnimalEventArgs>? SawAnimal;
+	public event EventHandler<SawAnimalEventArgs> SawAnimal;
 	/// <summary>
 	/// Invoked when a jeep becomes available
 	/// </summary>
-	public event EventHandler<JeepAvailableEventArgs>? JeepAvailable;
+	public event EventHandler<JeepAvailableEventArgs> JeepAvailable;
 
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";

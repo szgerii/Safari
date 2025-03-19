@@ -36,7 +36,7 @@ public class Jeep : Entity {
 	/// <summary>
 	/// Invoked when a jeep has returned to the waiting area
 	/// </summary>
-	public event EventHandler? Returned;
+	public event EventHandler Returned;
 
 	public Jeep(Vector2 pos) : base(pos) {
 		DisplayName = "Jeep";

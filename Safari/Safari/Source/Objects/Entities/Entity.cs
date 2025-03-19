@@ -16,15 +16,15 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// Invoked every time an in-game hour passes for this entity
 	/// </summary>
-	public event EventHandler? HourPassed;
+	public event EventHandler HourPassed;
 	/// <summary>
 	/// Invoked every time an in-game day passes for this entity
 	/// </summary>
-	public event EventHandler? DayPassed;
+	public event EventHandler DayPassed;
 	/// <summary>
 	/// Invoked every time an in-game week passes for this entity
 	/// </summary>
-	public event EventHandler? WeekPassed;
+	public event EventHandler WeekPassed;
 
 	private static readonly List<Entity> activeEntities = [];
 	/// <summary>

@@ -69,13 +69,13 @@ public class RoadNetwork {
 	/// The example route used for debugging / presenting
 	/// </summary>
 	public List<Point> DebugRoute { get; set; } = new List<Point>();
-	private static Texture2D? debugTexture = null;
+	private static Texture2D debugTexture = null;
 
 	/// <summary>
 	/// Use this event any time an object store a route from this network.
 	/// This event gets invoked when the extisting, saved routes are invalidated.
 	/// </summary>
-	public event EventHandler? RoadChanged;
+	public event EventHandler RoadChanged;
 
 	static RoadNetwork() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
