@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using GeonBit.UI;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
@@ -72,10 +73,6 @@ public class Actions {
 	private Dictionary<string, ReleasedCallback> releasedCallbacks = new Dictionary<string, ReleasedCallback>();
 
 	internal void UpdateEvents() {
-		if (!InputManager.IsGameFocused) {
-			return;
-		}
-
 		foreach (string name in pressedCallbacks.Keys) {
 			if (JustPressed(name)) {
 				pressedCallbacks[name]();
@@ -112,13 +109,13 @@ public class Actions {
 	/// Checks whether an action with a given name is down in the current frame
 	/// </summary>
 	public bool IsDown(string name)
-		=> IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]);
+		=> InputManager.IsGameFocused && IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]);
 
 	/// <summary>
 	/// Checks whether an action with a given name is up in the current frame
 	/// </summary>
 	public bool IsUp(string name)
-		=> !IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]);
+		=> !InputManager.IsGameFocused || !IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]);
 
 
 	/// <summary>
@@ -126,14 +123,14 @@ public class Actions {
 	/// meaning it wasn't down in the previous frame, but now is
 	/// </summary>
 	public bool JustPressed(string name)
-		=> IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]) && !IsDown(PrevKS, PrevMS, PrevGPS, actions[name]);
+		=> InputManager.IsGameFocused && IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]) && !IsDown(PrevKS, PrevMS, PrevGPS, actions[name]);
 
 	/// <summary>
 	/// Checks whether an action with a given name was just released in this frame,
 	/// meaning it was down in the previous frame, but now isn't
 	/// </summary>
 	public bool JustReleased(string name)
-		=> !IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]) && IsDown(PrevKS, PrevMS, PrevGPS, actions[name]);
+		=> IsDown(PrevKS, PrevMS, PrevGPS, actions[name]) && (InputManager.JustLostFocus || !IsDown(CurrentKS, CurrentMS, CurrentGPS, actions[name]));
 
 	/// <summary>
 	/// Checks whether an action with a given name is down, and ensures that, using this function, 
@@ -155,7 +152,7 @@ public class Actions {
 	/// </summary>
 	/// <param name="timeout">The minimum number of milliseconds that has to pass before a true value for this action can be returned again.</param>
 	public bool TimedIsDown(string name, int milliseconds = 200)
-		=> TimedIsDown(name, TimeSpan.FromMilliseconds(milliseconds));
+		=> InputManager.IsGameFocused && TimedIsDown(name, TimeSpan.FromMilliseconds(milliseconds));
 
 	/// <summary>
 	/// Registers a callback for the pressed event of a complex action with a given name

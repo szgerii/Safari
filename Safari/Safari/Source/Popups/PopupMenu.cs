@@ -3,7 +3,7 @@ using GeonBit.UI.Entities;
 
 namespace Safari.Popups;
 
-abstract class PopupMenu {
+public abstract class PopupMenu {
     protected Panel panel;
 
     /// <summary>

@@ -20,8 +20,6 @@ namespace Safari;
 public class Game : Engine.Game {
 	public bool DisplayDebugInfos { get; private set; } = false;
 
-	private Dictionary<DebugInfoPosition, Paragraph> debugInfoParagraphs = new();
-
 	protected override void Initialize() {
 		base.Initialize();
 
@@ -47,10 +45,6 @@ public class Game : Engine.Game {
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
         UserInterface.Active.UseRenderTarget = true;
-
-        foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
-			debugInfoParagraphs[pos] = new Paragraph();
-		}
 
 		// debug stuff
 
@@ -86,11 +80,12 @@ public class Game : Engine.Game {
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
+		DebugConsole.Instance?.Update(gameTime);
 
 		DateTime start = DateTime.Now;
 
-		base.Update(gameTime);
 		UserInterface.Active.Update(gameTime);
+		base.Update(gameTime);
 
 		tickTime.AddValue((DateTime.Now - start).TotalMilliseconds);
 		
@@ -108,6 +103,8 @@ public class Game : Engine.Game {
 
 	protected override void Draw(GameTime gameTime) {
 		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+		DebugInfoManager.AddInfo("active entity", UserInterface.Active.ActiveEntity.ToString(), DebugInfoPosition.BottomRight);
+
 		DebugInfoManager.PreDraw();
 
 		DateTime start = DateTime.Now;

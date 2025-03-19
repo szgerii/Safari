@@ -77,19 +77,19 @@ public class GamePad {
 	/// <summary>
 	/// Checks whether the given gamepad button is down in the current frame
 	/// </summary>
-	public bool IsDown(Buttons button) => CurrentGPS.IsButtonDown(button);
+	public bool IsDown(Buttons button) => InputManager.IsGameFocused && CurrentGPS.IsButtonDown(button);
 
 	/// <summary>
 	/// Checks whether the given gamepad button is up in the current frame
 	/// </summary>
-	public bool IsUp(Buttons button) => CurrentGPS.IsButtonUp(button);
+	public bool IsUp(Buttons button) => InputManager.IsGameFocused && CurrentGPS.IsButtonUp(button);
 
 	/// <summary>
 	/// Checks whether the given gamepad button was just pressed in this frame,
 	/// meaning it wasn't down in the previous frame, but now is
 	/// </summary>
 	public bool JustPressed(Buttons button)
-		=> CurrentGPS.IsButtonDown(button) && !PrevGPS.IsButtonDown(button);
+		=> InputManager.IsGameFocused && CurrentGPS.IsButtonDown(button) && !PrevGPS.IsButtonDown(button);
 
 
 	/// <summary>
@@ -97,7 +97,7 @@ public class GamePad {
 	/// meaning it was down in the previous frame, but now isn't
 	/// </summary>
 	public bool JustReleased(Buttons button)
-		=> CurrentGPS.IsButtonUp(button) && !PrevGPS.IsButtonUp(button);
+		=> !PrevGPS.IsButtonUp(button) && ((InputManager.WasGameFocused && !InputManager.IsGameFocused) || CurrentGPS.IsButtonUp(button));
 
 	/// <summary>
 	/// Checks whether a given gamepad button is down, and ensures that, using this function, 
@@ -119,7 +119,7 @@ public class GamePad {
 	/// </summary>
 	/// <param name="timeout">The minimum number of milliseconds that has to pass before a true value for this gamepad button can be returned again.</param>
 	public bool TimedIsDown(Buttons button, int milliseconds = 200)
-		=> TimedIsDown(button, TimeSpan.FromMilliseconds(milliseconds));
+		=> InputManager.IsGameFocused && TimedIsDown(button, TimeSpan.FromMilliseconds(milliseconds));
 
 	/// <summary>
 	/// Registers a callback for the pressed event of a given gamepad button
@@ -171,13 +171,13 @@ public class GamePad {
 	/// meaning its value in this frame is different from it in the previous frame
 	/// </summary>
 	public bool AxisChanged(GamePadAxes axis)
-		=> AxisValue(CurrentGPS, axis) != AxisValue(PrevGPS, axis);
+		=> InputManager.IsGameFocused && AxisValue(CurrentGPS, axis) != AxisValue(PrevGPS, axis);
 
 	/// <summary>
 	/// Returns how much a given gamepad axis has changed since the previous frame
 	/// </summary>
 	public float AxisMovement(GamePadAxes axis)
-		=> AxisValue(CurrentGPS, axis) - AxisValue(PrevGPS, axis);
+		=> !InputManager.IsGameFocused ? 0 : AxisValue(CurrentGPS, axis) - AxisValue(PrevGPS, axis);
 
 	/// <summary>
 	/// Checks whether the gamepad is connected

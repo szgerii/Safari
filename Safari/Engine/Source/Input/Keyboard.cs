@@ -58,7 +58,7 @@ public class Keyboard {
 	/// Checks whether the given key was just released in this frame,
 	/// meaning it was down in the previous frame, but now isn't
 	/// </summary>
-	public bool JustReleased(Keys key) => InputManager.IsGameFocused && CurrentKS.IsKeyUp(key) && !PrevKS.IsKeyUp(key);
+	public bool JustReleased(Keys key) => !PrevKS.IsKeyUp(key) && (InputManager.JustLostFocus || CurrentKS.IsKeyUp(key));
 
 	/// <summary>
 	/// Checks whether a given key is down, and ensures that, using this function, 
@@ -80,7 +80,7 @@ public class Keyboard {
 	/// </summary>
 	/// <param name="timeout">The minimum number of milliseconds that has to pass before a true value for this key can be returned again.</param>
 	public bool TimedIsDown(Keys key, int milliseconds = 200)
-		=> TimedIsDown(key, TimeSpan.FromMilliseconds(milliseconds));
+		=> InputManager.IsGameFocused && TimedIsDown(key, TimeSpan.FromMilliseconds(milliseconds));
 
 	/// <summary>
 	/// Registers a callback for the pressed event of a given key

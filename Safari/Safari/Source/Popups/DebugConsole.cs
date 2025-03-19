@@ -1,28 +1,34 @@
-﻿using Engine.Debug;
+﻿using Engine;
+using Engine.Debug;
+using Engine.Input;
+using Engine.Scenes;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System.Text;
 
 namespace Safari.Popups;
-class DebugConsole : PopupMenu {
-    private static DebugConsole instance = new DebugConsole();
+class DebugConsole : PopupMenu, IUpdatable {
+    private readonly static DebugConsole instance = new DebugConsole();
     private Panel consoleTextPanel;
     private RichParagraph consoleTextLog;
     private TextInput input;
     private bool visible;
     private StringBuilder builder;
     private int scrollNeeded;
+    private bool tryFocusInput = true;
+	private Vector2? mousePosStorage = null;
 
-    /// <summary>
-    /// This provides accessibility to the debug console and its methods.
-    /// </summary>
-    public static DebugConsole Instance => instance;
+	/// <summary>
+	/// This provides accessibility to the debug console and its methods.
+	/// </summary>
+	public static DebugConsole Instance => instance;
 
     private DebugConsole() {
         //initialize the main panel and set visibility to false
         visible = false;
-        panel = new Panel(new Vector2(0.7f, 0.5f), PanelSkin.Default, Anchor.TopLeft);
+        panel = new Panel(new Vector2(0.7f, 0.5f), PanelSkin.Default, Anchor.Center);
         panel.Padding = new Vector2(0);
         panel.MinSize = new Vector2(700, 500);
         panel.Draggable = true;
@@ -44,7 +50,7 @@ class DebugConsole : PopupMenu {
         input = new TextInput(true, new Vector2(0f, 60), Anchor.BottomLeft, null);
         input.MaxSize = new Vector2(0f, 100);
         input.Identifier = "debug-console-input";
-        input.OnValueChange = ProccesInput;
+        input.OnValueChange = ProcessInput;
         input.PlaceholderText = "Type here";
         input.Padding = new Vector2(10, 15);
 
@@ -70,11 +76,13 @@ class DebugConsole : PopupMenu {
     /// </summary>
     public void ToggleDebugConsole() {
         if (visible) {
+			input.IsFocused = false;
             base.Hide();
             visible = false;
         } else {
             base.Show();
             visible = true;
+            tryFocusInput = true;
         }
     }
 
@@ -90,7 +98,7 @@ class DebugConsole : PopupMenu {
 
     //Checks if the user had hit an Enter and if yes,
     //outputs it, tries to run the entered text as a debug command, and informs the user if it was successful.
-    private void ProccesInput(Entity entity) {
+    private void ProcessInput(Entity entity) {
         if (input.Value.Length == 0 || (input.Value.Length == 1 && (input.Value[0] == '\n' || input.Value[0] == '\r'))) {
             input.Value = "";
             return;
@@ -150,14 +158,48 @@ class DebugConsole : PopupMenu {
         ScrollConsoleDown();
     }
 
-    private void Info(string text) {
+    /// <summary>
+    /// This method provides a way to write an info message to the console.
+    /// </summary>
+    /// <param name="text">Info message text</param>
+    public void Info(string text) {
         builder.Append("{{L_BLUE}}").Append(text).Append("{{DEFAULT}}").Append("\n");
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }
 
-    //prints out the available debug commands
-    private void Help() {
+	// geonbit power ups & window closing
+	public void Update(GameTime gameTime) {
+		if (tryFocusInput) {
+			if (mousePosStorage == null) {
+				Rectangle inputDestRect = input.GetActualDestRect();
+
+				if (!inputDestRect.IsEmpty) {
+					mousePosStorage = UserInterface.Active.MouseInputProvider.MousePosition;
+					UserInterface.Active.MouseInputProvider.UpdateMousePosition(inputDestRect.Center.ToVector2());
+					UserInterface.Active.MouseInputProvider.DoClick();
+				}
+			} else {
+				UserInterface.Active.MouseInputProvider.UpdateMousePosition(mousePosStorage.Value);
+				mousePosStorage = null;
+				tryFocusInput = false;
+			}
+		}
+
+		input.IsFocused = UserInterface.Active.ActiveEntity == input;
+
+		if (InputManager.IsGameFocused) return;
+
+		bool wasUp = InputManager.Keyboard.PrevKS.IsKeyUp(Keys.F1);
+		bool isDown = InputManager.Keyboard.CurrentKS.IsKeyDown(Keys.F1);
+		if (wasUp && isDown) {
+			ToggleDebugConsole();
+			UserInterface.Active.MouseInputProvider.DoClick();
+		}
+	}
+
+	//prints out the available debug commands
+	private void Help() {
         Info("{{BOLD}}Execute commands:{{DEFAULT}}");
         foreach (ExecutedDebugFeature item in DebugMode.ExecutedFeatures) {
             Info($"{item.Name}");
