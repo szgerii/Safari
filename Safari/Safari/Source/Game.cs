@@ -163,6 +163,8 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.G, () => DebugMode.ToggleFeature("draw-grid"));
 		InputManager.Keyboard.OnPressed(Keys.H, () => DebugMode.ToggleFeature("animal-indicators"));
 		InputManager.Keyboard.OnPressed(Keys.X, () => DebugMode.ToggleFeature("entity-interact-bounds"));
+		InputManager.Keyboard.OnPressed(Keys.Z, () => DebugMode.Execute("request-route"));
+		InputManager.Keyboard.OnPressed(Keys.U, () => DebugMode.ToggleFeature("draw-route"));
 	}
 
 	private void PrintModelDebugInfos() {
@@ -182,5 +184,10 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
+
+		// network debug stuff
+		Level level = model.Level;
+		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 	}
 }
