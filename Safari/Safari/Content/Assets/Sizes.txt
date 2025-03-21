@@ -34,7 +34,7 @@ Tree
 -Grandideri1: 96x160
 -Gregorii: 96x128
 -Rubrostipa: 128x128
--Suarazensis: 96x128
+-Suarazensis: 96x96
 -Za: 96x160
 -Grandideri2: 96x128
 
