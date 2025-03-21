@@ -301,7 +301,9 @@ public class Level : GameObject {
 	}
 
 	public void DayNightDraw() {
+		// set render target to next pass
 		Game.Graphics.GraphicsDevice.SetRenderTarget(Game.RenderTarget);
+		// Generate fullscreen vbo, ibo
 		VertexBuffer vbo = new VertexBuffer(Game.Graphics.GraphicsDevice, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.WriteOnly);
 		IndexBuffer ibo = new IndexBuffer(Game.Graphics.GraphicsDevice, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.WriteOnly);
 		int[] indices = new int[6] { 0, 1, 2, 2, 3, 0 };
@@ -321,11 +323,15 @@ public class Level : GameObject {
 		};
 		ibo.SetData(indices);
 		vbo.SetData(verts);
+		// bind ibo, vbo
 		Game.Graphics.GraphicsDevice.Indices = ibo;
 		Game.Graphics.GraphicsDevice.SetVertexBuffer(vbo);
+		// apply current shader
 		dayNightPass.CurrentTechnique = dayNightPass.Techniques[0];
-		dayNightPass.Parameters["GameOutput"].SetValue(Game.RenderTarget);
+		// set shader params
 		dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
+		// upload prev pass, apply shader and draw call
+		dayNightPass.Parameters["GameOutput"].SetValue(Game.RenderTarget);
 		dayNightPass.CurrentTechnique.Passes[0].Apply();
 		Game.Graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
 	}
