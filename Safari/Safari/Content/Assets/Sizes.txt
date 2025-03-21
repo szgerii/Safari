@@ -1,7 +1,7 @@
 Desert: 32x32
 Fence: 32x32
 Grass: 32x32
-Jeep: 32x32
+Jeep: 64x64
 Gates: 96x96
 
 Bush
