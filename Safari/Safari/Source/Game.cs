@@ -79,6 +79,7 @@ public class Game : Engine.Game {
 	}
 
 	protected override void LoadContent() {
+
 		base.LoadContent();
 	}
 
@@ -165,6 +166,7 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Time float", $"{(float)model.TimeOfDay}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
 
@@ -172,5 +174,11 @@ public class Game : Engine.Game {
 		Level level = model.Level;
 		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
+	}
+
+	public override void PostProcessDraw() {
+		if (SceneManager.Active is GameScene) {
+			GameScene.Active.Model.Level.DayNightDraw();
+		}
 	}
 }

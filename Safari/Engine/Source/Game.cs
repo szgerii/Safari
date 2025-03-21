@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Engine.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace Engine;
 
@@ -61,7 +62,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 		if (SceneManager.HasLoadingScheduled) {
 			SceneManager.PerformScheduledLoad();
 		}
-		
+
 		SceneManager.Active.PerformObjectRemovals();
 		SceneManager.Active.PerformObjectAdditions();
 
@@ -95,7 +96,9 @@ public class Game : Microsoft.Xna.Framework.Game {
 		);
 		SceneManager.Active.Draw(gameTime);
 		SpriteBatch.End();
-		
+
+		PostProcessDraw();
+
 		GraphicsDevice.SetRenderTarget(null);
 		GraphicsDevice.Clear(Color.Black);
 
@@ -108,4 +111,6 @@ public class Game : Microsoft.Xna.Framework.Game {
 
 		base.Draw(gameTime);
 	}
+
+	public virtual void PostProcessDraw() { }
 }
