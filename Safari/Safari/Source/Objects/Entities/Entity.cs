@@ -25,6 +25,10 @@ public abstract class Entity : GameObject {
 	/// Invoked every time an in-game week passes for this entity
 	/// </summary>
 	public event EventHandler WeekPassed;
+	/// <summary>
+	/// Invoked exactly once at the end of an entity's lifetime
+	/// </summary>
+	public event EventHandler Died;
 
 	private static readonly List<Entity> activeEntities = [];
 	/// <summary>
@@ -88,6 +92,14 @@ public abstract class Entity : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Indicates if the entity has died
+	/// </summary>
+	public bool Dead { get; private set; } = false;
+
+	/// <summary>
+	/// The sprite component of the entity used for rendering
+	/// </summary>
 	protected SpriteCmp sprite;
 
 	private DateTime lastHourUpdate;
@@ -115,7 +127,7 @@ public abstract class Entity : GameObject {
 		List<Entity> results = [];
 
 		foreach (Entity e in ActiveEntities) {
-			if (area.Contains(e.Position)) {
+			if (!e.Dead && area.Contains(e.Position)) {
 				results.Add(e);
 			}
 		}
@@ -175,6 +187,18 @@ public abstract class Entity : GameObject {
 
 		Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+	}
+
+	/// <summary>
+	/// Removes the entity from the game
+	/// </summary>
+	public void Die() {
+		if (Dead) return;
+
+		Died?.Invoke(this, EventArgs.Empty);
+		Dead = true;
+
+		Game.RemoveObject(this);
 	}
 
 	/// <summary>

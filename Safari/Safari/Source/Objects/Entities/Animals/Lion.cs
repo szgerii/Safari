@@ -1,4 +1,4 @@
-﻿using Engine.Components;
+﻿using Engine.Collision;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,5 +11,8 @@ public class Lion : Animal {
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Lion");
 		sprite.YSortOffset = 96;
 		sprite.Scale = 2 / 3f;
+
+		Collider baseColl = new(12, 75, 80, 20);
+		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
 	}
 }

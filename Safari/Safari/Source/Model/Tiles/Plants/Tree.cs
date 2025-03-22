@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Components;
+using Engine.Collision;
+using Microsoft.Xna.Framework;
 
 namespace Safari.Model.Tiles;
 
@@ -50,6 +52,11 @@ public class Tree : Tile {
 			default:
 				break;
 		}
+
+		CollisionCmp collCmp = new CollisionCmp(type.GetCollider()) {
+			Tags = CollisionTags.World
+		};
+		Attach(collCmp);
 	}
 
 	public override void UpdateYSortOffset() {

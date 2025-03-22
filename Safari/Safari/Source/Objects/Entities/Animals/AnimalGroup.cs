@@ -224,19 +224,7 @@ public class AnimalGroup : GameObject {
 			Vector2 delta = target - anim.Position;
 			delta.Normalize();
 
-			bool rightish = delta.X >= 0;
-			bool upish = delta.Y < 0;
-
-			string newAnimName = "walk-";
-			if (upish) {
-				newAnimName += "up-";
-			}
-			newAnimName += rightish ? "right" : "left";
-			if (anim.AnimSprite.CurrentAnimation != newAnimName) {
-				anim.AnimSprite.CurrentAnimation = newAnimName;
-			}
-
-			anim.Position += ANIMAL_SPEED * delta * (float)gameTime.ElapsedGameTime.TotalSeconds;
+			anim.Move(ANIMAL_SPEED * delta * (float)gameTime.ElapsedGameTime.TotalSeconds);
 		}
 	}
 

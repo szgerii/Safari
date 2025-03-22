@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Engine.Components;
+using Engine.Collision;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -123,12 +124,29 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public AnimalGroup Group { get; set; }
 
-	public AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp; // TODO: make protected after nav cmp stuff is done
+	/// <summary>
+	/// The animal's sprite component cast to an animated sprite
+	/// (which all animals have by default)
+	/// </summary>
+	protected AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp;
+	/// <summary>
+	/// The animal's collision detection component
+	/// </summary>
+	protected CollisionCmp collisionCmp;
 
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
+		// data
 		Species = species;
 		Gender = gender;
+		Group = new AnimalGroup(this);
 
+		birthTime = GameScene.Active.Model.IngameDate;
+
+		Died += (object sender, EventArgs e) => {
+			Group.Leave(this);
+		};
+
+		// animations
 		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
 		sprite = animSprite;
 		Attach(sprite);
@@ -139,14 +157,17 @@ public abstract class Animal : Entity {
 		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
 		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
 
-		animSprite.CurrentAnimation = "walk-right";
-
-		birthTime = GameScene.Active.Model.IngameDate;
-
-		Group = new AnimalGroup(this);
+		// collision
+		collisionCmp = new CollisionCmp(Collider.Empty) {
+			Tags = CollisionTags.Animal,
+			Targets = CollisionTags.World
+			//Targets = CollisionTags.World | CollisionTags.Animal
+		};
+		Attach(collisionCmp);
 	}
 
 	static Animal() {
+		// add debug feature for drawing animal stats
 		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				if (e is Animal a) a.DrawIndicators(gameTime);
@@ -168,8 +189,6 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Unload() {
-		System.Diagnostics.Debug.WriteLine("Unloading " + GetHashCode());
-
 		GameModel model = GameScene.Active.Model;
 
 		model.AnimalCount--;
@@ -185,7 +204,7 @@ public abstract class Animal : Entity {
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
 
-		if (Age > MAX_AGE) {
+		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
 		}
@@ -201,10 +220,6 @@ public abstract class Animal : Entity {
 
 		if (!wasThirsty && IsThirsty) {
 			GotThirsty?.Invoke(this, EventArgs.Empty);
-		}
-
-		if (ThirstLevel <= 0f || HungerLevel <= 0f) {
-			Die();
 		}
 
 		CheckSurroundings();
@@ -253,13 +268,6 @@ public abstract class Animal : Entity {
 	}
 
 	/// <summary>
-	/// Removes the animal from the park
-	/// </summary>
-	public void Die() {
-		Game.RemoveObject(this);
-	}
-
-	/// <summary>
 	/// Resets the animal's mating cooldown
 	/// </summary>
 	/// <exception cref="InvalidOperationException"></exception>
@@ -297,6 +305,21 @@ public abstract class Animal : Entity {
 
 		Position = releasePosition;
 		IsCaught = false;
+	}
+
+	/// <summary>
+	/// Moves the animal by the specified amount
+	/// </summary>
+	/// <param name="delta">The amount to move</param>
+	public void Move(Vector2 delta) {
+		bool rightish = delta.X >= 0;
+		bool upish = delta.Y < 0;
+
+		string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
+		if (AnimSprite.CurrentAnimation != newAnimName) {
+			AnimSprite.CurrentAnimation = newAnimName;
+		}
+		collisionCmp.MoveOwner(delta);
 	}
 
 	private Texture2D indicatorTex = null, indicatorOutlineTex = null;

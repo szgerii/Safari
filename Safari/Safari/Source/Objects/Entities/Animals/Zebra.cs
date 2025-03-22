@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Collision;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Objects.Entities.Animals;
@@ -10,5 +11,8 @@ public class Zebra : Animal {
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Zebra");
 		sprite.YSortOffset = 96;
 		sprite.Scale = 2 / 3f;
+
+		Collider baseColl = new(5, 83, 78, 15);
+		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
 	}
 }

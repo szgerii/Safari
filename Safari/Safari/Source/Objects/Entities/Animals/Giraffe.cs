@@ -1,4 +1,4 @@
-﻿using Engine.Components;
+﻿using Engine.Collision;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,6 +11,9 @@ public class Giraffe : Animal {
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Giraffe");
 		sprite.Scale = 0.75f;
 		sprite.YSortOffset = 128;
+
+		Collider baseColl = new(7, 107, 81, 20);
+		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
 
 		ReachDistance = 2;
 		SightDistance = 6;
