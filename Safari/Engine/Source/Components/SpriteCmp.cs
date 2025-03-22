@@ -60,7 +60,7 @@ public class SpriteCmp : Component, IDrawable {
 				return LayerDepth;
 			}
 
-			return LayerDepth - 0.1f * ((Owner.ScreenPosition.Y + YSortOffset) / Camera.Active.ScreenHeight);
+			return LayerDepth - 0.1f * ((Owner.ScreenPosition.Y + (YSortOffset * Scale)) / Camera.Active.ScreenHeight);
 		}
 	}
 	/// <summary>

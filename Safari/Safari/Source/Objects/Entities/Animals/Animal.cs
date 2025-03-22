@@ -38,6 +38,8 @@ public abstract class Animal : Entity {
 	private const float FEEDING_SPEED = 10f;
 	private const float DRINKING_SPEED = 10f;
 
+	private const int INDICATOR_HEIGHT = 8;
+
 	protected DateTime birthTime;
 	protected DateTime? lastMatingTime = null;
 
@@ -125,7 +127,7 @@ public abstract class Animal : Entity {
 		birthTime = GameScene.Active.Model.IngameDate;
 
 		sprite = new SpriteCmp(null);
-		sprite.LayerDepth = 0.5f;
+		sprite.LayerDepth = 0.4f;
 		sprite.YSortEnabled = true;
 		Attach(sprite);
 
@@ -285,7 +287,7 @@ public abstract class Animal : Entity {
 		IsCaught = false;
 	}
 
-	private Texture2D indicatorTex = null, indicatorOutline = null;
+	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
@@ -293,23 +295,26 @@ public abstract class Animal : Entity {
 	public void DrawIndicators(GameTime gameTime) {
 		if (IsCaught) return;
 
-		int indicatorWidth = (sprite.SourceRectangle?.Width ?? sprite.Texture.Width) / 2;
-		int fullHeight = sprite.SourceRectangle?.Height ?? sprite.Texture.Height;
+		int maxWidth = Utils.Round(Bounds.Width * 0.8f);
+		int margin = Utils.Round(Bounds.Width * 0.1f);
 
-		if (indicatorTex == null || indicatorTex.Width != indicatorWidth) {
-			indicatorTex = Utils.GenerateTexture(indicatorWidth, fullHeight, Color.White);
-			indicatorOutline = Utils.GenerateTexture(indicatorWidth, fullHeight, Color.White, true);
+		if (indicatorTex == null || indicatorOutlineTex == null) {
+			indicatorTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White);
+			indicatorOutlineTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White, true);
 		}
 
-		int thirstHeight = (int)(ThirstLevel / 100f * fullHeight);
-		int hungerHeight = (int)(HungerLevel / 100f * fullHeight);
+		int thirstWidth = (int)(ThirstLevel / 100f * maxWidth);
+		int hungerWidth = (int)(HungerLevel / 100f * maxWidth);
+
+		Vector2 thirstOffset = new Vector2(margin, -2f * INDICATOR_HEIGHT);
+		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle(Position.ToPoint() + new Point(0, fullHeight - thirstHeight), new Point(indicatorWidth, thirstHeight)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutline, new Rectangle(Position.ToPoint(), new Point(indicatorWidth, fullHeight)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle(Position.ToPoint() + new Point(indicatorWidth, fullHeight - hungerHeight), new Point(indicatorWidth, hungerHeight)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutline, new Rectangle(Position.ToPoint() + new Point(indicatorWidth, 0), new Point(indicatorWidth, fullHeight)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
 	}
 
 	private void CheckSurroundings() {

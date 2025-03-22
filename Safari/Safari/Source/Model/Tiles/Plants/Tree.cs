@@ -31,6 +31,7 @@ public class Tree : Tile {
 	public Tree(TreeType type) : base(type.GetTexture()) {
 		IsFoodSource = true;
 		Type = type;
+		Sprite.LayerDepth = 0.4f;
 
 		switch (Type) {
 			case TreeType.Digitata:

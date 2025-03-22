@@ -8,7 +8,8 @@ public class Zebra : Animal {
 		DisplayName = "Zebra";
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Zebra");
-		sprite.SourceRectangle = new Rectangle(0, 0, 32, 32);
-		sprite.YSortOffset = 32;
+		sprite.SourceRectangle = new Rectangle(0, 0, 82, 96);
+		sprite.YSortOffset = 96;
+		sprite.Scale = 2 / 3f;
 	}
 }
