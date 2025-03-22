@@ -9,6 +9,7 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using Safari.Components;
 
 namespace Safari.Model;
 

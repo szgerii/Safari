@@ -6,7 +6,6 @@ using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
 using Safari.Scenes;
-using Safari.Source.Model;
 using System;
 using System.Collections.Generic;
 using static System.Net.Mime.MediaTypeNames;
@@ -43,7 +42,7 @@ public class Level : GameObject {
 	/// The network managing the roads and paths in this level
 	/// </summary>
 	public RoadNetwork Network { get; init; }
-	public DayNightPass DayNightPass { get; init; }
+	public LightManager LightManager { get; init; }
 
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
@@ -63,6 +62,8 @@ public class Level : GameObject {
 		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
 		selectedTileTex = Utils.MergeTextures(fill, outline);
 
+		LightManager = new LightManager(width, height);
+
 		// start and end locations are not final
 		Point start = new Point(0, height / 2);
 		Point end = new Point(width / 2, 0);
@@ -78,8 +79,6 @@ public class Level : GameObject {
 			current.Y--;
 			SetTile(current, new Road());
 		}
-
-		DayNightPass = new DayNightPass();
 	}
 
 	/// <summary>
@@ -150,6 +149,9 @@ public class Level : GameObject {
 			Network.AddRoad(x, y);
 		}
 		tiles[x, y] = tile;
+		if (tile.LightRange >= 0) {
+			LightManager.AddLightSource(x, y, tile.LightRange);
+		}
 
 		if (!tile.Loaded) {
 			Game.AddObject(tile);
@@ -181,6 +183,9 @@ public class Level : GameObject {
 		Tile t = tiles[x, y];
 		if (t is Road) {
 			Network.ClearRoad(x, y);
+		}
+		if (t.LightRange >= 0) {
+			LightManager.RemoveLightSource(x, y, t.LightRange);
 		}
 
 		tiles[x, y] = null;

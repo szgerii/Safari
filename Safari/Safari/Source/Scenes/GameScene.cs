@@ -23,7 +23,7 @@ public class GameScene : Scene {
 		base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
-		PostProcessPasses.Remove(model.Level.DayNightPass);
+		PostProcessPasses.Remove(model.Level.LightManager);
 		Game.ContentManager.Unload();
 	}
 
@@ -33,7 +33,7 @@ public class GameScene : Scene {
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
-		PostProcessPasses.Add(model.Level.DayNightPass);
+		PostProcessPasses.Add(model.Level.LightManager);
 
 		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
 		PostUpdate += CollisionManager.PostUpdate;

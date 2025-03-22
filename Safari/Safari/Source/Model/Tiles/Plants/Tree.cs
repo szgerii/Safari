@@ -31,6 +31,7 @@ public class Tree : Tile {
 	public Tree(TreeType type) : base(type.GetTexture()) {
 		IsFoodSource = true;
 		Type = type;
+		LightRange = 3;
 
 		switch (Type) {
 			case TreeType.Digitata:

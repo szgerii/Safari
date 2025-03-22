@@ -113,6 +113,17 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
 
+	private bool hasChip;
+	public bool HasChip {
+		get => hasChip;
+		set {
+			if (hasChip != value) {
+				VisibleAtNight = value;
+			}
+			hasChip = value;
+		}
+	}
+
 	/// <summary>
 	/// The group this animal belongs to
 	/// </summary>
@@ -127,6 +138,7 @@ public abstract class Animal : Entity {
 		sprite = new SpriteCmp(null);
 		sprite.LayerDepth = 0.5f;
 		sprite.YSortEnabled = true;
+		VisibleAtNight = false;
 		Attach(sprite);
 
 		Group = new AnimalGroup(this);

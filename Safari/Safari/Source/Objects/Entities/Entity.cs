@@ -8,6 +8,7 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Safari.Objects.Entities;
 
@@ -48,6 +49,21 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// The game world bounding box of the animal's vision
 	/// </summary>
+
+	public bool VisibleAtNight { get; set; } = true;
+
+	public bool Visible {
+		get {
+			GameModel model = GameScene.Active.Model;
+			Level level = model.Level;
+			int map_x = (int)(Position.X / (float)level.TileSize);
+			int map_y = (int)(Position.Y / (float)level.TileSize);
+			if (!model.IsDaytime && !VisibleAtNight && !model.Level.LightManager.CheckLight(map_x, map_y)) {
+				return false;
+			}
+			return true;
+		}
+	}
 	public Rectangle SightArea {
 		get {
 			int tileSize = GameScene.Active.Model.Level.TileSize;
@@ -139,6 +155,12 @@ public abstract class Entity : GameObject {
 			lastWeekUpdate = ingameDate;
 		}
 		base.Update(gameTime);
+	}
+
+	public override void Draw(GameTime gameTime) {
+		if (Visible) {
+			base.Draw(gameTime);
+		}
 	}
 
 	private Texture2D sightAreaTex = null, reachAreaTex = null;
