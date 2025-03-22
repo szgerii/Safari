@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
+using Safari.Scenes.Menus;
 
 namespace Safari;
 
@@ -34,7 +35,7 @@ public class Game : Engine.Game {
 			}
 		};
 
-		SceneManager.Load(new GameScene());
+		//SceneManager.Load(new GameScene());
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
@@ -76,9 +77,10 @@ public class Game : Engine.Game {
 		}));
 
 		DebugMode.Enable();
-	}
+        SceneManager.Load(MainMenu.Active);
+    }
 
-	protected override void LoadContent() {
+    protected override void LoadContent() {
 		base.LoadContent();
 	}
 

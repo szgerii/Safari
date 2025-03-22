@@ -4,18 +4,18 @@ using GeonBit.UI.Entities;
 
 namespace Safari.Scenes.Menus;
 public abstract class MenuScene : Scene {
-    private Panel container;
+    protected Panel panel;
 
     public override void Load() {
-        this.ConstructUI();
-        UserInterface.Active.AddEntity(container);
         base.Load();
+        this.ConstructUI();
+        UserInterface.Active.AddEntity(panel);
     }
 
     public override void Unload() {
-        this.DestroyUI();
-        UserInterface.Active.RemoveEntity(container);
         base.Unload();
+        UserInterface.Active.RemoveEntity(panel);
+        this.DestroyUI();
     }
 
     protected abstract void ConstructUI();
