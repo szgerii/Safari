@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Components;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Objects.Entities.Animals;
@@ -8,7 +9,6 @@ public class Lion : Animal {
 		DisplayName = "Lion";
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Lion");
-		sprite.SourceRectangle = new Rectangle(0, 0, 105, 96);
 		sprite.YSortOffset = 96;
 		sprite.Scale = 2 / 3f;
 	}

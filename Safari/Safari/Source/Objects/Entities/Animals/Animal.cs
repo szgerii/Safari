@@ -16,6 +16,9 @@ public enum Gender {
 }
 
 public abstract class Animal : Entity {
+	protected const float ANIMAL_LAYER = 0.4f;
+	protected const int ANIMATION_SPEED = 7;
+
 	/// <summary>
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
@@ -120,16 +123,25 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public AnimalGroup Group { get; set; }
 
+	public AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp; // TODO: make protected after nav cmp stuff is done
+
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
 		Species = species;
 		Gender = gender;
 
-		birthTime = GameScene.Active.Model.IngameDate;
-
-		sprite = new SpriteCmp(null);
-		sprite.LayerDepth = 0.4f;
-		sprite.YSortEnabled = true;
+		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
+		sprite = animSprite;
 		Attach(sprite);
+		animSprite.LayerDepth = ANIMAL_LAYER;
+		animSprite.YSortEnabled = true;
+		animSprite.Animations["walk-right"] = new Animation(0, 3, true);
+		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
+		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
+		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
+
+		animSprite.CurrentAnimation = "walk-right";
+
+		birthTime = GameScene.Active.Model.IngameDate;
 
 		Group = new AnimalGroup(this);
 	}

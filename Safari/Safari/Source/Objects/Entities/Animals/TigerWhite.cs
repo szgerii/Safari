@@ -8,7 +8,6 @@ public class TigerWhite : Animal {
 		DisplayName = "White Tiger";
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/TigerWhite");
-		sprite.SourceRectangle = new Rectangle(0, 0, 97, 64);
 		sprite.YSortOffset = 64;
 		sprite.Scale = 0.75f;
 	}
