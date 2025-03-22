@@ -8,13 +8,13 @@
 #endif
 
 // Uniforms
-texture GameOutput;
+texture PrevStep;
 float Time;
 
 // Texture samplers
-sampler OutputSampler = sampler_state
+sampler PrevSampler = sampler_state
 {
-    Texture = (GameOutput);
+    Texture = (PrevStep);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
@@ -109,7 +109,7 @@ float Movement(float interp)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    float4 old_color = float4(tex2D(OutputSampler, input.TexCoord).rgb, 1.0);
+    float4 old_color = float4(tex2D(PrevSampler, input.TexCoord).rgb, 1.0);
     float4 night_color = NightColor(old_color, 0.0);
     float4 night_color_no_lights = NightColor(old_color, 0.0);
     float4 day_color = DayColor(old_color);

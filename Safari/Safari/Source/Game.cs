@@ -175,10 +175,4 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 	}
-
-	public override void PostProcessDraw() {
-		if (SceneManager.Active is GameScene) {
-			GameScene.Active.Model.Level.DayNightDraw();
-		}
-	}
 }

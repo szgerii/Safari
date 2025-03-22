@@ -6,6 +6,7 @@ using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
 using Safari.Scenes;
+using Safari.Source.Model;
 using System;
 using System.Collections.Generic;
 using static System.Net.Mime.MediaTypeNames;
@@ -42,8 +43,7 @@ public class Level : GameObject {
 	/// The network managing the roads and paths in this level
 	/// </summary>
 	public RoadNetwork Network { get; init; }
-
-	private Effect dayNightPass = Game.ContentManager.Load<Effect>("Fx/dayNightPass");
+	public DayNightPass DayNightPass { get; init; }
 
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
@@ -78,6 +78,8 @@ public class Level : GameObject {
 			current.Y--;
 			SetTile(current, new Road());
 		}
+
+		DayNightPass = new DayNightPass();
 	}
 
 	/// <summary>
@@ -298,41 +300,5 @@ public class Level : GameObject {
 				}
 			}
 		}
-	}
-
-	public void DayNightDraw() {
-		// set render target to next pass
-		Game.Graphics.GraphicsDevice.SetRenderTarget(Game.RenderTarget);
-		// Generate fullscreen vbo, ibo
-		VertexBuffer vbo = new VertexBuffer(Game.Graphics.GraphicsDevice, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.WriteOnly);
-		IndexBuffer ibo = new IndexBuffer(Game.Graphics.GraphicsDevice, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.WriteOnly);
-		int[] indices = new int[6] { 0, 1, 2, 2, 3, 0 };
-		Vector3 bottomLeft = new Vector3(-1, -1, 0);
-		Vector2 texBottomLeft = new Vector2(0, 1);
-		Vector3 bottomRight = new Vector3(1, -1, 0);
-		Vector2 texBottomRight = new Vector2(1, 1);
-		Vector3 topLeft = new Vector3(-1, 1, 0);
-		Vector2 texTopLeft = new Vector2(0, 0);
-		Vector3 topRight = new Vector3(1, 1, 0);
-		Vector2 texTopRight = new Vector2(1, 0);
-		VertexPositionTexture[] verts = new VertexPositionTexture[4] {
-			new VertexPositionTexture(topLeft, texTopLeft),
-			new VertexPositionTexture(topRight, texTopRight),
-			new VertexPositionTexture(bottomRight, texBottomRight),
-			new VertexPositionTexture(bottomLeft, texBottomLeft)
-		};
-		ibo.SetData(indices);
-		vbo.SetData(verts);
-		// bind ibo, vbo
-		Game.Graphics.GraphicsDevice.Indices = ibo;
-		Game.Graphics.GraphicsDevice.SetVertexBuffer(vbo);
-		// apply current shader
-		dayNightPass.CurrentTechnique = dayNightPass.Techniques[0];
-		// set shader params
-		dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
-		// upload prev pass, apply shader and draw call
-		dayNightPass.Parameters["GameOutput"].SetValue(Game.RenderTarget);
-		dayNightPass.CurrentTechnique.Passes[0].Apply();
-		Game.Graphics.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
 	}
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Interfaces;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
@@ -13,6 +14,8 @@ public class Scene : IUpdatable, IDrawable {
 
 	private readonly Queue<GameObject> objAddBuffer = new();
 	private readonly Queue<GameObject> objRemoveBuffer = new();
+
+	public List<IPostProcessPass> PostProcessPasses { get; private set; } = new();
 
 	public virtual void Load() {
 		foreach (GameObject obj in GameObjects) {
