@@ -9,6 +9,10 @@ using System.Collections.Generic;
 
 namespace Safari.Model;
 
+/// <summary>
+/// The manager responsible for managing light sources in the level, drawing the lightmap/fog of war
+/// to the screen at night and handling the day-night cycle post processing.
+/// </summary>
 public class LightManager : IPostProcessPass {
 	private RenderTarget2D _output = null;
 	private RenderTarget2D _lightTexture = null;
@@ -20,6 +24,7 @@ public class LightManager : IPostProcessPass {
 
 	RenderTarget2D IPostProcessPass.Output => _output;
 	Effect IPostProcessPass.Shader => dayNightPass;
+	Texture2D red = Utils.GenerateTexture(1, 1, Color.Red);
 
 	public LightManager(int width, int height, int tileSize) {
 		this.width = width;
@@ -39,7 +44,6 @@ public class LightManager : IPostProcessPass {
 			samplerState: SamplerState.PointClamp,
 			transformMatrix: trMatrix
 		);
-		Texture2D red = Utils.GenerateTexture(1, 1, Color.Red);
 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
@@ -65,14 +69,44 @@ public class LightManager : IPostProcessPass {
 			rt = new RenderTarget2D(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height);
 		}
 	}
-
+	/// <summary>
+	/// Adds a light source at the given coordinates
+	/// <param name="x">the column in the level</param>
+	/// <param name="y">the row in the level</param>
+	/// <param name="range">how far the light should reach</param>
+	/// </summary>
 	public void AddLightSource(int x, int y, int range) => ModifyLightmap(x, y, range, 1);
+	/// <summary>
+	/// Adds a light source at the given coordinates
+	/// </summary>
+	/// <param name="p">the point in the level</param>
+	/// <param name="range">how far the light should reach</param>
 	public void AddLightSource(Point p, int range) => AddLightSource(p.X, p.Y, range);
 
+	/// <summary>
+	/// Removes a light source at the given coordinates
+	/// </summary>
+	/// <param name="x">the column in the level</param>
+	/// <param name="y">the row in the level</param>
+	/// <param name="range">light range</param>
 	public void RemoveLightSource(int x, int y, int range) => ModifyLightmap(x, y, range, -1);
+	/// <summary>
+	/// Removes a light source at the given coordinates
+	/// </summary>
+	/// <param name="p">the point in the level the light used to be</param>
+	/// <param name="range">how far the light used to reach</param>
 	public void RemoveLightsource(Point p, int range) => RemoveLightSource(p.X, p.Y, range);
 
+	/// <summary>
+	/// Check whether a given point in the level is lit
+	/// </summary>
+	/// <param name="x">the column in the level</param>
+	/// <param name="y">the row in the level</param>
 	public bool CheckLight(int x, int y) => lightMap[x, y] > 0;
+	/// <summary>
+	/// Check whether a given point in the level is lit
+	/// </summary>
+	/// <param name="p">the point in the level</param>
 	public bool CheckLight(Point p) => CheckLight(p.X, p.Y);
 
 	private void ModifyLightmap(int x, int y, int range, int amount) {

@@ -124,6 +124,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 		SceneManager.Active.Draw(gameTime);
 		SpriteBatch.End();
 
+		// Perform post processing
 		Texture2D result = RenderTarget;
 		foreach (IPostProcessPass pass in SceneManager.Active.PostProcessPasses) {
 			// Let the pass prepare its uniforms and output texture

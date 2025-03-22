@@ -15,6 +15,9 @@ public interface IPostProcessPass {
 	/// </summary>
 	public RenderTarget2D Output { get; }
 
+	/// <summary>
+	/// The shader that the pass uses (this is where the output of the previous step is uploaded to)
+	/// </summary>
 	public Effect Shader { get; }
 
 	/// <summary>

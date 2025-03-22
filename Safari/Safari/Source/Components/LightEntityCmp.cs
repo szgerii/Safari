@@ -6,6 +6,11 @@ using Safari.Scenes;
 
 namespace Safari.Components;
 
+/// <summary>
+/// Component that marks a given GameObject (usually an entity) as a light source
+/// The reason this is different from the way tiles calculate their light is because
+/// entities can move between tiles.
+/// </summary>
 public class LightEntityCmp : Component, IUpdatable {
 
 	private Level level;

@@ -42,6 +42,9 @@ public class Level : GameObject {
 	/// The network managing the roads and paths in this level
 	/// </summary>
 	public RoadNetwork Network { get; init; }
+	/// <summary>
+	/// The object responsible for light sources and lighting in general
+	/// </summary>
 	public LightManager LightManager { get; init; }
 
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {

@@ -114,6 +114,10 @@ public abstract class Animal : Entity {
 	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
 
 	private bool hasChip;
+	/// <summary>
+	/// Controls whether this animal has a chip attached
+	/// (Chips make animals visible even in the dark)
+	/// </summary>
 	public bool HasChip {
 		get => hasChip;
 		set {

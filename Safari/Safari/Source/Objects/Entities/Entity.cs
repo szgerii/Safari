@@ -46,12 +46,14 @@ public abstract class Entity : GameObject {
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
 	public int ReachDistance { get; set; } = 1;
+	
 	/// <summary>
-	/// The game world bounding box of the animal's vision
+	/// Bool for controlling whether this entity is visible (without any nearby light) at night
 	/// </summary>
-
 	public bool VisibleAtNight { get; set; } = true;
-
+	/// <summary>
+	/// Getter for checking whether this entity is currently visible to the player
+	/// </summary>
 	public bool Visible {
 		get {
 			GameModel model = GameScene.Active.Model;
@@ -67,6 +69,10 @@ public abstract class Entity : GameObject {
 			return true;
 		}
 	}
+
+	/// <summary>
+	/// The game world bounding box of the animal's vision
+	/// </summary>
 	public Rectangle SightArea {
 		get {
 			int tileSize = GameScene.Active.Model.Level.TileSize;

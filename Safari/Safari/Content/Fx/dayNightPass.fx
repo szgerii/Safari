@@ -7,12 +7,12 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-// Uniforms
+// Uniforms (all post process passes should have a PrevStep)
 texture PrevStep;
 texture LightMap;
 float Time;
 
-// Texture samplers
+// Texture samplers (important that all filters are set to linear)
 sampler PrevSampler = sampler_state
 {
     Texture = (PrevStep);
@@ -85,6 +85,7 @@ static const float4 sunset_brightness = -float4(.1, .08, .2, 0);
 static const float sunset_start = 0.46;
 static const float sunset_end = 0.54;
 
+// Vertex shader, just passing through basic coordinates
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
@@ -95,29 +96,35 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	return output;
 }
 
+// Calculates the color at night (before accounting for the extra light from moon movement)
 float4 NightColor(float4 old_color, float light_level) : COLOR
 {
     return mul(night_correction, old_color) + night_brightness_regular + light_level * night_brightness_lamp;
 }
 
+// calculates the color at daytime (before accounting for the extra light from sun movement)
 float4 DayColor(float4 old_color) : COLOR
 {
     return mul(day_correction, old_color) + day_brightness;
 }
 
+// calculates the color at sunrise (before getting heavily softened and interpolated)
 float4 SunriseColor(float4 old_color) : COLOR {
     return mul(sunrise_correction, old_color) + sunrise_brightness;
 }
 
+// calculates the color at sunset (before getting heavilty softened and interpolated)
 float4 SunsetColor(float4 old_color) : COLOR {
     return mul(sunset_correction, old_color) + sunset_brightness;
 }
 
+// simple quadratic interpolation for the movement of the sun
 float Movement(float interp)
 {
     return -pow((2.0 * interp - 1.0), 2) + 1.0;
 }
 
+// Pixel (fragment :P) shader
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 old_color = float4(tex2D(PrevSampler, input.TexCoord).rgb, 1.0);
@@ -174,6 +181,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     }
 }
 
+// boilerplate
 technique Main {
 	pass P0 {
 		VertexShader = compile VS_SHADERMODEL MainVS();
