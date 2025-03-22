@@ -1,4 +1,6 @@
-﻿using Engine.Interfaces;
+﻿using Engine;
+using Engine.Interfaces;
+using Engine.Objects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
@@ -9,28 +11,58 @@ namespace Safari.Model;
 
 public class LightManager : IPostProcessPass {
 	private RenderTarget2D _output = null;
+	private RenderTarget2D _lightTexture = null;
 	private Effect dayNightPass = Game.ContentManager.Load<Effect>("Fx/dayNightPass");
 	private int width;
 	private int height;
+	private int tileSize;
 	private int[,] lightMap;
 
 	RenderTarget2D IPostProcessPass.Output => _output;
 	Effect IPostProcessPass.Shader => dayNightPass;
 
-	public LightManager(int width, int height) {
+	public LightManager(int width, int height, int tileSize) {
 		this.width = width;
 		this.height = height;
+		this.tileSize = tileSize;
 		this.lightMap = new int[width, height];
 	}
 
 	public void PreDraw(GameTime gameTime) {
 		EnsureCorrectRT();
+		GraphicsDevice device = Game.Graphics.GraphicsDevice;
+		device.SetRenderTarget(_lightTexture);
+		device.Clear(Color.Black);
+		Matrix trMatrix = Camera.Active.TransformMatrix;
+		Game.SpriteBatch.Begin(
+			sortMode: SpriteSortMode.BackToFront,
+			samplerState: SamplerState.PointClamp,
+			transformMatrix: trMatrix
+		);
+		Texture2D red = Utils.GenerateTexture(1, 1, Color.Red);
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				if (CheckLight(x, y)) {
+					Game.SpriteBatch.Draw(red, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
+				}
+			}
+		}
+
+		Game.SpriteBatch.End();
+
 		dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
+		dayNightPass.Parameters["LightMap"].SetValue(_lightTexture);
 	}
 
 	private void EnsureCorrectRT() {
-		if (_output == null || Game.RenderTarget.Width != _output.Width || Game.RenderTarget.Height != _output.Height) {
-			_output = new RenderTarget2D(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height);
+		CorrectSizeRT(ref _output);
+		CorrectSizeRT(ref _lightTexture);
+	}
+
+	private void CorrectSizeRT(ref RenderTarget2D rt) {
+		if (rt == null || Game.RenderTarget.Width != rt.Width || Game.RenderTarget.Height != rt.Height) {
+			rt = new RenderTarget2D(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height);
 		}
 	}
 

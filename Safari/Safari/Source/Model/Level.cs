@@ -62,7 +62,7 @@ public class Level : GameObject {
 		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
 		selectedTileTex = Utils.MergeTextures(fill, outline);
 
-		LightManager = new LightManager(width, height);
+		LightManager = new LightManager(width, height, tileSize);
 
 		// start and end locations are not final
 		Point start = new Point(0, height / 2);

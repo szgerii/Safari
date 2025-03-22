@@ -9,12 +9,23 @@
 
 // Uniforms
 texture PrevStep;
+texture LightMap;
 float Time;
 
 // Texture samplers
 sampler PrevSampler = sampler_state
 {
     Texture = (PrevStep);
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    MagFilter = LINEAR;
+    MinFilter = LINEAR;
+    Mipfilter = LINEAR;
+};
+
+sampler LightSampler = sampler_state
+{
+    Texture = (LightMap);
     AddressU = CLAMP;
     AddressV = CLAMP;
     MagFilter = LINEAR;
@@ -41,8 +52,8 @@ static const float4x4 night_correction = float4x4(
 		0.1, 0.1, 0.85, 0.0,
 		0.0, 0.0, 0.0, 1.0
 	);
-static const float4 night_brightness_regular = -float4(.15, .15, .15, 0);
-static const float4 night_brightness_lamp = float4(.18, .18, .20, 0);
+static const float4 night_brightness_regular = -float4(.26, .26, .26, 0);
+static const float4 night_brightness_lamp = float4(.12, .12, .16, 0);
 static const float4 night_moon = float4(0.07, 0.07, 0.07, 0);
 // day consts
 static const float4x4 day_correction = float4x4(
@@ -110,10 +121,11 @@ float Movement(float interp)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 old_color = float4(tex2D(PrevSampler, input.TexCoord).rgb, 1.0);
-    float4 night_color = NightColor(old_color, 0.0);
+    float light_level = tex2D(LightSampler, input.TexCoord).r;
+    float4 night_color = NightColor(old_color, light_level);
     float4 night_color_no_lights = NightColor(old_color, 0.0);
     float4 day_color = DayColor(old_color);
-    float4 sunrise_color = lerp(night_color, SunriseColor(old_color), 0.5);
+    float4 sunrise_color = lerp(night_color_no_lights, SunriseColor(old_color), 0.5);
     float4 sunset_color = lerp(day_color, SunsetColor(old_color), 0.5);
     if (Time > sunset_end && Time < sunrise_start)
     {
@@ -133,7 +145,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
         }
         else
         {
-            return lerp(night_color, sunset_color, mov);
+            return lerp(night_color_no_lights, sunset_color, mov);
         }
     }
     else if (Time <= sunrise_end || Time >= sunrise_start)
@@ -145,7 +157,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
         {
             sunrise_interp = (sunrise_len / 2.0 - (1.0 - Time)) / sunrise_len;
             float mov = Movement(sunrise_interp);
-            return lerp(night_color, sunrise_color, mov);
+            return lerp(night_color_no_lights, sunrise_color, mov);
         }
         else
         {

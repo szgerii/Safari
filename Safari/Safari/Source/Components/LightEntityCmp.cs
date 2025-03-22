@@ -1,6 +1,8 @@
 ﻿using Engine;
+using Engine.Components;
 using Microsoft.Xna.Framework;
 using Safari.Model;
+using Safari.Scenes;
 
 namespace Safari.Components;
 
@@ -9,15 +11,23 @@ public class LightEntityCmp : Component, IUpdatable {
 	private Level level;
 	private int range;
 	private Point? old_map_pos = null;
+	private SpriteCmp sprite;
 
 	public LightEntityCmp(Level level, int range) {
 		this.level = level;
 		this.range = range;
+		sprite = Owner.GetComponent<SpriteCmp>();
 	}
 
 	public void Update(GameTime gameTime) {
-		int map_x = (int)(Owner.Position.X / (float)level.TileSize);
-		int map_y = (int)(Owner.Position.Y / (float)level.TileSize);
+		int tileSize = GameScene.Active.Model.Level.TileSize;
+		Point offset = new Point(0, 0);
+		if (sprite != null) {
+			offset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size) / new Point(2);
+		}
+		Point centerPoint = Owner.Position.ToPoint() + offset;
+		int map_x = (int)(centerPoint.X / (float)level.TileSize);
+		int map_y = (int)(centerPoint.Y / (float)level.TileSize);
 		Point map_pos = new Point(map_x, map_y);
 		if (old_map_pos == null) {
 			level.LightManager.AddLightSource(map_pos, range);

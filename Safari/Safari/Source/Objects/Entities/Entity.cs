@@ -56,8 +56,11 @@ public abstract class Entity : GameObject {
 		get {
 			GameModel model = GameScene.Active.Model;
 			Level level = model.Level;
-			int map_x = (int)(Position.X / (float)level.TileSize);
-			int map_y = (int)(Position.Y / (float)level.TileSize);
+			int tileSize = GameScene.Active.Model.Level.TileSize;
+			Point offset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size) / new Point(2);
+			Point centerPoint = Position.ToPoint() + offset;
+			int map_x = (int)(centerPoint.X / (float)level.TileSize);
+			int map_y = (int)(centerPoint.Y / (float)level.TileSize);
 			if (!model.IsDaytime && !VisibleAtNight && !model.Level.LightManager.CheckLight(map_x, map_y)) {
 				return false;
 			}
