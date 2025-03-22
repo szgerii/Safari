@@ -47,7 +47,7 @@ public class Game : Engine.Game {
 		// create separate content manager for geonbit, so we can unload our assets in peace
 		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
 
-		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
+		UserInterface.Initialize(uiContentManager, BuiltinThemes.hd);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
         UserInterface.Active.UseRenderTarget = true;
