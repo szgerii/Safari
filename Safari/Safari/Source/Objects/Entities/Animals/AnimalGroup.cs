@@ -224,7 +224,7 @@ public class AnimalGroup : GameObject {
 			Vector2 delta = target - anim.Position;
 			delta.Normalize();
 
-			anim.Position += ANIMAL_SPEED * delta * (float)gameTime.ElapsedGameTime.TotalSeconds;
+			anim.Move(ANIMAL_SPEED * delta * (float)gameTime.ElapsedGameTime.TotalSeconds);
 		}
 	}
 

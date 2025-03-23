@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Components;
+using Engine.Collision;
+using Microsoft.Xna.Framework;
 
 namespace Safari.Model.Tiles;
 
@@ -31,6 +33,7 @@ public class Tree : Tile {
 	public Tree(TreeType type) : base(type.GetTexture()) {
 		IsFoodSource = true;
 		Type = type;
+		Sprite.LayerDepth = 0.4f;
 
 		switch (Type) {
 			case TreeType.Digitata:
@@ -49,6 +52,11 @@ public class Tree : Tile {
 			default:
 				break;
 		}
+
+		CollisionCmp collCmp = new CollisionCmp(type.GetCollider()) {
+			Tags = CollisionTags.World
+		};
+		Attach(collCmp);
 	}
 
 	public override void UpdateYSortOffset() {

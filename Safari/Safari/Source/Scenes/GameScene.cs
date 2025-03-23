@@ -7,6 +7,7 @@ using Safari.Components;
 using System;
 using Engine;
 using System.Collections.Generic;
+using Safari.Objects.Entities;
 
 namespace Safari.Scenes;
 
@@ -65,6 +66,8 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 
 			foreach (GameObject actor in simulationActors) {
+				if (actor is Entity e && e.Dead) continue;
+
 				actor.Update(gameTime);
 			}
 		}

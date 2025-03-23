@@ -1,8 +1,8 @@
 ﻿using Engine.Components;
 using Engine.Debug;
-using Engine.Objects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace Engine.Collision;
@@ -18,7 +18,7 @@ public static class CollisionManager {
 	private static List<CollisionCmp> collisionCmps;
 
 	// debug
-	private static Texture2D gridCellTex;
+	private readonly static Texture2D gridCellTex = Utils.GenerateTexture(1, 1, new Color(Color.Blue, 0.3f));
 
 	static CollisionManager() {
 		DebugMode.AddFeature(new LoopedDebugFeature("coll-check-areas", DrawColliderCheckAreas, GameLoopStage.POST_DRAW));
@@ -38,13 +38,13 @@ public static class CollisionManager {
 				collisionMap[x, y] = new();
 			}
 		}
-
-		gridCellTex = Utils.GenerateTexture(cellSize, cellSize, new Color(Color.Blue, 0.3f));
 	}
 
 	public static void Insert(CollisionCmp cmp) {
 		Point min = GetGridPos(cmp);
 		Point max = GetGridPos(cmp.AbsoluteCollider.BottomRight);
+
+		ClampToCollMap(ref min, ref max);
 
 		for (int x = min.X; x <= max.X; x++) {
 			for (int y = min.Y; y <= max.Y; y++) {
@@ -58,6 +58,8 @@ public static class CollisionManager {
 		Point min = GetGridPos(cmp);
 		Point max = GetGridPos(cmp.AbsoluteCollider.BottomRight);
 
+		ClampToCollMap(ref min, ref max);
+
 		for (int x = min.X; x <= max.X; x++) {
 			for (int y = min.Y; y <= max.Y; y++) {
 				collisionMap[x, y].Remove(cmp);
@@ -69,6 +71,8 @@ public static class CollisionManager {
 	public static bool Collides(Collider coll, CollisionCmp self = null) {
 		Point min = GetGridPos(coll);
 		Point max = GetGridPos(coll.BottomRight);
+
+		ClampToCollMap(ref min, ref max);
 
 		for (int x = min.X; x <= max.X; x++) {
 			for (int y = min.Y; y <= max.Y; y++) {
@@ -88,6 +92,8 @@ public static class CollisionManager {
 	public static List<CollisionCmp> GetCollisions(Collider coll, CollisionCmp self = null) {
 		Point min = GetGridPos(coll);
 		Point max = GetGridPos(coll.BottomRight);
+
+		ClampToCollMap(ref min, ref max);
 
 		List<CollisionCmp> collisions = new();
 		for (int x = min.X; x <= max.X; x++) {
@@ -152,6 +158,16 @@ public static class CollisionManager {
 	private static Point GetGridPos(Collider coll) => GetGridPos(coll.Position);
 	private static Point GetGridPos(CollisionCmp cmp) => GetGridPos(cmp.AbsoluteCollider.Position);
 
+	/// <summary>
+	/// Clamps a min-max Point pair to the collision map's bounds
+	/// </summary>
+	private static void ClampToCollMap(ref Point min, ref Point max) {
+		min.X = Math.Max(min.X, 0);
+		min.Y = Math.Max(min.Y, 0);
+		max.X = Math.Min(max.X, collisionMap.GetLength(0));
+		max.Y = Math.Min(max.Y, collisionMap.GetLength(1));
+	}
+
 	// DEBUG MODE
 
 	public static void DrawColliderCheckAreas(object _, GameTime gameTime) {
@@ -161,7 +177,6 @@ public static class CollisionManager {
 			for (int y = 0; y < GridHeight; y++) {
 				if (collisionMap[x, y].Count != 0) {
 					Rectangle rect = new Rectangle(x * CellSize, y * CellSize, CellSize, CellSize);
-					rect.Offset(-Camera.Active.Position);
 					Game.SpriteBatch.Draw(gridCellTex, rect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.05f);
 				}
 			}
@@ -172,7 +187,7 @@ public static class CollisionManager {
 		if (collisionCmps == null) return;
 
 		foreach (CollisionCmp cmp in collisionCmps) {
-			Game.SpriteBatch.Draw(cmp.ColliderTex, cmp.Collider.Position, cmp.ColliderTex.Bounds, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0f);
+			Game.SpriteBatch.Draw(cmp.ColliderTex, cmp.AbsoluteCollider.Position, cmp.ColliderTex.Bounds, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0f);
 		}
 	}
 }

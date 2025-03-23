@@ -1,4 +1,4 @@
-﻿using Engine.Components;
+﻿using Engine.Collision;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,8 +9,11 @@ public class Elephant : Animal {
 		DisplayName = "Elephant";
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Elephant");
-		sprite.SourceRectangle = new Rectangle(0, 0, 64, 64);
-		sprite.YSortOffset = 64;
+		sprite.YSortOffset = 96;
+		sprite.Scale = 0.75f;
+
+		Collider baseColl = new(5, 73, 85, 24);
+		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
 
 		ReachDistance = 2;
 	}

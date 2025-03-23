@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Collision;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Objects.Entities.Animals;
@@ -8,7 +9,10 @@ public class TigerWhite : Animal {
 		DisplayName = "White Tiger";
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/TigerWhite");
-		sprite.SourceRectangle = new Rectangle(0, 0, 32, 32);
-		sprite.YSortOffset = 32;
+		sprite.YSortOffset = 64;
+		sprite.Scale = 0.75f;
+
+		Collider baseColl = new(5, 43, 78, 20);
+		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
 	}
 }

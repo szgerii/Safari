@@ -25,6 +25,10 @@ public abstract class Entity : GameObject {
 	/// Invoked every time an in-game week passes for this entity
 	/// </summary>
 	public event EventHandler WeekPassed;
+	/// <summary>
+	/// Invoked exactly once at the end of an entity's lifetime
+	/// </summary>
+	public event EventHandler Died;
 
 	private static readonly List<Entity> activeEntities = [];
 	/// <summary>
@@ -36,6 +40,24 @@ public abstract class Entity : GameObject {
 	/// Entity name to display in the shop / manager screens
 	/// </summary>
 	public string DisplayName { get; protected init; }
+
+	/// <summary>
+	/// The bounding rectangle of the entity's display content
+	/// </summary>
+	public Rectangle Bounds {
+		get {
+			Rectangle result;
+
+			if (sprite is AnimatedSpriteCmp animSprite) {
+				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
+			} else {
+				result = new Rectangle(Position.ToPoint(), sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size);
+			}
+			result.Size = (result.Size.ToVector2() * sprite.Scale).ToPoint();
+
+			return result;
+		}
+	}
 
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
@@ -51,10 +73,10 @@ public abstract class Entity : GameObject {
 	public Rectangle SightArea {
 		get {
 			int tileSize = GameScene.Active.Model.Level.TileSize;
-			Point offset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size) / new Point(2);
-			Point centerPoint = Position.ToPoint() + offset;
+			Point centerOffset = Bounds.Size / new Point(2);
+			Point startPoint = Position.ToPoint() + centerOffset - new Point(SightDistance * tileSize);
 
-			return new(centerPoint - new Point(SightDistance * tileSize), new Point(2 * SightDistance * tileSize));
+			return new(startPoint, new Point(2 * SightDistance * tileSize));
 		}
 	}
 	/// <summary>
@@ -63,13 +85,21 @@ public abstract class Entity : GameObject {
 	public Rectangle ReachArea {
 		get {
 			int tileSize = GameScene.Active.Model.Level.TileSize;
-			Vector2 centerOffset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size).ToVector2() / 2f;
-			Vector2 startPoint = Position + centerOffset - new Vector2(ReachDistance * tileSize);
+			Point centerOffset = Bounds.Size / new Point(2);
+			Point startPoint = Position.ToPoint() + centerOffset - new Point(ReachDistance * tileSize);
 
-			return new(startPoint.ToPoint(), new Point(2 * ReachDistance * tileSize));
+			return new(startPoint, new Point(2 * ReachDistance * tileSize));
 		}
 	}
 
+	/// <summary>
+	/// Indicates if the entity has died
+	/// </summary>
+	public bool Dead { get; private set; } = false;
+
+	/// <summary>
+	/// The sprite component of the entity used for rendering
+	/// </summary>
 	protected SpriteCmp sprite;
 
 	private DateTime lastHourUpdate;
@@ -97,7 +127,7 @@ public abstract class Entity : GameObject {
 		List<Entity> results = [];
 
 		foreach (Entity e in ActiveEntities) {
-			if (area.Contains(e.Position)) {
+			if (!e.Dead && area.Contains(e.Position)) {
 				results.Add(e);
 			}
 		}
@@ -157,6 +187,18 @@ public abstract class Entity : GameObject {
 
 		Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+	}
+
+	/// <summary>
+	/// Removes the entity from the game
+	/// </summary>
+	public void Die() {
+		if (Dead) return;
+
+		Died?.Invoke(this, EventArgs.Empty);
+		Dead = true;
+
+		Game.RemoveObject(this);
 	}
 
 	/// <summary>
