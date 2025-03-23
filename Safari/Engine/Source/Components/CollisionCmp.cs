@@ -17,8 +17,20 @@ public class CollisionCmp : Component {
 	public Collider Collider {
 		get => collider;
 		set {
+			bool performUpdate = Owner != null && Owner.Loaded;
+
+			if (performUpdate) {
+				CollisionManager.Remove(this);
+			}
+
 			collider = value;
-			ColliderTex = Utils.GenerateTexture((int)collider.Width, (int)collider.Height, new Color(Color.Gold, 0.2f), true);
+			int texWidth = Math.Max((int)collider.Width, 1);
+			int texHeight = Math.Max((int)collider.Height, 1);
+			ColliderTex = Utils.GenerateTexture(texWidth, texHeight, new Color(Color.Gold, 0.2f), true);
+
+			if (performUpdate) {
+				CollisionManager.Insert(this);
+			}
 		}
 	}
 	public Collider AbsoluteCollider => Collider + Owner.Position;

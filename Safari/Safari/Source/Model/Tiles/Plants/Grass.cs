@@ -7,6 +7,7 @@ public class Grass : AutoTile {
 		IsFoodSource = true;
 		LightRange = 1;
 
+		Sprite.LayerDepth = 0.5f;
 		HasDiagonalTiling = true;
 		UseDefaultLayout();
 	}

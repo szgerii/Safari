@@ -1,5 +1,6 @@
-﻿using Engine;
+using Engine;
 using Engine.Components;
+using Engine.Collision;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,6 +17,9 @@ public enum Gender {
 }
 
 public abstract class Animal : Entity {
+	protected const float ANIMAL_LAYER = 0.4f;
+	protected const int ANIMATION_SPEED = 7;
+
 	/// <summary>
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
@@ -37,6 +41,8 @@ public abstract class Animal : Entity {
 
 	private const float FEEDING_SPEED = 10f;
 	private const float DRINKING_SPEED = 10f;
+
+	private const int INDICATOR_HEIGHT = 8;
 
 	protected DateTime birthTime;
 	protected DateTime? lastMatingTime = null;
@@ -133,22 +139,56 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public AnimalGroup Group { get; set; }
 
+	/// <summary>
+	/// The animal's sprite component cast to an animated sprite
+	/// (which all animals have by default)
+	/// </summary>
+	protected AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp;
+	/// <summary>
+	/// The animal's collision detection component
+	/// </summary>
+	protected CollisionCmp collisionCmp;
+
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
+		// data
 		Species = species;
 		Gender = gender;
+		Group = new AnimalGroup(this);
+		VisibleAtNight = false;
 
 		birthTime = GameScene.Active.Model.IngameDate;
 
 		sprite = new SpriteCmp(null);
 		sprite.LayerDepth = 0.5f;
 		sprite.YSortEnabled = true;
-		VisibleAtNight = false;
 		Attach(sprite);
 
-		Group = new AnimalGroup(this);
+		Died += (object sender, EventArgs e) => {
+			Group.Leave(this);
+		};
+
+		// animations
+		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
+		sprite = animSprite;
+		Attach(sprite);
+		animSprite.LayerDepth = ANIMAL_LAYER;
+		animSprite.YSortEnabled = true;
+		animSprite.Animations["walk-right"] = new Animation(0, 3, true);
+		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
+		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
+		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
+
+		// collision
+		collisionCmp = new CollisionCmp(Collider.Empty) {
+			Tags = CollisionTags.Animal,
+			Targets = CollisionTags.World
+			//Targets = CollisionTags.World | CollisionTags.Animal
+		};
+		Attach(collisionCmp);
 	}
 
 	static Animal() {
+		// add debug feature for drawing animal stats
 		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				if (e is Animal a) a.DrawIndicators(gameTime);
@@ -170,8 +210,6 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Unload() {
-		System.Diagnostics.Debug.WriteLine("Unloading " + GetHashCode());
-
 		GameModel model = GameScene.Active.Model;
 
 		model.AnimalCount--;
@@ -187,7 +225,7 @@ public abstract class Animal : Entity {
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
 
-		if (Age > MAX_AGE) {
+		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
 		}
@@ -203,10 +241,6 @@ public abstract class Animal : Entity {
 
 		if (!wasThirsty && IsThirsty) {
 			GotThirsty?.Invoke(this, EventArgs.Empty);
-		}
-
-		if (ThirstLevel <= 0f || HungerLevel <= 0f) {
-			Die();
 		}
 
 		CheckSurroundings();
@@ -255,13 +289,6 @@ public abstract class Animal : Entity {
 	}
 
 	/// <summary>
-	/// Removes the animal from the park
-	/// </summary>
-	public void Die() {
-		Game.RemoveObject(this);
-	}
-
-	/// <summary>
 	/// Resets the animal's mating cooldown
 	/// </summary>
 	/// <exception cref="InvalidOperationException"></exception>
@@ -301,7 +328,22 @@ public abstract class Animal : Entity {
 		IsCaught = false;
 	}
 
-	private Texture2D indicatorTex = null, indicatorOutline = null;
+	/// <summary>
+	/// Moves the animal by the specified amount
+	/// </summary>
+	/// <param name="delta">The amount to move</param>
+	public void Move(Vector2 delta) {
+		bool rightish = delta.X >= 0;
+		bool upish = delta.Y < 0;
+
+		string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
+		if (AnimSprite.CurrentAnimation != newAnimName) {
+			AnimSprite.CurrentAnimation = newAnimName;
+		}
+		collisionCmp.MoveOwner(delta);
+	}
+
+	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
@@ -309,23 +351,26 @@ public abstract class Animal : Entity {
 	public void DrawIndicators(GameTime gameTime) {
 		if (IsCaught) return;
 
-		int indicatorWidth = (sprite.SourceRectangle?.Width ?? sprite.Texture.Width) / 2;
-		int fullHeight = sprite.SourceRectangle?.Height ?? sprite.Texture.Height;
+		int maxWidth = Utils.Round(Bounds.Width * 0.8f);
+		int margin = Utils.Round(Bounds.Width * 0.1f);
 
-		if (indicatorTex == null || indicatorTex.Width != indicatorWidth) {
-			indicatorTex = Utils.GenerateTexture(indicatorWidth, fullHeight, Color.White);
-			indicatorOutline = Utils.GenerateTexture(indicatorWidth, fullHeight, Color.White, true);
+		if (indicatorTex == null || indicatorOutlineTex == null) {
+			indicatorTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White);
+			indicatorOutlineTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White, true);
 		}
 
-		int thirstHeight = (int)(ThirstLevel / 100f * fullHeight);
-		int hungerHeight = (int)(HungerLevel / 100f * fullHeight);
+		int thirstWidth = (int)(ThirstLevel / 100f * maxWidth);
+		int hungerWidth = (int)(HungerLevel / 100f * maxWidth);
+
+		Vector2 thirstOffset = new Vector2(margin, -2f * INDICATOR_HEIGHT);
+		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle(Position.ToPoint() + new Point(0, fullHeight - thirstHeight), new Point(indicatorWidth, thirstHeight)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutline, new Rectangle(Position.ToPoint(), new Point(indicatorWidth, fullHeight)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle(Position.ToPoint() + new Point(indicatorWidth, fullHeight - hungerHeight), new Point(indicatorWidth, hungerHeight)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutline, new Rectangle(Position.ToPoint() + new Point(indicatorWidth, 0), new Point(indicatorWidth, fullHeight)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
 	}
 
 	private void CheckSurroundings() {
