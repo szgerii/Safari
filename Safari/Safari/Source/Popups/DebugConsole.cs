@@ -1,10 +1,12 @@
 ﻿using Engine;
 using Engine.Debug;
 using Engine.Input;
+using Engine.Objects;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Safari.Components;
 using System.Collections.Generic;
 using System.Text;
 
@@ -140,9 +142,16 @@ class DebugConsole : PopupMenu, IUpdatable {
             case "help":
                 Help();
                 return true;
+            case "camera":
+                Stuff();
+                return true;
             default:
                 return false;
         }
+    }
+
+    public void Stuff() {
+        Write(Camera.Active.GetComponent<CameraControllerCmp>().ScrollSpeed.ToString());
     }
 
     /// <summary>

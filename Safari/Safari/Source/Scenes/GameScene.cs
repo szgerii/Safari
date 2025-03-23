@@ -7,6 +7,7 @@ using Safari.Components;
 using System;
 using Engine;
 using System.Collections.Generic;
+using Engine.Debug;
 
 namespace Safari.Scenes;
 
@@ -20,7 +21,8 @@ public class GameScene : Scene {
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
 	public override void Unload() {
-		base.Unload();
+		DebugMode.Disable();
+        base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		Game.ContentManager.Unload();
@@ -44,8 +46,8 @@ public class GameScene : Scene {
 				model.Level.MapHeight * model.Level.TileSize
 			)
 		);
-
-		base.Load();
+        DebugMode.Enable();
+        base.Load();
 	}
 
 	public override void Update(GameTime gameTime) {

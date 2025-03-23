@@ -4,7 +4,6 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
-using Safari.Popups;
 using System.Collections.Generic;
 
 namespace Safari.Scenes.Menus;
@@ -147,6 +146,8 @@ class SettingsMenu : MenuScene {
         cameraSpeedText = new Label("Camera speed: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         cameraSpeedText.Padding = new Vector2(10);
 
+        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+
         cameraSpeedSlider = new Slider(50, 300, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
         cameraSpeedSlider.Value = (int)CameraControllerCmp.DefaultScrollSpeed;
         cameraSpeedText.Text = "Camera speed: " + (float)cameraSpeedSlider.Value / 100f;
@@ -225,17 +226,16 @@ class SettingsMenu : MenuScene {
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
-        //Camera.Active.GetComponent<CameraControllerCmp>();
     }
 
     private void saveChangesButtonClicked(Entity entity) {
         CameraControllerCmp.DefaultScrollSpeed = cameraStoredValue;
         DisplayManager.ApplyChanges();
     }
+
     private void discardChangesButtonClicked(Entity entity) {
-        cameraStoredValue = 100f;
+        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
         DisplayManager.DiscardChanges();
-        DebugConsole.Instance.Write("discarded");
     }
 
     private void menuButtonClicked(Entity entity) {

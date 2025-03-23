@@ -76,7 +76,6 @@ public class Game : Engine.Game {
 			}
 		}));
 
-		DebugMode.Enable();
         SceneManager.Load(MainMenu.Active);
     }
 
