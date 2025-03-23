@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
 using GeonBit.UI;
-using GeonBit.UI.Entities;
-using System.Collections.Generic;
 using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
@@ -79,6 +77,7 @@ public class Game : Engine.Game {
 	}
 
 	protected override void LoadContent() {
+
 		base.LoadContent();
 	}
 
@@ -165,6 +164,7 @@ public class Game : Engine.Game {
 		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Time float", $"{(float)model.TimeOfDay}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
 

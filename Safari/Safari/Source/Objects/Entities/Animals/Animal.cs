@@ -1,4 +1,4 @@
-﻿using Engine;
+using Engine;
 using Engine.Components;
 using Engine.Collision;
 using Engine.Debug;
@@ -119,6 +119,21 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
 
+	private bool hasChip;
+	/// <summary>
+	/// Controls whether this animal has a chip attached
+	/// (Chips make animals visible even in the dark)
+	/// </summary>
+	public bool HasChip {
+		get => hasChip;
+		set {
+			if (hasChip != value) {
+				VisibleAtNight = value;
+			}
+			hasChip = value;
+		}
+	}
+
 	/// <summary>
 	/// The group this animal belongs to
 	/// </summary>
@@ -139,6 +154,7 @@ public abstract class Animal : Entity {
 		Species = species;
 		Gender = gender;
 		Group = new AnimalGroup(this);
+		VisibleAtNight = false;
 
 		birthTime = GameScene.Active.Model.IngameDate;
 
@@ -345,11 +361,11 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
 	}
 
 	private void CheckSurroundings() {

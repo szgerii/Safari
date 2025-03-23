@@ -1,4 +1,4 @@
-﻿using Engine.Components;
+using Engine.Components;
 using Engine.Collision;
 using Microsoft.Xna.Framework;
 
@@ -33,6 +33,7 @@ public class Tree : Tile {
 	public Tree(TreeType type) : base(type.GetTexture()) {
 		IsFoodSource = true;
 		Type = type;
+		LightRange = 5;
 		Sprite.LayerDepth = 0.4f;
 
 		switch (Type) {

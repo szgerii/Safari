@@ -29,5 +29,6 @@ public class Road : AutoTile {
 		Layout[AutoTileBitmask.Top | AutoTileBitmask.Bottom | AutoTileBitmask.Right] = new Point(4, 1);
 
 		Layout[AutoTileBitmaskHelper.Straights] = new Point(5, 0);
+		LightRange = 1;
 	}
 }

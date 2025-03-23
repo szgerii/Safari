@@ -48,15 +48,12 @@ public abstract class Tile : GameObject {
 	}
 
 	/// <summary>
-	/// Determines how much light is emitted from the tile
+	/// Determines how far this tile gives vision at night
+	/// 0 means only the tile itself is lit
+	/// a number above 0 means a range
+	/// a number below 0 means this tile does not give vision
 	/// </summary>
-	public float Light { get; set; }
-
-	/// <summary>
-	/// Determines how much light accumulates on the tile
-	/// (from own and neighboring light sources)
-	/// </summary>
-	public float Visibility { get; private set; } = 1f;
+	public int LightRange { get; set; } = -1;
 
 	/// <summary>
 	/// Indicates how many rows and columns the tile spans on the grid

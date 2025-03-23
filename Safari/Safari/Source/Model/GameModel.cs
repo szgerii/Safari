@@ -9,6 +9,7 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using Safari.Components;
 
 namespace Safari.Model;
 
@@ -94,9 +95,9 @@ public class GameModel {
 
 	/// <summary>
 	/// Indicates whether it is currently day time in-game
-	/// (TimeOfDay < 0.5)
+	/// (TimeOfDay < 0.54) ~ .5 plus extra time for sunset
 	/// </summary>
-	public bool IsDaytime => TimeOfDay < 0.5f;
+	public bool IsDaytime => TimeOfDay < 0.54f;
 
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game

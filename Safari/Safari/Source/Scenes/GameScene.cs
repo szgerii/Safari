@@ -24,6 +24,7 @@ public class GameScene : Scene {
 		base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
+		PostProcessPasses.Remove(model.Level.LightManager);
 		Game.ContentManager.Unload();
 	}
 
@@ -33,6 +34,7 @@ public class GameScene : Scene {
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
+		PostProcessPasses.Add(model.Level.LightManager);
 
 		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
 		PostUpdate += CollisionManager.PostUpdate;
@@ -58,6 +60,8 @@ public class GameScene : Scene {
 
 		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+				if (obj is Entity e && e.Dead) continue;
+
 				obj.Update(gameTime);
 			}
 		}

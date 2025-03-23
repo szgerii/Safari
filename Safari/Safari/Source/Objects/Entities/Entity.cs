@@ -8,6 +8,7 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Safari.Objects.Entities;
 
@@ -67,6 +68,30 @@ public abstract class Entity : GameObject {
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
 	public int ReachDistance { get; set; } = 1;
+	
+	/// <summary>
+	/// Bool for controlling whether this entity is visible (without any nearby light) at night
+	/// </summary>
+	public bool VisibleAtNight { get; set; } = true;
+	/// <summary>
+	/// Getter for checking whether this entity is currently visible to the player
+	/// </summary>
+	public bool Visible {
+		get {
+			GameModel model = GameScene.Active.Model;
+			Level level = model.Level;
+			int tileSize = GameScene.Active.Model.Level.TileSize;
+			Point offset = Bounds.Size / new Point(2);
+			Point centerPoint = Position.ToPoint() + offset;
+			int map_x = (int)(centerPoint.X / (float)level.TileSize);
+			int map_y = (int)(centerPoint.Y / (float)level.TileSize);
+			if (!model.IsDaytime && !VisibleAtNight && !model.Level.LightManager.CheckLight(map_x, map_y)) {
+				return false;
+			}
+			return true;
+		}
+	}
+
 	/// <summary>
 	/// The game world bounding box of the animal's vision
 	/// </summary>
@@ -169,6 +194,12 @@ public abstract class Entity : GameObject {
 			lastWeekUpdate = ingameDate;
 		}
 		base.Update(gameTime);
+	}
+
+	public override void Draw(GameTime gameTime) {
+		if (Visible) {
+			base.Draw(gameTime);
+		}
 	}
 
 	private Texture2D sightAreaTex = null, reachAreaTex = null;
