@@ -88,8 +88,9 @@ public class Game : Engine.Game {
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
+		PauseMenu.Active?.Update(gameTime);
 
-		DateTime start = DateTime.Now;
+        DateTime start = DateTime.Now;
 
 		UserInterface.Active.Update(gameTime);
 		base.Update(gameTime);
@@ -139,6 +140,7 @@ public class Game : Engine.Game {
 
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
+        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Active.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
