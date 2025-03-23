@@ -63,7 +63,7 @@ static const float4x4 day_correction = float4x4(
         0.0, 0.0, 0.0, 1.0
     );
 static const float4 day_brightness = -float4(.12, .12, .12, 0);
-static const float4 day_sun = float4(.20, .20, .20, 0);
+static const float4 day_sun = float4(.135, .135, .135, 0);
 // sunrise consts
 static const float4x4 sunrise_correction = float4x4(
         1.0, 0.1, 0.1, 0.0,
