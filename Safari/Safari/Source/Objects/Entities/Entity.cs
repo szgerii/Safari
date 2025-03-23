@@ -81,7 +81,7 @@ public abstract class Entity : GameObject {
 			GameModel model = GameScene.Active.Model;
 			Level level = model.Level;
 			int tileSize = GameScene.Active.Model.Level.TileSize;
-			Point offset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size) / new Point(2);
+			Point offset = Bounds.Size / new Point(2);
 			Point centerPoint = Position.ToPoint() + offset;
 			int map_x = (int)(centerPoint.X / (float)level.TileSize);
 			int map_y = (int)(centerPoint.Y / (float)level.TileSize);

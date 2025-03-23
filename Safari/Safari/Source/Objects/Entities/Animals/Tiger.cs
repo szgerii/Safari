@@ -7,6 +7,7 @@ namespace Safari.Objects.Entities.Animals;
 public class Tiger : Animal {
 	public Tiger(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Tiger, gender) {
 		DisplayName = "Tiger";
+		ReachDistance = 3;
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Tiger");
 		sprite.YSortOffset = 64;

@@ -60,6 +60,8 @@ public class GameScene : Scene {
 
 		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+				if (obj is Entity e && e.Dead) continue;
+
 				obj.Update(gameTime);
 			}
 		}

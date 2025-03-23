@@ -7,6 +7,7 @@ namespace Safari.Objects.Entities.Animals;
 public class Lion : Animal {
 	public Lion(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Lion, gender) {
 		DisplayName = "Lion";
+		ReachDistance = 3;
 
 		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Lion");
 		sprite.YSortOffset = 96;

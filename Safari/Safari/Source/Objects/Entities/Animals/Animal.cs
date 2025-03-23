@@ -158,11 +158,6 @@ public abstract class Animal : Entity {
 
 		birthTime = GameScene.Active.Model.IngameDate;
 
-		sprite = new SpriteCmp(null);
-		sprite.LayerDepth = 0.5f;
-		sprite.YSortEnabled = true;
-		Attach(sprite);
-
 		Died += (object sender, EventArgs e) => {
 			Group.Leave(this);
 		};
@@ -366,11 +361,11 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
 	}
 
 	private void CheckSurroundings() {

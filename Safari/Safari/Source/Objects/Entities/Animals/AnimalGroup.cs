@@ -255,10 +255,6 @@ public class AnimalGroup : GameObject {
 				BeginSeekingFood();
 				break;
 			case AnimalGroupState.SeekingWater:
-				if (Species.IsCarnivorous()) {
-					Transition(AnimalGroupState.Wandering);
-					return;
-				}
 				BeginSeekingWater();
 				break;
 			default:
