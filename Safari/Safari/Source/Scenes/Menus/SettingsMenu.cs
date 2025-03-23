@@ -1,12 +1,10 @@
 ﻿using Engine.Graphics;
-using Engine.Objects;
 using Engine.Scenes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Popups;
-using System;
 using System.Collections.Generic;
 
 namespace Safari.Scenes.Menus;
@@ -247,7 +245,33 @@ class SettingsMenu : MenuScene {
 
     protected override void DestroyUI() {
         title = null;
-        //message = null;
+        settingsPanel = null;
+        fpsPanel = null;
+        fpsText = null;
+        fpsSlider = null;
+        vsyncPanel = null;
+        vsyncText = null;
+        vsyncButton = null;
+        screenTypePanel = null;
+        screenTypeText = null;
+        screenTypeButtonPanel = null;
+        screenTypeWindowed = null;
+        screenTypeBorderless = null;
+        screenTypeFullscreen = null;
+        cameraSpeedPanel = null;
+        cameraSpeedText = null;
+        cameraSpeedSlider = null;
+        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        resolutionPanel = null;
+        resolutionText = null;
+        resolutionChangePanel = null;
+        resolutionsDisplay = null;
+        prevResolution = null;
+        nextResolution = null;
+        resolutions = null;
+        buttonPanel = null;
         menuButton = null;
+        saveChangesButton = null;
+        discardChangesButton = null;
     }
 }
