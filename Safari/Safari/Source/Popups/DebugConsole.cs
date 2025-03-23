@@ -142,16 +142,9 @@ class DebugConsole : PopupMenu, IUpdatable {
             case "help":
                 Help();
                 return true;
-            case "camera":
-                Stuff();
-                return true;
             default:
                 return false;
         }
-    }
-
-    public void Stuff() {
-        Write(Camera.Active.GetComponent<CameraControllerCmp>().ScrollSpeed.ToString());
     }
 
     /// <summary>
