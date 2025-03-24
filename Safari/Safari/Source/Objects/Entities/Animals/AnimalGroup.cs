@@ -54,6 +54,9 @@ public class AnimalGroup : GameObject {
 	/// The size of the group
 	/// </summary>
 	public int Size => Members.Count;
+	/// <summary>
+	/// The current radius used for the formation, based on group size
+	/// </summary>
 	public float FormationSpread => BASE_FORMATION_SPREAD + Size * FORMATION_SPREAD_STEP;
 
 	/// <summary>
@@ -91,8 +94,14 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// The navigation component of the group
+	/// </summary>
 	public NavigationCmp NavCmp { get; private set; }
 
+	/// <summary>
+	/// A list of offsets used by the group members to determine their position within the formation
+	/// </summary>
 	protected Vector2[] formationOffsets;
 
 	public AnimalGroup(Animal creator) : base(creator.Position) {
@@ -221,6 +230,11 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Whether any member of the group can reach the given position
+	/// </summary>
+	/// <param name="pos">The position to check</param>
+	/// <returns>Bool indicating if pos is inside any member's reach</returns>
 	public bool CanAnybodyReach(Vector2 pos) {
 		foreach (Animal anim in Members) {
 			if (anim.CanReach(pos)) return true;
@@ -229,6 +243,11 @@ public class AnimalGroup : GameObject {
 		return false;
 	}
 
+	/// <summary>
+	/// Whether every member can reach a given position
+	/// </summary>
+	/// <param name="pos">The position to check</param>
+	/// <returns>Bool indicating if pos is inside every member's reach</returns>
 	public bool CanEverybodyReach(Vector2 pos) {
 		foreach (Animal anim in Members) {
 			if (!anim.CanReach(pos)) return false;

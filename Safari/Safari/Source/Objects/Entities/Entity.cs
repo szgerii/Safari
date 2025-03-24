@@ -9,7 +9,6 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Safari.Objects.Entities;
 
@@ -61,6 +60,9 @@ public abstract class Entity : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// The absolute position of the entity's center point
+	/// </summary>
 	public Vector2 CenterPosition => Position + (Bounds.Size.ToVector2() / 2);
 
 	/// <summary>

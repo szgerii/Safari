@@ -10,8 +10,17 @@ using System;
 
 namespace Safari.Components;
 
+/// <summary>
+/// Event arguments for NavigationCmp's ReachedTarget event
+/// </summary>
 public class ReachedTargetEventArgs : EventArgs {
+	/// <summary>
+	/// The target position that has been reached (if the cmp was approaching a point)
+	/// </summary>
 	public Vector2? TargetPosition { get; init; } = null;
+	/// <summary>
+	/// The target object that has been reached (if the cmp was approaching an object)
+	/// </summary>
 	public GameObject TargetObject { get; init; } = null;
 
 	public ReachedTargetEventArgs(GameObject obj) {
@@ -23,13 +32,24 @@ public class ReachedTargetEventArgs : EventArgs {
 	}
 }
 
+/// <summary>
+/// Component for helping entities navigate through the game world
+/// </summary>
 [LimitCmpOwnerType(typeof(Entity), typeof(AnimalGroup))]
 public class NavigationCmp : Component, IUpdatable {
 	private const float FALLBACK_REACH_THRESHOLD = 0.1f;
 
+	/// <summary>
+	/// Fired when the cmp owner reaches their destination
+	/// </summary>
 	public event EventHandler<ReachedTargetEventArgs> ReachedTarget;
 
 	private Vector2? targetPosition = null;
+	/// <summary>
+	/// The position the component is approaching
+	/// <br />
+	/// Sets TargetObject to null (unless value is null)
+	/// </summary>
 	public Vector2? TargetPosition {
 		get => targetPosition;
 		set {
@@ -42,6 +62,11 @@ public class NavigationCmp : Component, IUpdatable {
 	}
 
 	private GameObject targetObject = null;
+	/// <summary>
+	/// The object the component is approaching
+	/// <br />
+	/// Sets TargetPosition to null (unless value is null)
+	/// </summary>
 	public GameObject TargetObject {
 		get => targetObject;
 		set {
@@ -53,12 +78,27 @@ public class NavigationCmp : Component, IUpdatable {
 		}
 	}
 
+	/// <summary>
+	/// The current position the component is trying to move towards
+	/// </summary>
 	public Vector2? Target => TargetObject?.Position ?? TargetPosition;
 
+	/// <summary>
+	/// The speed at which the component's owner is moving
+	/// </summary>
 	public float Speed { get; set; }
+	/// <summary>
+	/// Whether to stop moving after the target has been reached
+	/// </summary>
 	public bool StopOnTargetReach { get; set; } = true;
+	/// <summary>
+	/// Whether the component's owner should currently be approaching their target
+	/// </summary>
 	public bool Moving { get; set; } = false;
 
+	/// <summary>
+	/// Unit vector of the last direction the component was trying to move its owner in
+	/// </summary>
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
 
 	public NavigationCmp(float speed = 50f) {

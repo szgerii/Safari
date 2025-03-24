@@ -19,6 +19,9 @@ public enum Gender {
 }
 
 public abstract class Animal : Entity {
+	/// <summary>
+	/// The base layer depth for animals
+	/// </summary>
 	public const float ANIMAL_LAYER = 0.4f;
 
 	protected const int ANIMATION_SPEED = 7;
