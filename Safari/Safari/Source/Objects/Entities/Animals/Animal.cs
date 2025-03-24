@@ -8,6 +8,8 @@ using Safari.Model;
 using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
+using Safari.Popups;
 
 namespace Safari.Objects.Entities.Animals;
 
@@ -17,7 +19,11 @@ public enum Gender {
 }
 
 public abstract class Animal : Entity {
-	protected const float ANIMAL_LAYER = 0.4f;
+	/// <summary>
+	/// The base layer depth for animals
+	/// </summary>
+	public const float ANIMAL_LAYER = 0.4f;
+
 	protected const int ANIMATION_SPEED = 7;
 
 	/// <summary>
@@ -140,10 +146,15 @@ public abstract class Animal : Entity {
 	public AnimalGroup Group { get; set; }
 
 	/// <summary>
+	/// Shorthand for Group.State
+	/// </summary>
+	public AnimalGroupState State => Group.State;
+
+	/// <summary>
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
-	protected AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp;
+	protected AnimatedSpriteCmp AnimSprite => Sprite as AnimatedSpriteCmp;
 	/// <summary>
 	/// The animal's collision detection component
 	/// </summary>
@@ -164,10 +175,14 @@ public abstract class Animal : Entity {
 
 		// animations
 		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
-		sprite = animSprite;
-		Attach(sprite);
+		Sprite = animSprite;
+		Attach(Sprite);
 		animSprite.LayerDepth = ANIMAL_LAYER;
 		animSprite.YSortEnabled = true;
+		animSprite.Animations["idle-right"] = new Animation(0, 1, true);
+		animSprite.Animations["idle-left"] = new Animation(1, 1, true);
+		animSprite.Animations["idle-up-right"] = new Animation(2, 1, true);
+		animSprite.Animations["idle-up-left"] = new Animation(3, 1, true);
 		animSprite.Animations["walk-right"] = new Animation(0, 3, true);
 		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
 		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
@@ -176,8 +191,7 @@ public abstract class Animal : Entity {
 		// collision
 		collisionCmp = new CollisionCmp(Collider.Empty) {
 			Tags = CollisionTags.Animal,
-			Targets = CollisionTags.World
-			//Targets = CollisionTags.World | CollisionTags.Animal
+			Targets = CollisionTags.World // | CollisionTags.Animal
 		};
 		Attach(collisionCmp);
 	}
@@ -189,6 +203,20 @@ public abstract class Animal : Entity {
 				if (e is Animal a) a.DrawIndicators(gameTime);
 			}
 		}, GameLoopStage.POST_DRAW));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-animals", () => {
+			List<Animal> animals = [];
+
+			foreach (GameObject obj in GameScene.Active.GameObjects) {
+				if (obj is Animal a) animals.Add(a);
+			}
+
+			animals.Sort((a, b) => a.DisplayName.CompareTo(b.DisplayName));
+
+			foreach (Animal a in animals) {
+				DebugConsole.Instance.Info($"{a.DisplayName} - {Utils.Format(a.Position, false, false)}");
+			}
+		}));
 	}
 
 	public override void Load() {
@@ -223,6 +251,21 @@ public abstract class Animal : Entity {
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
+		}
+
+		// update anim
+		if (NavCmp.Moving && NavCmp.LastIntendedDelta != Vector2.Zero) {
+			bool rightish = NavCmp.LastIntendedDelta.X >= 0;
+			bool upish = NavCmp.LastIntendedDelta.Y < 0;
+
+			string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
+			if (AnimSprite.CurrentAnimation != newAnimName) {
+				AnimSprite.CurrentAnimation = newAnimName;
+			}
+		} else {
+			if (AnimSprite.CurrentAnimation != "idle-right") {
+				AnimSprite.CurrentAnimation = "idle-right";
+			}
 		}
 
 		bool wasHungry = IsHungry, wasThirsty = IsThirsty;
@@ -323,21 +366,6 @@ public abstract class Animal : Entity {
 		IsCaught = false;
 	}
 
-	/// <summary>
-	/// Moves the animal by the specified amount
-	/// </summary>
-	/// <param name="delta">The amount to move</param>
-	public void Move(Vector2 delta) {
-		bool rightish = delta.X >= 0;
-		bool upish = delta.Y < 0;
-
-		string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
-		if (AnimSprite.CurrentAnimation != newAnimName) {
-			AnimSprite.CurrentAnimation = newAnimName;
-		}
-		collisionCmp.MoveOwner(delta);
-	}
-
 	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
@@ -361,11 +389,11 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 	}
 
 	private void CheckSurroundings() {

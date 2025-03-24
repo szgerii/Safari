@@ -8,6 +8,8 @@ using System;
 using Engine;
 using System.Collections.Generic;
 using Safari.Objects.Entities;
+using Engine.Debug;
+using Safari.Popups;
 
 namespace Safari.Scenes;
 
@@ -19,6 +21,16 @@ public class GameScene : Scene {
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
+
+	static GameScene() {
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
+			if (Active == null) return;
+
+			foreach (GameObject obj in Active.GameObjects) {
+				DebugConsole.Instance.Write(obj.GetType().Name, false);
+			}
+		}));
+	}
 
 	public override void Unload() {
 		base.Unload();

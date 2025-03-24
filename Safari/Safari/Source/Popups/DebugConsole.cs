@@ -92,8 +92,9 @@ class DebugConsole : PopupMenu, IUpdatable {
     /// This method provides a way to write text to the console.
     /// </summary>
     /// <param name="text">Output text</param>
-    public void Write(string text) {
-        builder.Append($"> {text}\n");
+    /// <param name="addPrefix">Whether to add a '>' symbol as a prefix</param>
+    public void Write(string text, bool addPrefix = true) {
+        builder.Append($"{(addPrefix ? "> " : "")}{text}\n");
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }

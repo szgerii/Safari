@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\Collider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)source\components\LimitCmpOwnerTypeAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IPostProcessPass.cs" />
     <Compile Include="..\Engine\source\debug\PerformanceCalculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\DisplayManager.cs" />

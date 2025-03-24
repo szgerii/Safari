@@ -5,10 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
-using Safari.Scenes;
 using System;
 using System.Collections.Generic;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Safari.Model;
 
@@ -107,6 +105,11 @@ public class Level : GameObject {
 	/// <exception cref="ArgumentException"></exception>
 	public Tile GetTile(Point pos) => GetTile(pos.X, pos.Y);
 
+	/// <summary>
+	/// Returns a list of tiles that are inside the given tilemap area
+	/// </summary>
+	/// <param name="worldArea">The bounds of the tilemap area to return from</param>
+	/// <returns>The list of tile</returns>
 	public List<Tile> GetTilesInArea(Rectangle tilemapArea) {
 		List<Tile> tiles = new();
 
@@ -125,6 +128,11 @@ public class Level : GameObject {
 		return tiles;
 	}
 
+	/// <summary>
+	/// Returns a list of tiles that are inside the given world area
+	/// </summary>
+	/// <param name="worldArea">The bounds of the world area to return from</param>
+	/// <returns>The list of tile</returns>
 	public List<Tile> GetTilesInWorldArea(Rectangle worldArea) {
 		Rectangle tilemapArea = new Rectangle(worldArea.Location / new Point(TileSize), worldArea.Size / new Point(TileSize));
 
