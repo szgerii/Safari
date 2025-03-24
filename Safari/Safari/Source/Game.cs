@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
 using GeonBit.UI;
-using GeonBit.UI.Entities;
-using System.Collections.Generic;
 using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
@@ -76,7 +74,6 @@ public class Game : Engine.Game {
 			}
 		}));
 
-		DebugMode.Enable();
         SceneManager.Load(MainMenu.Instance);
     }
 
