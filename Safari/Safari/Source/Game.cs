@@ -77,7 +77,6 @@ public class Game : Engine.Game {
 	}
 
 	protected override void LoadContent() {
-
 		base.LoadContent();
 	}
 

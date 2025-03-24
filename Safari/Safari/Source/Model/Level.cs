@@ -5,10 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
-using Safari.Scenes;
 using System;
 using System.Collections.Generic;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Safari.Model;
 

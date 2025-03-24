@@ -9,11 +9,11 @@ public class TigerWhite : Animal {
 		DisplayName = "White Tiger";
 		ReachDistance = 3;
 
-		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/TigerWhite");
-		sprite.YSortOffset = 64;
-		sprite.Scale = 0.75f;
+		Sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/TigerWhite");
+		Sprite.YSortOffset = 64;
+		Sprite.Scale = 0.75f;
 
 		Collider baseColl = new(5, 43, 78, 20);
-		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
+		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
 	}
 }

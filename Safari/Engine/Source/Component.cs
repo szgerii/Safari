@@ -1,10 +1,25 @@
+using Engine.Components;
+using System;
+
 namespace Engine;
 
 public abstract class Component {
+	private GameObject owner;
 	/// <summary>
 	/// The game object the component is currently attached to
 	/// </summary>
-	public GameObject Owner { get; set; }
+	public GameObject Owner {
+		get => owner;
+		set {
+			Attribute limitAttr = Attribute.GetCustomAttribute(GetType(), typeof(LimitCmpOwnerTypeAttribute));
+
+			if (limitAttr != null && !((LimitCmpOwnerTypeAttribute)limitAttr).IsAllowedType(value.GetType())) {
+				throw new ArgumentException($"Component of type '{GetType().Name}' cannot be attached to game object of type '{value.GetType().Name}' due to manual type restrictions");
+			}
+
+			owner = value;
+		}
+	}
 
 	/// <summary>
 	/// Called right after the component has been added to the game

@@ -3,6 +3,7 @@ using Engine.Components;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Safari.Components;
 using Safari.Model;
 using Safari.Model.Tiles;
 using Safari.Scenes;
@@ -49,16 +50,18 @@ public abstract class Entity : GameObject {
 		get {
 			Rectangle result;
 
-			if (sprite is AnimatedSpriteCmp animSprite) {
+			if (Sprite is AnimatedSpriteCmp animSprite) {
 				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
 			} else {
-				result = new Rectangle(Position.ToPoint(), sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size);
+				result = new Rectangle(Position.ToPoint(), Sprite.SourceRectangle?.Size ?? Sprite.Texture.Bounds.Size);
 			}
-			result.Size = (result.Size.ToVector2() * sprite.Scale).ToPoint();
+			result.Size = (result.Size.ToVector2() * Sprite.Scale).ToPoint();
 
 			return result;
 		}
 	}
+
+	public Vector2 CenterPosition => Position + (Bounds.Size.ToVector2() / 2);
 
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
@@ -123,15 +126,23 @@ public abstract class Entity : GameObject {
 	public bool Dead { get; private set; } = false;
 
 	/// <summary>
+	/// The navigation component controlling the entity's movement
+	/// </summary>
+	public NavigationCmp NavCmp { get; protected set; }
+
+	/// <summary>
 	/// The sprite component of the entity used for rendering
 	/// </summary>
-	protected SpriteCmp sprite;
+	public SpriteCmp Sprite { get; protected set; }
 
 	private DateTime lastHourUpdate;
 	private DateTime lastDayUpdate;
 	private DateTime lastWeekUpdate;
 
-	public Entity(Vector2 pos) : base(pos) { }
+	public Entity(Vector2 pos) : base(pos) {
+		NavCmp = new NavigationCmp();
+		Attach(NavCmp);
+	}
 
 	static Entity() {
 		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", (object sender, GameTime gameTime) => {
@@ -142,7 +153,7 @@ public abstract class Entity : GameObject {
 	}
 
 	/// <summary>
-	/// Retrieves the active entities in a given area
+	/// Retrieves the active and alive entities in a given area
 	/// </summary>
 	/// <param name="area">The area to filter for</param>
 	/// <returns>The list of entities inside the area</returns>
@@ -258,7 +269,7 @@ public abstract class Entity : GameObject {
 	public bool CanReach(GameObject obj) => CanReach(obj.Position);
 
 	/// <summary>
-	/// Retrieves a list of all other active entities inside the entity's sight
+	/// Retrieves a list of all other active and alive entities inside the entity's sight
 	/// (does not include itself)
 	/// </summary>
 	/// <returns>The list of active entities inside the entity's vision</returns>
@@ -269,7 +280,7 @@ public abstract class Entity : GameObject {
 	}
 
 	/// <summary>
-	/// Retrieves a list of all other active entities inside the entity's reach
+	/// Retrieves a list of all other active and alive entities inside the entity's reach
 	/// (does not include itself)
 	/// </summary>
 	/// <returns>The list of active entities inside the entity's reach</returns>

@@ -143,7 +143,7 @@ public abstract class Animal : Entity {
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
-	protected AnimatedSpriteCmp AnimSprite => sprite as AnimatedSpriteCmp;
+	protected AnimatedSpriteCmp AnimSprite => Sprite as AnimatedSpriteCmp;
 	/// <summary>
 	/// The animal's collision detection component
 	/// </summary>
@@ -164,8 +164,8 @@ public abstract class Animal : Entity {
 
 		// animations
 		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
-		sprite = animSprite;
-		Attach(sprite);
+		Sprite = animSprite;
+		Attach(Sprite);
 		animSprite.LayerDepth = ANIMAL_LAYER;
 		animSprite.YSortEnabled = true;
 		animSprite.Animations["walk-right"] = new Animation(0, 3, true);
@@ -361,11 +361,11 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 	}
 
 	private void CheckSurroundings() {

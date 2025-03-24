@@ -8,12 +8,12 @@ public class Giraffe : Animal {
 	public Giraffe(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Giraffe, gender) {
 		DisplayName = "Giraffe";
 
-		sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Giraffe");
-		sprite.Scale = 0.75f;
-		sprite.YSortOffset = 128;
+		Sprite.Texture = Game.ContentManager.Load<Texture2D>("Assets/Animals/Giraffe");
+		Sprite.Scale = 0.75f;
+		Sprite.YSortOffset = 128;
 
 		Collider baseColl = new(7, 107, 81, 20);
-		collisionCmp.Collider = baseColl.WithSpriteScale(sprite.Scale);
+		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
 
 		ReachDistance = 2;
 		SightDistance = 6;
