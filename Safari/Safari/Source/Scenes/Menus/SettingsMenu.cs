@@ -62,12 +62,12 @@ class SettingsMenu : MenuScene {
         fpsPanel.Padding = new Vector2(0);
         fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         fpsText.Padding = new Vector2(10);
-        fpsSlider = new Slider(30, 120, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
-        fpsSlider.Value = DisplayManager.TargetFPS > 60 ? DisplayManager.TargetFPS : 60;
-        fpsText.Text = "Frame rate: " + fpsSlider.Value;
+        fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
+        fpsSlider.Value = DisplayManager.TargetFPS == 0 ? 91 : DisplayManager.TargetFPS;
+        fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
         fpsSlider.OnValueChange = (Entity entity) => {
-            fpsText.Text = "Frame rate: " + fpsSlider.Value;
-            DisplayManager.SetTargetFPS(fpsSlider.Value, false);
+            fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
+            DisplayManager.SetTargetFPS(fpsSlider.Value == 91 ? 0 : fpsSlider.Value, false);
         };
         fpsPanel.AddChild(fpsText);
         fpsPanel.AddChild(fpsSlider);
@@ -176,20 +176,16 @@ class SettingsMenu : MenuScene {
         prevResolution = new Button("-", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.25f, 0));
         prevResolution.Padding = new Vector2(0);
         prevResolution.OnClick = (Entity entity) => {
-            if (currentResolution == 0) {
-                currentResolution = resolutions.Count - 1;
-            } else {
+            if (currentResolution != 0) {
                 --currentResolution;
-            }
-            resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
+            } 
+                resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
             DisplayManager.SetResolution(resolutions[currentResolution].Item1, resolutions[currentResolution].Item2, false);
         };
         nextResolution = new Button("+", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.25f, 0));
         nextResolution.Padding = new Vector2(0);
         nextResolution.OnClick = (Entity entity) => {
-            if (currentResolution == resolutions.Count - 1) {
-                currentResolution = 0;
-            } else {
+            if (currentResolution != resolutions.Count - 1) {
                 ++currentResolution;
             }
             resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;

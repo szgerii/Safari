@@ -74,6 +74,7 @@ public class Game : Engine.Game {
 			}
 		}));
 
+        DebugMode.Enable();
         SceneManager.Load(MainMenu.Instance);
     }
 
@@ -104,9 +105,9 @@ public class Game : Engine.Game {
 				PrintModelDebugInfos();
 			}
 		}
-	}
+    }
 
-	protected override void Draw(GameTime gameTime) {
+    protected override void Draw(GameTime gameTime) {
 		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
 
 		DebugInfoManager.PreDraw();

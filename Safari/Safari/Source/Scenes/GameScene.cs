@@ -22,7 +22,6 @@ public class GameScene : Scene {
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
 	public override void Unload() {
-		DebugMode.Disable();
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
@@ -50,7 +49,6 @@ public class GameScene : Scene {
 
 		UserInterface.Active.MouseInputProvider.DoClick();
 
-        DebugMode.Enable();
         base.Load();
 	}
 
