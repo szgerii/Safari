@@ -61,8 +61,6 @@ public class NavigationCmp : Component, IUpdatable {
 
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
 
-	protected Entity OwnerEntity => Owner as Entity;
-
 	public NavigationCmp(float speed = 50f) {
 		Speed = speed;
 	}
@@ -74,8 +72,8 @@ public class NavigationCmp : Component, IUpdatable {
 
 		if (Moving) {
 			Vector2 targetPos = Target.Value;
-			if (OwnerEntity != null) {
-				targetPos -= OwnerEntity.Bounds.Size.ToVector2() / 2f;
+			if (Owner is Entity ownerEntity) {
+				targetPos -= ownerEntity.Bounds.Size.ToVector2() / 2f;
 				if (targetPos.X < 0) targetPos.X = 0;
 				if (targetPos.Y < 0) targetPos.Y = 0;
 			}
@@ -129,11 +127,7 @@ public class NavigationCmp : Component, IUpdatable {
 		}
 
 		if (Owner is AnimalGroup ownerGroup) {
-			foreach (Animal a in ownerGroup.Members) {
-				if (a.CanReach(pos)) return true;
-			}
-
-			return false;
+			return ownerGroup.CanAnybodyReach(pos);
 		}
 
 		return Vector2.Distance(Owner.Position, pos) < FALLBACK_REACH_THRESHOLD;

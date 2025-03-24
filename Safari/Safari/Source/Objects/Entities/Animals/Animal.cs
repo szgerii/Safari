@@ -8,6 +8,8 @@ using Safari.Model;
 using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
+using Safari.Popups;
 
 namespace Safari.Objects.Entities.Animals;
 
@@ -17,7 +19,8 @@ public enum Gender {
 }
 
 public abstract class Animal : Entity {
-	protected const float ANIMAL_LAYER = 0.4f;
+	public const float ANIMAL_LAYER = 0.4f;
+
 	protected const int ANIMATION_SPEED = 7;
 
 	/// <summary>
@@ -140,6 +143,11 @@ public abstract class Animal : Entity {
 	public AnimalGroup Group { get; set; }
 
 	/// <summary>
+	/// Shorthand for Group.State
+	/// </summary>
+	public AnimalGroupState State => Group.State;
+
+	/// <summary>
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
@@ -168,6 +176,10 @@ public abstract class Animal : Entity {
 		Attach(Sprite);
 		animSprite.LayerDepth = ANIMAL_LAYER;
 		animSprite.YSortEnabled = true;
+		animSprite.Animations["idle-right"] = new Animation(0, 1, true);
+		animSprite.Animations["idle-left"] = new Animation(1, 1, true);
+		animSprite.Animations["idle-up-right"] = new Animation(2, 1, true);
+		animSprite.Animations["idle-up-left"] = new Animation(3, 1, true);
 		animSprite.Animations["walk-right"] = new Animation(0, 3, true);
 		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
 		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
@@ -176,8 +188,7 @@ public abstract class Animal : Entity {
 		// collision
 		collisionCmp = new CollisionCmp(Collider.Empty) {
 			Tags = CollisionTags.Animal,
-			Targets = CollisionTags.World
-			//Targets = CollisionTags.World | CollisionTags.Animal
+			Targets = CollisionTags.World // | CollisionTags.Animal
 		};
 		Attach(collisionCmp);
 	}
@@ -189,6 +200,20 @@ public abstract class Animal : Entity {
 				if (e is Animal a) a.DrawIndicators(gameTime);
 			}
 		}, GameLoopStage.POST_DRAW));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-animals", () => {
+			List<Animal> animals = [];
+
+			foreach (GameObject obj in GameScene.Active.GameObjects) {
+				if (obj is Animal a) animals.Add(a);
+			}
+
+			animals.Sort((a, b) => a.DisplayName.CompareTo(b.DisplayName));
+
+			foreach (Animal a in animals) {
+				DebugConsole.Instance.Info($"{a.DisplayName} - {Utils.Format(a.Position, false, false)}");
+			}
+		}));
 	}
 
 	public override void Load() {
@@ -223,6 +248,21 @@ public abstract class Animal : Entity {
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
+		}
+
+		// update anim
+		if (NavCmp.Moving && NavCmp.LastIntendedDelta != Vector2.Zero) {
+			bool rightish = NavCmp.LastIntendedDelta.X >= 0;
+			bool upish = NavCmp.LastIntendedDelta.Y < 0;
+
+			string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
+			if (AnimSprite.CurrentAnimation != newAnimName) {
+				AnimSprite.CurrentAnimation = newAnimName;
+			}
+		} else {
+			if (AnimSprite.CurrentAnimation != "idle-right") {
+				AnimSprite.CurrentAnimation = "idle-right";
+			}
 		}
 
 		bool wasHungry = IsHungry, wasThirsty = IsThirsty;
@@ -321,21 +361,6 @@ public abstract class Animal : Entity {
 
 		Position = releasePosition;
 		IsCaught = false;
-	}
-
-	/// <summary>
-	/// Moves the animal by the specified amount
-	/// </summary>
-	/// <param name="delta">The amount to move</param>
-	public void Move(Vector2 delta) {
-		bool rightish = delta.X >= 0;
-		bool upish = delta.Y < 0;
-
-		string newAnimName = $"walk-{(upish ? "up-" : "")}{(rightish ? "right" : "left")}";
-		if (AnimSprite.CurrentAnimation != newAnimName) {
-			AnimSprite.CurrentAnimation = newAnimName;
-		}
-		collisionCmp.MoveOwner(delta);
 	}
 
 	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
