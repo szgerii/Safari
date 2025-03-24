@@ -1,10 +1,11 @@
-﻿using Engine.Scenes;
+﻿using Engine.Graphics;
 using Engine.Input;
-using Engine.Graphics;
+using Engine.Interfaces;
+using Engine.Objects;
+using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Engine.Objects;
 using System;
 
 namespace Engine;
@@ -15,6 +16,9 @@ public class Game : Microsoft.Xna.Framework.Game {
 	public static SpriteBatch SpriteBatch { get; protected set; }
 	public static RenderTarget2D RenderTarget { get; protected set; }
 	public static ContentManager ContentManager => Instance.Content;
+
+	private VertexBuffer fullScreenVbo;
+	private IndexBuffer fullScreenIbo;
 
 	public static float RenderTargetScale {
 		get {
@@ -39,6 +43,29 @@ public class Game : Microsoft.Xna.Framework.Game {
 		Graphics = _graphics;
 	}
 
+	private void InitFullscreenBuffers() {
+		fullScreenVbo = new VertexBuffer(GraphicsDevice, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.WriteOnly);
+		fullScreenIbo = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.WriteOnly);
+		int[] indices = new int[6] { 0, 1, 2, 2, 3, 0 };
+		Vector3 bottomLeft = new Vector3(-1, -1, 0);
+		Vector2 texBottomLeft = new Vector2(0, 1);
+		Vector3 bottomRight = new Vector3(1, -1, 0);
+		Vector2 texBottomRight = new Vector2(1, 1);
+		Vector3 topLeft = new Vector3(-1, 1, 0);
+		Vector2 texTopLeft = new Vector2(0, 0);
+		Vector3 topRight = new Vector3(1, 1, 0);
+		Vector2 texTopRight = new Vector2(1, 0);
+		VertexPositionTexture[] verts = new VertexPositionTexture[4] {
+			new VertexPositionTexture(topLeft, texTopLeft),
+			new VertexPositionTexture(topRight, texTopRight),
+			new VertexPositionTexture(bottomRight, texBottomRight),
+			new VertexPositionTexture(bottomLeft, texBottomLeft)
+		};
+		fullScreenIbo.SetData(indices);
+		fullScreenVbo.SetData(verts);
+	}
+
+
 	protected override void Initialize() {
 		InputManager.Initialize();
 		Content.RootDirectory = "Content";
@@ -46,6 +73,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 		DisplayManager.Init();
 		DisplayManager.SetResolution(1280, 720);
 		RenderTarget = new RenderTarget2D(GraphicsDevice, 640, 360);
+		InitFullscreenBuffers();
 
 		base.Initialize();
 	}
@@ -61,7 +89,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 		if (SceneManager.HasLoadingScheduled) {
 			SceneManager.PerformScheduledLoad();
 		}
-		
+
 		SceneManager.Active.PerformObjectRemovals();
 		SceneManager.Active.PerformObjectAdditions();
 
@@ -95,7 +123,25 @@ public class Game : Microsoft.Xna.Framework.Game {
 		);
 		SceneManager.Active.Draw(gameTime);
 		SpriteBatch.End();
-		
+
+		// Perform post processing
+		Texture2D result = RenderTarget;
+		foreach (IPostProcessPass pass in SceneManager.Active.PostProcessPasses) {
+			// Let the pass prepare its uniforms and output texture
+			pass.PreDraw(gameTime);
+			// Set RT
+			GraphicsDevice.SetRenderTarget(pass.Output);
+			// bind ibo, vbo for fullscreen drawing
+			GraphicsDevice.Indices = fullScreenIbo;
+			GraphicsDevice.SetVertexBuffer(fullScreenVbo);
+			// upload prev pass to the shader and bind it
+			pass.Shader.Parameters["PrevStep"].SetValue(result);
+			pass.Shader.CurrentTechnique.Passes[0].Apply();
+			// Draw call
+			GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+			result = pass.Output;
+		}
+
 		GraphicsDevice.SetRenderTarget(null);
 		GraphicsDevice.Clear(Color.Black);
 
@@ -103,7 +149,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 			samplerState: SamplerState.PointClamp,
 			transformMatrix: Matrix.CreateTranslation(offset.X, offset.Y, 0)
 		);
-		SpriteBatch.Draw(RenderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+		SpriteBatch.Draw(result, Vector2.Zero, null, Color.White, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
 		SpriteBatch.End();
 
 		base.Draw(gameTime);

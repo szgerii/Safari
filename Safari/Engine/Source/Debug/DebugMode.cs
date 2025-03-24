@@ -14,7 +14,7 @@ public class DebugMode {
 
 	public static void Enable() {
 		foreach (LoopedDebugFeature feature in LoopedFeatures) {
-			if (feature.Enabled) {
+			if (feature.Enabled && feature.Handler != null) {
 				RegisterHandler(feature.RunStage, feature.Handler);
 			}
 		}
@@ -24,7 +24,7 @@ public class DebugMode {
 
 	public static void Disable() {
 		foreach (LoopedDebugFeature feature in LoopedFeatures) {
-			if (feature.Enabled) {
+			if (feature.Enabled && feature.Handler != null) {
 				UnregisterHandler(feature.RunStage, feature.Handler);
 			}
 		}
@@ -72,6 +72,8 @@ public class DebugMode {
 			EnableFeature(feature);
 		}
 	}
+
+	public static bool IsLoopedFeatureEnabled(string name) => GetLoopedFeature(name).Enabled;
 
 	private static LoopedDebugFeature GetLoopedFeature(string name) {
 		LoopedDebugFeature feature = null;

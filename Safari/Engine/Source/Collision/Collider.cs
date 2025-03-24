@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace Engine.Collision;
 
 public struct Collider {
+	public readonly static Collider Empty = new(0, 0, 0, 0);
+
 	public float X { get; set; }
 	public float Y { get; set; }
 	public float Width { get; set; }

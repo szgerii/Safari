@@ -9,6 +9,7 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using Safari.Components;
 
 namespace Safari.Model;
 
@@ -94,9 +95,9 @@ public class GameModel {
 
 	/// <summary>
 	/// Indicates whether it is currently day time in-game
-	/// (TimeOfDay < 0.5)
+	/// (TimeOfDay < 0.54) ~ .5 plus extra time for sunset
 	/// </summary>
-	public bool IsDaytime => TimeOfDay < 0.5f;
+	public bool IsDaytime => TimeOfDay < 0.54f;
 
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
@@ -238,17 +239,17 @@ public class GameModel {
 
 		// animals
 
+		y *= Level.TileSize;
 		Random rand = new Random();
 		Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant), typeof(Lion), typeof(Tiger), typeof(TigerWhite) ];
 		//Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant) ];
 		for (int i = 0; i < 20; i++) {
 			//int randX = rand.Next(100, Level.MapWidth * Level.TileSize - 100);
 			//int randY = rand.Next(100, Level.MapHeight * Level.TileSize - 100);
-			int randX = rand.Next(10, 400);
-			int randY = rand.Next(10, 400);
+			Vector2 pos = new Vector2((i % 5) * 96, y + (i / 5 * 96));
 			int randType = rand.Next(0, animalTypes.Length);
 
-			Animal anim = (Animal)Activator.CreateInstance(animalTypes[randType], [ new Vector2(randX, randY), (rand.Next(2) == 0 ? Gender.Male : Gender.Female) ]);
+			Animal anim = (Animal)Activator.CreateInstance(animalTypes[randType], [ pos, (rand.Next(2) == 0 ? Gender.Male : Gender.Female) ]);
 			Game.AddObject(anim);
 		}
 	}

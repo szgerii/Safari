@@ -5,7 +5,8 @@ namespace Engine.Collision;
 [Flags]
 public enum CollisionTags {
 	World = 1,
-	Player = 2,
-	Enemy = 4,
-	Damageable = 8
+	Animal = 2,
+	Poacher = 4,
+	Ranger = 8,
+	Jeep = 16,
 }

@@ -5,7 +5,9 @@ namespace Safari.Model.Tiles;
 public class Grass : AutoTile {
 	public Grass() : base(Game.ContentManager.Load<Texture2D>("Assets/Grass/Grass")) {
 		IsFoodSource = true;
+		LightRange = 1;
 
+		Sprite.LayerDepth = 0.5f;
 		HasDiagonalTiling = true;
 		UseDefaultLayout();
 	}

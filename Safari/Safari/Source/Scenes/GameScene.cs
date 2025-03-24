@@ -9,6 +9,8 @@ using Engine;
 using System.Collections.Generic;
 using GeonBit.UI;
 using Engine.Debug;
+using Safari.Objects.Entities;
+using Safari.Popups;
 
 namespace Safari.Scenes;
 
@@ -21,10 +23,21 @@ public class GameScene : Scene {
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
+	static GameScene() {
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
+			if (Active == null) return;
+
+			foreach (GameObject obj in Active.GameObjects) {
+				DebugConsole.Instance.Write(obj.GetType().Name, false);
+			}
+		}));
+	}
+
 	public override void Unload() {
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
+		PostProcessPasses.Remove(model.Level.LightManager);
 		Game.ContentManager.Unload();
 	}
 
@@ -34,6 +47,7 @@ public class GameScene : Scene {
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
 		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
+		PostProcessPasses.Add(model.Level.LightManager);
 
 		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
 		PostUpdate += CollisionManager.PostUpdate;
@@ -61,6 +75,8 @@ public class GameScene : Scene {
 
 		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
+				if (obj is Entity e && e.Dead) continue;
+
 				obj.Update(gameTime);
 			}
 		}
@@ -69,6 +85,8 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 
 			foreach (GameObject actor in simulationActors) {
+				if (actor is Entity e && e.Dead) continue;
+
 				actor.Update(gameTime);
 			}
 		}

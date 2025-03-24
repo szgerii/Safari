@@ -469,3 +469,9 @@
 /processorParam:TextureFormat=Color
 /build:Assets/Water/Water.png
 
+#begin Fx/dayNightPass.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Fx/dayNightPass.fx
+

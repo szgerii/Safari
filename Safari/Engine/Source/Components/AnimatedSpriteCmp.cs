@@ -1,5 +1,4 @@
-﻿using Engine.Objects;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -44,7 +43,7 @@ public class Animation {
 /// <summary>
 /// Component for drawing animated sprites on the screen
 /// </summary>
-public class AnimatedSpriteCmp : SpriteCmp {
+public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	/// <summary>
 	/// Runs when the component has finished playing an animation
 	/// Callback gets a string param that is the animation's name
@@ -67,12 +66,10 @@ public class AnimatedSpriteCmp : SpriteCmp {
 	public string CurrentAnimation {
 		get => currentAnimationName;
 		set {
-			if (currentAnimationName != value) {
-				currentAnimationName = value;
-				currentAnim = Animations[value];
-				CurrentFrame = 0;
-				lastFrameSwitch = TimeSpan.Zero;
-			}
+			currentAnimationName = value;
+			currentAnim = Animations[value];
+			CurrentFrame = 0;
+			frameTime = 0;
 		}
 	}
 
@@ -84,7 +81,7 @@ public class AnimatedSpriteCmp : SpriteCmp {
 	public int ColumnCount {
 		get => columnCount;
 		set {
-			FrameWidth = Texture.Width / value;
+			FrameWidth = (Texture?.Width ?? 0) / value;
 			columnCount = value;
 		}
 	}
@@ -96,7 +93,7 @@ public class AnimatedSpriteCmp : SpriteCmp {
 	public int RowCount {
 		get => rowCount;
 		set {
-			FrameHeight = Texture.Height / value;
+			FrameHeight = (Texture?.Height ?? 0) / value;
 			rowCount = value;
 		}
 	}
@@ -129,18 +126,7 @@ public class AnimatedSpriteCmp : SpriteCmp {
 		}
 	}
 
-	public override float RealLayerDepth {
-		get {
-			if (!YSortEnabled) {
-				return LayerDepth;
-			}
-
-			// TODO: this just assumes that the frame is completely filled
-			return LayerDepth - 0.1f * ((Owner.ScreenPosition.Y + FrameHeight) / Camera.Active.ScreenHeight);
-		}
-	}
-
-	protected TimeSpan lastFrameSwitch;
+	protected float frameTime;
 
 	public AnimatedSpriteCmp(Texture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
 		ColumnCount = columnCount;
@@ -149,18 +135,22 @@ public class AnimatedSpriteCmp : SpriteCmp {
 		Origin = Vector2.Zero;
 	}
 
-	public override void Draw(GameTime gameTime) {
-		if (currentAnim == null || !Visible) {
-			return;
+	private Texture2D prevTex;
+	public void Update(GameTime gameTime) {
+		// TODO: handle this more efficiently
+		if (Texture != prevTex) {
+			ColumnCount = ColumnCount;
+			RowCount = RowCount;
 		}
+		prevTex = Texture;
 
-		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		if (currentAnim == null) return;
 
 		// if it's time, try to play the next frame
-		if ((gameTime.TotalGameTime - lastFrameSwitch).TotalMilliseconds > frameGapMs) {
-			lastFrameSwitch = gameTime.TotalGameTime;
-			
+		frameTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+		if (frameTime > frameGapMs) {
+			frameTime = 0;
+
 			CurrentFrame++;
 			if (CurrentFrame >= currentAnim.Length) {
 				if (currentAnim.Loop) {
@@ -171,5 +161,14 @@ public class AnimatedSpriteCmp : SpriteCmp {
 				}
 			}
 		}
+	}
+
+	public override void Draw(GameTime gameTime) {
+		if (currentAnim == null || !Visible) {
+			return;
+		}
+
+		// draw the current frame
+		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 }
