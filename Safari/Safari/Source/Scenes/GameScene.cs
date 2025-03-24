@@ -7,8 +7,9 @@ using Safari.Components;
 using System;
 using Engine;
 using System.Collections.Generic;
-using Safari.Objects.Entities;
+using GeonBit.UI;
 using Engine.Debug;
+using Safari.Objects.Entities;
 using Safari.Popups;
 
 namespace Safari.Scenes;
@@ -33,7 +34,7 @@ public class GameScene : Scene {
 	}
 
 	public override void Unload() {
-		base.Unload();
+        base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		PostProcessPasses.Remove(model.Level.LightManager);
@@ -60,7 +61,9 @@ public class GameScene : Scene {
 			)
 		);
 
-		base.Load();
+		UserInterface.Active.MouseInputProvider.DoClick();
+
+        base.Load();
 	}
 
 	public override void Update(GameTime gameTime) {

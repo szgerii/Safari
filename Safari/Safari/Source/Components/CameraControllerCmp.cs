@@ -8,7 +8,9 @@ using System;
 namespace Safari.Components;
 
 public class CameraControllerCmp : Component, IUpdatable {
-	public float ScrollSpeed { get; set; } = 100f;
+	public static float DefaultScrollSpeed = 100f;
+
+    public float ScrollSpeed { get; set; } = 100f;
 
 	public float ZoomSpeed { get; set; } = 0.05f;
 	public float MinZoom { get; set; } = 0.5f;
@@ -27,6 +29,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 
 	public CameraControllerCmp(Rectangle bounds) {
 		Bounds = bounds;
+		ScrollSpeed = CameraControllerCmp.DefaultScrollSpeed;
 	}
 
 	public void Update(GameTime gameTime) {

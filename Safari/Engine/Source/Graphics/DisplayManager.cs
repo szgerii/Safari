@@ -23,7 +23,7 @@ public static class DisplayManager {
 	private static Game Game => Game.Instance;
 	private static GraphicsDeviceManager Graphics => Game.Graphics;
 	private static GameWindow Window => Game.Window;
-	private static List<DisplayMode> supportedResolutions;
+	public static List<DisplayMode> supportedResolutions { get; private set; }
 
 	public static void Init(WindowType windowType = WindowType.WINDOWED) {
 		supportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes.ToList();

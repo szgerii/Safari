@@ -78,6 +78,7 @@ class AlertMenu : PopupMenu {
         this.paragraph.AlignToCenter = true;
 
         this.panel = new Panel(new Vector2(0.4f, 0.6f), PanelSkin.Default, Anchor.Center);
+        this.panel.Padding = new Vector2(20,20);
         this.panel.MaxSize = new Vector2(500, 500);
     }
 

@@ -12,6 +12,7 @@ using GeonBit.UI;
 using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
+using Safari.Scenes.Menus;
 
 namespace Safari;
 
@@ -32,7 +33,7 @@ public class Game : Engine.Game {
 			}
 		};
 
-		SceneManager.Load(new GameScene());
+		//SceneManager.Load(new GameScene());
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
@@ -44,7 +45,7 @@ public class Game : Engine.Game {
 		// create separate content manager for geonbit, so we can unload our assets in peace
 		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
 
-		UserInterface.Initialize(uiContentManager, BuiltinThemes.editor);
+		UserInterface.Initialize(uiContentManager, BuiltinThemes.hd);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
         UserInterface.Active.UseRenderTarget = true;
@@ -73,10 +74,11 @@ public class Game : Engine.Game {
 			}
 		}));
 
-		DebugMode.Enable();
-	}
+        DebugMode.Enable();
+        SceneManager.Load(MainMenu.Instance);
+    }
 
-	protected override void LoadContent() {
+    protected override void LoadContent() {
 		base.LoadContent();
 	}
 
@@ -84,8 +86,9 @@ public class Game : Engine.Game {
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
+		PauseMenu.Instance?.Update(gameTime);
 
-		DateTime start = DateTime.Now;
+        DateTime start = DateTime.Now;
 
 		UserInterface.Active.Update(gameTime);
 		base.Update(gameTime);
@@ -102,9 +105,9 @@ public class Game : Engine.Game {
 				PrintModelDebugInfos();
 			}
 		}
-	}
+    }
 
-	protected override void Draw(GameTime gameTime) {
+    protected override void Draw(GameTime gameTime) {
 		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
 
 		DebugInfoManager.PreDraw();
@@ -135,6 +138,7 @@ public class Game : Engine.Game {
 
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
+        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));

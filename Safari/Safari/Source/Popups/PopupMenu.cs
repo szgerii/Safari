@@ -11,6 +11,7 @@ public abstract class PopupMenu {
     /// </summary>
     public virtual void Show() {
         UserInterface.Active.AddEntity(this.panel);
+        panel.BringToFront();
     }
 
     /// <summary>
