@@ -7,6 +7,7 @@ using Safari.Components;
 using System;
 using Engine;
 using System.Collections.Generic;
+using GeonBit.UI;
 
 namespace Safari.Scenes;
 
@@ -44,6 +45,8 @@ public class GameScene : Scene {
 				model.Level.MapHeight * model.Level.TileSize
 			)
 		);
+
+		UserInterface.Active.MouseInputProvider.DoClick();
 
 		base.Load();
 	}

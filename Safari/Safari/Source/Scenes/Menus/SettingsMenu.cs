@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Safari.Scenes.Menus;
 
 class SettingsMenu : MenuScene {
-    private readonly static SettingsMenu active = new SettingsMenu();
+    private readonly static SettingsMenu instance = new SettingsMenu();
     private Header title;
     private Panel settingsPanel;
 
@@ -48,7 +48,7 @@ class SettingsMenu : MenuScene {
     private Button saveChangesButton;
     private Button discardChangesButton;
 
-    public static SettingsMenu Active => active;
+    public static SettingsMenu Instance => instance;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.TopLeft);
@@ -225,7 +225,6 @@ class SettingsMenu : MenuScene {
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
-        //Camera.Active.GetComponent<CameraControllerCmp>();
     }
 
     private void saveChangesButtonClicked(Entity entity) {
@@ -240,7 +239,7 @@ class SettingsMenu : MenuScene {
 
     private void menuButtonClicked(Entity entity) {
         discardChangesButtonClicked(entity);
-        SceneManager.Load(MainMenu.Active);
+        SceneManager.Load(MainMenu.Instance);
     }
 
     protected override void DestroyUI() {

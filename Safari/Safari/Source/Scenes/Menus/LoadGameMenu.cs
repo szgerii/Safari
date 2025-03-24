@@ -27,7 +27,7 @@ class LoadGameMenu : MenuScene {
     }
 
     private void MenuButtonClicked(Entity entity) {
-        SceneManager.Load(MainMenu.Active);
+        SceneManager.Load(MainMenu.Instance);
     }
 
     protected override void DestroyUI() {

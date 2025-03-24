@@ -77,7 +77,7 @@ public class Game : Engine.Game {
 		}));
 
 		DebugMode.Enable();
-        SceneManager.Load(MainMenu.Active);
+        SceneManager.Load(MainMenu.Instance);
     }
 
     protected override void LoadContent() {
@@ -88,7 +88,7 @@ public class Game : Engine.Game {
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
-		PauseMenu.Active?.Update(gameTime);
+		PauseMenu.Instance?.Update(gameTime);
 
         DateTime start = DateTime.Now;
 
@@ -140,7 +140,7 @@ public class Game : Engine.Game {
 
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
-        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Active.TogglePauseMenu());
+        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));

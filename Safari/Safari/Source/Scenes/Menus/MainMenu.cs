@@ -1,13 +1,10 @@
 ﻿using Engine.Scenes;
-using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Safari.Popups;
-using System;
 
 namespace Safari.Scenes.Menus;
 class MainMenu : MenuScene {
-    private readonly static MainMenu active = new MainMenu();
+    private readonly static MainMenu instance = new MainMenu();
     private Header title;
     private Panel buttonPanel;
     private Button newGameButton;
@@ -16,7 +13,7 @@ class MainMenu : MenuScene {
     private Button settingsButton;
     private Button exitButton;
 
-    public static MainMenu Active => active;
+    public static MainMenu Instance => instance;
 
     protected override void ConstructUI() {
         this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
@@ -51,7 +48,7 @@ class MainMenu : MenuScene {
 
 
     private void NewGameClicked(Entity entity) {
-        SceneManager.Load(NewGameMenu.Active);
+        SceneManager.Load(NewGameMenu.Instance);
     }
 
     private void ContinueGameClicked(Entity entity) {
@@ -63,7 +60,7 @@ class MainMenu : MenuScene {
     }
 
     private void SettingsClicked(Entity entity) {
-        SceneManager.Load(SettingsMenu.Active);
+        SceneManager.Load(SettingsMenu.Instance);
     }
 
     private void ExitClicked(Entity entity) {

@@ -6,13 +6,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
-using System;
-using System.Net.Http.Headers;
 
 namespace Safari.Popups;
 
 class PauseMenu : PopupMenu {
-    private static readonly PauseMenu active = new PauseMenu();
+    private static readonly PauseMenu instance = new PauseMenu();
     private Header Title;
     private Panel ButtonPanel;
     private Button ResumeButton;
@@ -21,7 +19,7 @@ class PauseMenu : PopupMenu {
     private Button ExitButton;
     private bool visible;
 
-    public static PauseMenu Active => active;
+    public static PauseMenu Instance => instance;
 
     public PauseMenu() {
         visible = false;
@@ -66,6 +64,7 @@ class PauseMenu : PopupMenu {
 
     private void ResumeButtonClicked(Entity entity) {
         TogglePauseMenu();
+        UserInterface.Active.MouseInputProvider.DoClick();
     }
 
     private void SaveButtonClicked(Entity entity) {
@@ -73,12 +72,13 @@ class PauseMenu : PopupMenu {
     }
 
     private void SaveAndExitButtonClicked(Entity entity) {
-        SceneManager.Load(MainMenu.Active);
+        TogglePauseMenu();
+        SceneManager.Load(MainMenu.Instance);
     }
 
     private void ExitButtonClicked(Entity entity) {
         TogglePauseMenu();
-        SceneManager.Load(MainMenu.Active);
+        SceneManager.Load(MainMenu.Instance);
     }
 
     public void TogglePauseMenu() {
