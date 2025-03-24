@@ -1,0 +1,41 @@
+Desert: 32x32
+Fence: 32x32
+Grass: 32x32
+Jeep: 64x64
+Gates: 96x96
+
+Bush
+-Bush1: 32x32
+-Bush2: 64x32
+
+Animals
+-Elephant: 128x96
+-Giraffe:96x128
+-Lion: 128x96
+-Tiger: 128x64
+-Zebra: 96x96
+
+Poacher
+-Attack: 32x32
+-Dead: 64x32
+-Shot: 32x32
+-Walk: 32x32
+
+Ranger
+-Shot: 32x32
+-Walk: 32x32
+
+Tourist
+-Idle: 32x32
+-Walk: 32x32
+
+Tree
+-Digitata: 96x128
+-Grandideri1: 96x160
+-Gregorii: 96x128
+-Rubrostipa: 128x128
+-Suarazensis: 96x96
+-Za: 96x160
+-Grandideri2: 96x128
+
+Background: 3584x2048
