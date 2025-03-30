@@ -27,11 +27,11 @@ public class Game : Engine.Game {
 
 		InputSetup();
 
-		//SceneManager.LoadedScene += (object sender, Scene s) => {
-		//	if (s is GameScene gs) {
-		//		gs.Model.GenerateTestLevel();
-		//	}
-		//};
+		SceneManager.LoadedScene += (object sender, Scene s) => {
+			if (s is GameScene gs) {
+				MapBuilder.BuildStartingMap(gs.Model.Level);
+			}
+		};
 
 		//SceneManager.Load(new GameScene());
 

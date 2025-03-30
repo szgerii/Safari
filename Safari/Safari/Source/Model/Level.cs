@@ -14,8 +14,8 @@ namespace Safari.Model;
 /// Stores the static parts of the game world
 /// </summary>
 public class Level : GameObject {
-	public const int PLAY_AREA_CUTOFF_X = 5;
-	public const int PLAY_AREA_CUTOFF_Y = 5;
+	public const int PLAY_AREA_CUTOFF_X = 8;
+	public const int PLAY_AREA_CUTOFF_Y = 8;
 
 	/// <summary>
 	/// The image to draw as a background to the tiles
@@ -67,42 +67,10 @@ public class Level : GameObject {
 		selectedTileTex = Utils.MergeTextures(fill, outline);
 		// lightmanager setup (before any tiles are placed)
 		LightManager = new LightManager(width, height, tileSize);
-
-		// fence placement (before road placement)
-		int x = PLAY_AREA_CUTOFF_X - 1;
-		int y = PLAY_AREA_CUTOFF_Y - 1;
-		while (x < MapWidth - PLAY_AREA_CUTOFF_X) {
-			SetTile(x, y, new Fence());
-			x++;
-		}
-		while (y < MapHeight - PLAY_AREA_CUTOFF_Y) {
-			SetTile(x, y, new Fence());
-			y++;
-		}
-		while (x > PLAY_AREA_CUTOFF_X - 1) {
-			SetTile(x, y, new Fence());
-			x--;
-		}
-		while (y > PLAY_AREA_CUTOFF_Y - 1) {
-			SetTile(x, y, new Fence());
-			y--;
-		}
-
-		// road placement (and roadmanager setup) after everything else
+		// Roadmanger setup
 		Point start = new Point(PLAY_AREA_CUTOFF_X, height - PLAY_AREA_CUTOFF_Y - 8);
 		Point end = new Point(width - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
 		Network = new RoadNetwork(width, height, start, end);
-		SetTile(start, new Road());
-		SetTile(end, new Road());
-		Point current = new Point(-1, start.Y);
-		while (current.X < end.X) {
-			current.X++;
-			SetTile(current, new Road());
-		}
-		while (current.Y > 0) {
-			current.Y--;
-			SetTile(current, new Road());
-		}
 	}
 
 	/// <summary>

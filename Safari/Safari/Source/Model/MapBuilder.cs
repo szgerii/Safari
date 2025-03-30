@@ -1,11 +1,25 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
+using Safari.Objects.Entities.Animals;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Safari.Model;
 
+/// <summary>
+/// Static helper class that can generate the starting map
+/// </summary>
 public static class MapBuilder {
+	private static Random rand = new Random();
+
+	public static int ZEBRA_COUNT = 16;
+	public static int GIRAFFE_COUNT = 8;
+	public static int ELEPHANT_COUNT = 6;
+	public static int LION_COUNT = 8;
+	public static int TIGER_COUNT = 6;
+	public static int TIGER_WHITE_COUNT = 3;
+
 	public static List<Point> LAKE_LOC = new() {
 		new Point(13, 42),
 		new Point(13, 43),
@@ -53,41 +67,12 @@ public static class MapBuilder {
 		new Point(34, 20),
 		new Point(34, 21),
 		new Point(34, 22),
-		new Point(50, 5),
-		new Point(50, 6),
-		new Point(51, 5),
-		new Point(51, 6),
-		new Point(51, 7),
-		new Point(51, 8),
-		new Point(52, 5),
-		new Point(52, 6),
-		new Point(52, 7),
-		new Point(52, 8),
-		new Point(53, 5),
-		new Point(53, 6),
-		new Point(53, 7),
-		new Point(53, 8),
-		new Point(54, 5),
-		new Point(54, 6),
-		new Point(54, 7),
-		new Point(54, 8),
-		new Point(54, 9),
 		new Point(54, 10),
 		new Point(54, 11),
-		new Point(55, 5),
-		new Point(55, 6),
-		new Point(55, 7),
-		new Point(55, 8),
-		new Point(55, 9),
 		new Point(55, 10),
 		new Point(55, 11),
 		new Point(55, 12),
 		new Point(55, 13),
-		new Point(56, 5),
-		new Point(56, 6),
-		new Point(56, 7),
-		new Point(56, 8),
-		new Point(56, 9),
 		new Point(56, 10),
 		new Point(56, 11),
 		new Point(56, 12),
@@ -338,106 +323,157 @@ public static class MapBuilder {
 		new Point(87, 42),
 		new Point(88, 39),
 		new Point(88, 40),
-		new Point(100, 55),
-		new Point(100, 56),
-		new Point(101, 38),
-		new Point(101, 39),
-		new Point(101, 40),
-		new Point(101, 41),
-		new Point(101, 55),
-		new Point(101, 56),
-		new Point(101, 57),
-		new Point(102, 8),
-		new Point(102, 9),
-		new Point(102, 10),
-		new Point(102, 11),
-		new Point(102, 38),
-		new Point(102, 39),
-		new Point(102, 40),
-		new Point(102, 41),
-		new Point(102, 54),
-		new Point(102, 55),
-		new Point(102, 56),
-		new Point(102, 57),
-		new Point(103, 8),
-		new Point(103, 9),
-		new Point(103, 10),
-		new Point(103, 11),
-		new Point(103, 12),
-		new Point(103, 38),
-		new Point(103, 39),
-		new Point(103, 40),
-		new Point(103, 41),
-		new Point(103, 54),
-		new Point(103, 55),
-		new Point(103, 56),
-		new Point(103, 57),
-		new Point(104, 8),
-		new Point(104, 9),
-		new Point(104, 10),
-		new Point(104, 11),
-		new Point(104, 12),
-		new Point(104, 38),
-		new Point(104, 39),
-		new Point(104, 40),
-		new Point(104, 41),
-		new Point(104, 55),
-		new Point(104, 56),
 	};
 	public static List<Point> BUSH_LOC = new() {
+		new Point(24, 25),
+		new Point(35, 38),
 	};
 	public static List<Point> WBUSH_LOC = new() {
+		new Point(54, 23),
+		new Point(89, 14),
+		new Point(90, 14),
 	};
-	public static List<Point> TREE_LOC = new() {
-		new Point(6, 19),
-		new Point(8, 20),
-		new Point(11, 18),
-		new Point(19, 33),
-		new Point(28, 26),
-		new Point(37, 42),
-		new Point(41, 25),
-		new Point(56, 37),
-		new Point(85, 53),
+	public static List<(Point, TreeType)> TREE_LOC = new() {
+		(new Point(10, 15), TreeType.Za),
+		(new Point(18, 30), TreeType.Grandideri),
+		(new Point(55, 34), TreeType.Gregorii),
+		(new Point(84, 50), TreeType.Grandideri),
 	};
 
+	/// <summary>
+	/// Dumps the current map tiles into a text file (formated for copy pasting it here)
+	/// </summary>
 	public static void DumpMap(Level level) {
 		List<Tile> tiles = level.GetTilesInArea(new Rectangle(0, 0, level.MapWidth, level.MapHeight));
 		using (StreamWriter sw = new StreamWriter("map_dump.txt")) {
-			sw.WriteLine("public const List<Point> LAKE_LOC = new() {");
+			sw.WriteLine("public static List<Point> LAKE_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Water) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public const List<Point> GRASS_LOC = new() {");
+			sw.WriteLine("public static List<Point> GRASS_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Grass) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public const List<Point> BUSH_LOC = new() {");
+			sw.WriteLine("public static List<Point> BUSH_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Bush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public const List<Point> WBUSH_LOC = new() {");
+			sw.WriteLine("public static List<Point> WBUSH_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is WideBush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public const List<Point> TREE_LOC = new() {");
+			sw.WriteLine("public static List<(Point, TreeType)> TREE_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Tree) {
-					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
+					sw.WriteLine($"\t(new Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}), TreeType.Digitata),");
 				}
 			}
 			sw.WriteLine("};");
 		}
+	}
+
+	/// <summary>
+	/// Builds the starting map (based on the const lists)
+	/// </summary>
+	public static void BuildStartingMap(Level level) {
+		// fence placement (before road placement)
+		int x = Level.PLAY_AREA_CUTOFF_X - 1;
+		int y = Level.PLAY_AREA_CUTOFF_Y - 1;
+		while (x < level.MapWidth - Level.PLAY_AREA_CUTOFF_X) {
+			level.SetTile(x, y, new Fence());
+			x++;
+		}
+		while (y < level.MapHeight - Level.PLAY_AREA_CUTOFF_Y) {
+			level.SetTile(x, y, new Fence());
+			y++;
+		}
+		while (x > Level.PLAY_AREA_CUTOFF_X - 1) {
+			level.SetTile(x, y, new Fence());
+			x--;
+		}
+		while (y > Level.PLAY_AREA_CUTOFF_Y - 1) {
+			level.SetTile(x, y, new Fence());
+			y--;
+		}
+
+		// road placement after everything else
+		level.SetTile(level.Network.Start, new Road());
+		level.SetTile(level.Network.End, new Road());
+		Point current = new Point(-1, level.Network.Start.Y);
+		while (current.X < level.Network.End.X) {
+			current.X++;
+			level.SetTile(current, new Road());
+		}
+		while (current.Y > 0) {
+			current.Y--;
+			level.SetTile(current, new Road());
+		}
+
+		foreach (Point p in LAKE_LOC) {
+			level.SetTile(p, new Water());
+		}
+
+		foreach (Point p in GRASS_LOC) {
+			level.SetTile(p, new Grass());
+		}
+
+		foreach (Point p in BUSH_LOC) {
+			level.SetTile(p, new Bush());
+		}
+
+		foreach (Point p in WBUSH_LOC) {
+			level.SetTile(p, new WideBush());
+		}
+
+		foreach ((Point p, TreeType type) in TREE_LOC) {
+			level.SetTile(p, new Tree(type));
+		}
+
+		for (int i = 0; i < ZEBRA_COUNT; i++) {
+			Game.AddObject(new Zebra(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+		for (int i = 0; i < GIRAFFE_COUNT; i++) {
+			Game.AddObject(new Giraffe(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+		for (int i = 0; i < ELEPHANT_COUNT; i++) {
+			Game.AddObject(new Elephant(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+		for (int i = 0; i < LION_COUNT; i++) {
+			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+		for (int i = 0; i < TIGER_COUNT; i++) {
+			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
+			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+	}
+
+	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;
+
+	private static Vector2 GetRandomSpawn(Level level) {
+		int minTX = Level.PLAY_AREA_CUTOFF_X + 3;
+		int maxTX = level.MapWidth - Level.PLAY_AREA_CUTOFF_X - 3;
+		int minTY = Level.PLAY_AREA_CUTOFF_Y + 3;
+		int maxTY = level.MapHeight - Level.PLAY_AREA_CUTOFF_Y - 3;
+
+		Point p = new Point();
+		do {
+			p = new Point(rand.Next(minTX, maxTX), rand.Next(minTY, maxTY));
+		} while (level.GetTile(p) != null);
+
+		return new Vector2(p.X * level.TileSize + rand.Next(32), p.Y * level.TileSize + rand.Next(32));
 	}
 }
