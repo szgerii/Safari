@@ -1,0 +1,52 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == 'develop'
+
+stages:
+  - build
+  - test
+
+default:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+
+build:debug:
+  stage: build
+  script:
+    - 'dotnet build -p:Configuration=Debug -p:StrippedBuild=true "Safari\Safari.sln"'
+  artifacts:
+    paths:
+      - Safari/Safari/bin/Debug/
+      - Safari/SafariTest/bin/Debug/
+    when: on_success
+    access: none
+    expire_in: 1 hour
+
+build:release:
+  stage: build
+  script:
+    - 'dotnet build -p:Configuration=Release -p:StrippedBuild=true "Safari\Safari.sln"'
+  artifacts:
+    paths:
+      - Safari/Safari/bin/Release/
+      - Safari/SafariTest/bin/Release/
+    when: on_success
+    access: none
+    expire_in: 1 hour
+
+test:debug:
+  stage: test
+  needs:
+    - job: build:debug
+      artifacts: true
+  script:
+    - 'dotnet test --no-build -c Debug "Safari\Safari.sln"'
+
+test:release:
+  stage: test
+  needs:
+    - job: build:release
+      artifacts: true
+  script:
+    - 'dotnet test --no-build -c Release "Safari\Safari.sln"'
+

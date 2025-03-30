@@ -15,12 +15,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\Collider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)source\components\LimitCmpOwnerTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Components\LimitCmpOwnerTypeAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IPostProcessPass.cs" />
-    <Compile Include="..\Engine\source\debug\PerformanceCalculator.cs" />
+    <Compile Include="..\Engine\Source\Debug\PerformanceCalculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\DisplayManager.cs" />
-    <Compile Include="..\Engine\source\debug\DebugMode.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)source\debug\DebugFeature.cs" />
+    <Compile Include="..\Engine\Source\Debug\DebugMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Debug\DebugFeature.cs" />
     <Compile Include="..\Engine\Source\Collision\CollisionTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\ComponentHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Component.cs" />
