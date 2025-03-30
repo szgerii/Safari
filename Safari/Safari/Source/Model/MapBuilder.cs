@@ -388,27 +388,7 @@ public static class MapBuilder {
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
 	public static void BuildStartingMap(Level level) {
-		// fence placement (before road placement)
-		int x = Level.PLAY_AREA_CUTOFF_X - 1;
-		int y = Level.PLAY_AREA_CUTOFF_Y - 1;
-		while (x < level.MapWidth - Level.PLAY_AREA_CUTOFF_X) {
-			level.SetTile(x, y, new Fence());
-			x++;
-		}
-		while (y < level.MapHeight - Level.PLAY_AREA_CUTOFF_Y) {
-			level.SetTile(x, y, new Fence());
-			y++;
-		}
-		while (x > Level.PLAY_AREA_CUTOFF_X - 1) {
-			level.SetTile(x, y, new Fence());
-			x--;
-		}
-		while (y > Level.PLAY_AREA_CUTOFF_Y - 1) {
-			level.SetTile(x, y, new Fence());
-			y--;
-		}
-
-		// road placement after everything else
+		// road placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
 		Point current = new Point(-1, level.Network.Start.Y);
@@ -421,6 +401,35 @@ public static class MapBuilder {
 			level.SetTile(current, new Road());
 		}
 
+		// fence placement
+		int x = Level.PLAY_AREA_CUTOFF_X - 1;
+		int y = Level.PLAY_AREA_CUTOFF_Y - 1;
+		while (x < level.MapWidth - Level.PLAY_AREA_CUTOFF_X) {
+			if (level.GetTile(x, y) == null) {
+				level.SetTile(x, y, new Fence());
+			}
+			x++;
+		}
+		while (y < level.MapHeight - Level.PLAY_AREA_CUTOFF_Y) {
+			if (level.GetTile(x, y) == null) {
+				level.SetTile(x, y, new Fence());
+			}
+			y++;
+		}
+		while (x > Level.PLAY_AREA_CUTOFF_X - 1) {
+			if (level.GetTile(x, y) == null) {
+				level.SetTile(x, y, new Fence());
+			}
+			x--;
+		}
+		while (y > Level.PLAY_AREA_CUTOFF_Y - 1) {
+			if (level.GetTile(x, y) == null) {
+				level.SetTile(x, y, new Fence());
+			}
+			y--;
+		}
+
+		// food / water sources
 		foreach (Point p in LAKE_LOC) {
 			level.SetTile(p, new Water());
 		}
@@ -441,6 +450,7 @@ public static class MapBuilder {
 			level.SetTile(p, new Tree(type));
 		}
 
+		// animals (at random positions)
 		for (int i = 0; i < ZEBRA_COUNT; i++) {
 			Game.AddObject(new Zebra(GetRandomSpawn(level), IntegerToGender(i)));
 		}
