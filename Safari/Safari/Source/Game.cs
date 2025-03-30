@@ -27,11 +27,11 @@ public class Game : Engine.Game {
 
 		InputSetup();
 
-		SceneManager.LoadedScene += (object sender, Scene s) => {
-			if (s is GameScene gs) {
-				gs.Model.GenerateTestLevel();
-			}
-		};
+		//SceneManager.LoadedScene += (object sender, Scene s) => {
+		//	if (s is GameScene gs) {
+		//		gs.Model.GenerateTestLevel();
+		//	}
+		//};
 
 		//SceneManager.Load(new GameScene());
 
@@ -71,6 +71,12 @@ public class Game : Engine.Game {
 				DebugInfoManager.ShowInfos();
 			} else {
 				DebugInfoManager.HideInfos();
+			}
+		}));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("dump-map", () => {
+			if (SceneManager.Active is GameScene) {
+				MapBuilder.DumpMap(GameScene.Active.Model.Level);
 			}
 		}));
 
