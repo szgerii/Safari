@@ -27,14 +27,6 @@ public class Game : Engine.Game {
 
 		InputSetup();
 
-		SceneManager.LoadedScene += (object sender, Scene s) => {
-			if (s is GameScene gs) {
-				MapBuilder.BuildStartingMap(gs.Model.Level);
-			}
-		};
-
-		//SceneManager.Load(new GameScene());
-
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
 		}));

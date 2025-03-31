@@ -97,7 +97,7 @@ public class GameModel {
 	/// Indicates whether it is currently day time in-game
 	/// (TimeOfDay < 0.54) ~ .5 plus extra time for sunset
 	/// </summary>
-	public bool IsDaytime => TimeOfDay < 0.54f;
+	public bool IsDaytime => TimeOfDay < 0.54f || TimeOfDay > .96;
 
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
