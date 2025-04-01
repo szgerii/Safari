@@ -64,6 +64,8 @@ public class GameScene : Scene {
 		UserInterface.Active.MouseInputProvider.DoClick();
 
         base.Load();
+
+		MapBuilder.BuildStartingMap(model.Level);
 	}
 
 	public override void Update(GameTime gameTime) {

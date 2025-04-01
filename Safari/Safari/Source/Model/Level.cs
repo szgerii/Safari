@@ -14,6 +14,9 @@ namespace Safari.Model;
 /// Stores the static parts of the game world
 /// </summary>
 public class Level : GameObject {
+	public const int PLAY_AREA_CUTOFF_X = 8;
+	public const int PLAY_AREA_CUTOFF_Y = 8;
+
 	/// <summary>
 	/// The image to draw as a background to the tiles
 	/// </summary>
@@ -62,24 +65,12 @@ public class Level : GameObject {
 		Texture2D outline = Utils.GenerateTexture(TileSize, TileSize, new Color(0f, 0f, 1f, 1f), true);
 		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
 		selectedTileTex = Utils.MergeTextures(fill, outline);
-
+		// lightmanager setup (before any tiles are placed)
 		LightManager = new LightManager(width, height, tileSize);
-
-		// start and end locations are not final
-		Point start = new Point(0, height / 2);
-		Point end = new Point(width / 2, 0);
+		// Roadmanger setup
+		Point start = new Point(PLAY_AREA_CUTOFF_X, height - PLAY_AREA_CUTOFF_Y - 8);
+		Point end = new Point(width - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
 		Network = new RoadNetwork(width, height, start, end);
-		SetTile(start, new Road());
-		SetTile(end, new Road());
-		Point current = new Point(start.X, start.Y);
-		while (current.X < end.X) {
-			current.X++;
-			SetTile(current, new Road());
-		}
-		while (current.Y > end.Y) {
-			current.Y--;
-			SetTile(current, new Road());
-		}
 	}
 
 	/// <summary>
@@ -115,7 +106,7 @@ public class Level : GameObject {
 
 		for (int x = tilemapArea.X; x < tilemapArea.Right; x++) {
 			for (int y = tilemapArea.Y; y < tilemapArea.Bottom; y++) {
-				if (IsOutOfBounds(x, y)) continue;
+				if (IsOutOfPlayArea(x, y)) continue;
 
 				Tile tile = GetTile(x, y);
 
@@ -156,7 +147,7 @@ public class Level : GameObject {
 		}
 
 		tile.Position = new Vector2(x * TileSize, y * TileSize) - tile.AnchorTile.ToVector2() * TileSize;
-		if (tile is Road) {
+		if (tile is Road && !IsOutOfPlayArea(x, y)) {
 			Network.AddRoad(x, y);
 		}
 		tiles[x, y] = tile;
@@ -222,6 +213,16 @@ public class Level : GameObject {
 		return x < 0 || y < 0 || x >= MapWidth || y >= MapHeight;
 	}
 
+	/// <summary>
+	/// Checks if a given tilemap position falls outside of the playable area
+	/// </summary>
+	/// <param name="x">The x coordinate of the position</param>
+	/// <param name="y">The y coordinate of the position</param>
+	/// <returns>Whether the position is considered not playable</returns>
+	public bool IsOutOfPlayArea(int x, int y) {
+		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
+	}
+
 	public override void Load() {
 		foreach (Tile tile in tiles) {
 			if (tile == null) continue;
@@ -244,7 +245,7 @@ public class Level : GameObject {
 	}
 
 	// TODO: remove this whole tile placement part once not needed
-	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree)];
+	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree), typeof(Fence), typeof(Bush), typeof(WideBush)];
 	private int brushIndex = 0;
 	public override void Update(GameTime gameTime) {
 		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
@@ -257,7 +258,7 @@ public class Level : GameObject {
 
 		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
 
-		if (!IsOutOfBounds((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize)) {
+		if (!IsOutOfPlayArea((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize)) {
 			Tile targetTile = GetTile((mousePosWorld / TileSize).ToPoint());
 
 			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];

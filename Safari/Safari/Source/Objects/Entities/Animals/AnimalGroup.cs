@@ -405,7 +405,10 @@ public class AnimalGroup : GameObject {
 
 	private void SetNewWanderingPos() {
 		Level currLevel = GameScene.Active.Model.Level;
-		NavCmp.TargetPosition = new Vector2(rand.Next(currLevel.MapWidth * currLevel.TileSize), rand.Next(currLevel.MapHeight * currLevel.TileSize));
+		NavCmp.TargetPosition = new Vector2(
+			rand.Next(Level.PLAY_AREA_CUTOFF_X * currLevel.TileSize, (currLevel.MapWidth - Level.PLAY_AREA_CUTOFF_X - 1) * currLevel.TileSize),
+			rand.Next(Level.PLAY_AREA_CUTOFF_Y * currLevel.TileSize, (currLevel.MapHeight - Level.PLAY_AREA_CUTOFF_Y - 1) * currLevel.TileSize)
+		);
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = false;
 	}
