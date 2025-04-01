@@ -11,6 +11,7 @@ using GeonBit.UI;
 using Engine.Debug;
 using Safari.Objects.Entities;
 using Safari.Popups;
+using Safari.Scenes.Menus;
 
 namespace Safari.Scenes;
 
@@ -46,11 +47,39 @@ public class GameScene : Scene {
 		// The start of the game is always <date of creation> 6 am
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
-		model = new GameModel("test park", 6000, GameDifficulty.Normal, startDate);
+		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate);
 		PostProcessPasses.Add(model.Level.LightManager);
 
 		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
 		PostUpdate += CollisionManager.PostUpdate;
+
+		model.GameLost += (object sender, LoseReason reason) => {
+			string message = reason switch {
+				LoseReason.Money => "You ran out of funds.",
+				LoseReason.Animals => "All of your animals have died.",
+				_ => ""
+			};
+			AlertMenu menu = new AlertMenu("You lose.", message, "Return to main menu.");
+			menu.Chosen += (object sender, bool e) => {
+				SceneManager.Load(MainMenu.Instance);
+			};
+			model.Pause();
+			menu.Show();
+		};
+
+		model.GameWon += (object sender, EventArgs e) => {
+			AlertMenu menu = new AlertMenu("You win!", "You are very win, cool", "Return to main menu.", "Keep playing...");
+			menu.Chosen += (object sender, bool e) => {
+				if (e) {
+					SceneManager.Load(MainMenu.Instance);
+				} else {
+					model.PostWin = true;
+					model.CheckWinLose = false;
+				}
+			};
+			model.Pause();
+			menu.Show();
+		};
 
 		// init camera
 		CreateCamera(

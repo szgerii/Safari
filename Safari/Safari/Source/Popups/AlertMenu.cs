@@ -71,6 +71,7 @@ class AlertMenu : PopupMenu {
         this.header = new Header(header, Anchor.TopCenter);
         this.header.Size = new Vector2(0f, 0.2f);
         this.header.Padding = new Vector2(0);
+        this.header.AlignToCenter = true;
 
         this.paragraph = new Paragraph(text, Anchor.Center);
         this.paragraph.Size = new Vector2(0f, 0.6f);

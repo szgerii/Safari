@@ -163,13 +163,13 @@ public class Game : Engine.Game {
 			case GameSpeed.Paused: speedName = "Paused"; break;
 		}
 		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Day/Night cycle", model.IsDaytime ? "Day" : "Night", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Irl time passed ", TimeSpan.FromSeconds(model.CurrentTime).ToString(@"hh\:mm\:ss"), DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("In-game days passed", $"{model.IngameDays:0.00}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Time float", $"{(float)model.TimeOfDay}", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Win timer", $"{model.WinTimerTime}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Funds", $"{model.Funds}$ / {model.WinCriteriaFunds}$", DebugInfoPosition.BottomLeft);
 		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Herbivores", $"{model.HerbivoreCount} / ${model.WinCriteriaHerb}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Carnivores", $"{model.CarnivoreCount} / ${model.WinCriteriaCarn}", DebugInfoPosition.BottomLeft);
 
 		// network debug stuff
 		Level level = model.Level;
