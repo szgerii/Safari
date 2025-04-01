@@ -59,7 +59,7 @@ public class GameScene : Scene {
 				LoseReason.Animals => "All of your animals have died.",
 				_ => ""
 			};
-			AlertMenu menu = new AlertMenu("You lose.", message, "Return to main menu.");
+			AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
 			menu.Chosen += (object sender, bool e) => {
 				SceneManager.Load(MainMenu.Instance);
 			};
@@ -68,7 +68,12 @@ public class GameScene : Scene {
 		};
 
 		model.GameWon += (object sender, EventArgs e) => {
-			AlertMenu menu = new AlertMenu("You win!", "You are very win, cool", "Return to main menu.", "Keep playing...");
+			string difficulty = model.Difficulty switch {
+				GameDifficulty.Easy => "easy",
+				GameDifficulty.Normal => "normal",
+				_ => "hard"
+			};
+			AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
 			menu.Chosen += (object sender, bool e) => {
 				if (e) {
 					SceneManager.Load(MainMenu.Instance);
