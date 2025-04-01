@@ -331,7 +331,7 @@ public static class MapBuilder {
 	public static List<Point> WBUSH_LOC = new() {
 		new Point(54, 23),
 		new Point(89, 14),
-		new Point(90, 14),
+		new Point(91, 14),
 	};
 	public static List<(Point, TreeType)> TREE_LOC = new() {
 		(new Point(10, 15), TreeType.Za),
@@ -464,10 +464,10 @@ public static class MapBuilder {
 			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_COUNT; i++) {
-			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Tiger(GetRandomSpawn(level), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
-			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
 		}
 	}
 
