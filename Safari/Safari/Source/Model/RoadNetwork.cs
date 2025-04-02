@@ -27,11 +27,13 @@ public class RoadNetwork {
 	private int width;
 	private int height;
 	private RoadState[,] network;
-	private Point start;
-	private Point end;
+
 	private List<List<Point>> cachedRoutes = new();
 	private bool upToDate = false;
 	private Random rand = new Random();
+
+	public Point Start { get; init; }
+	public Point End { get; init; }
 
 	/// <summary>
 	/// Retrieve all routes in the network <br />
@@ -140,8 +142,8 @@ public class RoadNetwork {
 		network = new RoadState[width, height];
 		SetAt(start, RoadState.Road);
 		SetAt(end, RoadState.Road);
-		this.start = start;
-		this.end = end;
+		this.Start = start;
+		this.End = end;
 		RoadChanged += (object sender, EventArgs e) => DebugRoute = new List<Point>();
 	}
 
@@ -250,20 +252,20 @@ public class RoadNetwork {
 
 	// Calculates a number of different, relatively interesting routes using the middle point method
 	private void CalculateAllRoutes() {
-		if (!FreeAt(start) || !FreeAt(end)) {
+		if (!FreeAt(Start) || !FreeAt(End)) {
 			return;
 		}
 		HashSet<Point> set = GatherPoints();
-		if (!set.Contains(end)) {
+		if (!set.Contains(End)) {
 			return;
 		}
-		set.Remove(start);
-		set.Remove(end);
+		set.Remove(Start);
+		set.Remove(End);
 		while (set.Count > 0) {
 			Point p = PickRandom(set);
 			RemoveRange(set, p, 2);
-			List<Point> route1 = GetPath(start, p);
-			List<Point> route2 = GetPath(p, end);
+			List<Point> route1 = GetPath(Start, p);
+			List<Point> route2 = GetPath(p, End);
 			List<Point> route = new List<Point>(route1.Count + route2.Count - 1);
 			for (int i = 0; i < route1.Count; i++) {
 				route.Add(route1[i]);
@@ -400,8 +402,8 @@ public class RoadNetwork {
 	private HashSet<Point> GatherPoints() {
 		HashSet<Point> result = new();
 		Queue<Point> points = new();
-		points.Enqueue(start);
-		SetAt(start, RoadState.FromNone);
+		points.Enqueue(Start);
+		SetAt(Start, RoadState.FromNone);
 		while (points.Count > 0) {
 			Point current = points.Dequeue();
 			if (!result.Contains(current)) {

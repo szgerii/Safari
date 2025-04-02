@@ -121,7 +121,7 @@ public class GameModel {
 	/// Indicates whether it is currently day time in-game
 	/// (TimeOfDay < 0.54) ~ .5 plus extra time for sunset
 	/// </summary>
-	public bool IsDaytime => TimeOfDay < 0.54f;
+	public bool IsDaytime => TimeOfDay < 0.54f || TimeOfDay > .96;
 
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
@@ -416,59 +416,6 @@ public class GameModel {
 			return funds >= WIN_FUNDS_NORMAL && HerbivoreCount >= WIN_HERB_NORMAL && CarnivoreCount >= WIN_CARN_NORMAL;
 		} else {
 			return funds >= WIN_FUNDS_HARD && HerbivoreCount >= WIN_HERB_HARD && CarnivoreCount >= WIN_CARN_HARD;
-		}
-	}
-
-	// TODO: remove once not needed
-	public void GenerateTestLevel() {
-		// tiles
-
-		List<List<Tile>> tiles = new();
-		tiles.Add([
-			new Bush(),
-			new WideBush()
-		]);
-		tiles.Add([
-			new Tree(TreeType.Digitata),
-			new Tree(TreeType.Grandideri),
-			new Tree(TreeType.ShortGrandideri),
-			new Tree(TreeType.Gregorii),
-		]);
-		tiles.Add([
-			new Tree(TreeType.Rubrostipa),
-			new Tree(TreeType.Suarazensis),
-			new Tree(TreeType.Za)
-		]);
-
-		int x = 0, y = 0;
-		foreach (List<Tile> row in tiles) {
-			x = 0;
-
-			int maxY = -1;
-			foreach (Tile tile in row) {
-				Level.SetTile(x + tile.AnchorTile.X, y + tile.AnchorTile.Y, tile);
-
-				x += tile.Size.X;
-				if (tile.Size.Y > maxY) maxY = tile.Size.Y;
-			}
-
-			y += maxY;
-		}
-
-		// animals
-
-		y *= Level.TileSize;
-		Random rand = new Random();
-		Type[] animalTypes = [typeof(Zebra), typeof(Giraffe), typeof(Elephant), typeof(Lion), typeof(Tiger), typeof(TigerWhite)];
-		//Type[] animalTypes = [ typeof(Zebra), typeof(Giraffe), typeof(Elephant) ];
-		for (int i = 0; i < 20; i++) {
-			//int randX = rand.Next(100, Level.MapWidth * Level.TileSize - 100);
-			//int randY = rand.Next(100, Level.MapHeight * Level.TileSize - 100);
-			Vector2 pos = new Vector2((i % 5) * 96, y + (i / 5 * 96));
-			int randType = rand.Next(0, animalTypes.Length);
-
-			Animal anim = (Animal)Activator.CreateInstance(animalTypes[randType], [pos, (rand.Next(2) == 0 ? Gender.Male : Gender.Female)]);
-			Game.AddObject(anim);
 		}
 	}
 }
