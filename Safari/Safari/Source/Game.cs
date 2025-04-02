@@ -102,7 +102,7 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("FPS (Update)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
 		
 			if (SceneManager.Active is GameScene) {
-				PrintModelDebugInfos();
+				GameScene.Active.Model.PrintModelDebugInfos();
 			}
 		}
     }
@@ -150,30 +150,5 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.X, () => DebugMode.ToggleFeature("entity-interact-bounds"));
 		InputManager.Keyboard.OnPressed(Keys.Z, () => DebugMode.Execute("request-route"));
 		InputManager.Keyboard.OnPressed(Keys.U, () => DebugMode.ToggleFeature("draw-route"));
-	}
-
-	private void PrintModelDebugInfos() {
-		GameModel model = GameScene.Active.Model;
-
-		string speedName = "";
-		switch (model.GameSpeed) {
-			case GameSpeed.Slow: speedName = "Slow"; break;
-			case GameSpeed.Medium: speedName = "Medium"; break;
-			case GameSpeed.Fast: speedName = "Fast"; break;
-			case GameSpeed.Paused: speedName = "Paused"; break;
-		}
-		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Win timer", $"{model.WinTimerTime}", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Funds", $"{model.Funds}$ / {model.WinCriteriaFunds}$", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Animal count (total/herb/carn)", $"{model.AnimalCount}/{model.HerbivoreCount}/{model.CarnivoreCount}", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Herbivores", $"{model.HerbivoreCount} / ${model.WinCriteriaHerb}", DebugInfoPosition.BottomLeft);
-		DebugInfoManager.AddInfo("Carnivores", $"{model.CarnivoreCount} / ${model.WinCriteriaCarn}", DebugInfoPosition.BottomLeft);
-
-		// network debug stuff
-		Level level = model.Level;
-		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 	}
 }

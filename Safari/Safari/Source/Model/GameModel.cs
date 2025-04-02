@@ -2,6 +2,7 @@ using Engine.Debug;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Safari.Debug;
 using Safari.Model.Tiles;
 using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
@@ -29,39 +30,39 @@ public enum LoseReason {
 }
 
 public class GameModel {
+	// constants for money requirements for winning
+	public const int WIN_FUNDS_EASY = 30000;
+	public const int WIN_FUNDS_NORMAL = 50000;
+	public const int WIN_FUNDS_HARD = 80000;
+
+	// constants for herbivore count requirements for winning
+	public const int WIN_HERB_EASY = 5;
+	public const int WIN_HERB_NORMAL = 40;
+	public const int WIN_HERB_HARD = 50;
+
+	// constants for carnivore count requirements for winning
+	public const int WIN_CARN_EASY = 5;
+	public const int WIN_CARN_NORMAL = 40;
+	public const int WIN_CARN_HARD = 50;
+
+	// constants storing how long the player has to keep the winning conditions
+	public const int WIN_DAYS_EASY = 3;
+	public const int WIN_DAYS_NORMAL = 30;
+	public const int WIN_DAYS_HARD = 60;
+
 	/// <summary>
 	/// How much faster 'medium' speed is compared to 'slow'
 	/// </summary>
-	private const int mediumMultiplier = 4;
+	private const int MEDIUM_MULTIPLIER = 4;
 	/// <summary>
 	/// How much faster 'fast' speed is compared to 'medium'
 	/// </summary>
-	private const int fastMultiplier = 7;
+	private const int FAST_MULTIPLIER = 7;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double dayLength = 60.0;
-	
-	// constants for money requirements for winning
-	private const int WIN_FUNDS_EASY = 30000;
-	private const int WIN_FUNDS_NORMAL = 50000;
-	private const int WIN_FUNDS_HARD = 80000;
-
-	// constants for herbivore count requirements for winning
-	private const int WIN_HERB_EASY = 5;
-	private const int WIN_HERB_NORMAL = 40;
-	private const int WIN_HERB_HARD = 50;
-
-	// constants for carnivore count requirements for winning
-	private const int WIN_CARN_EASY = 5;
-	private const int WIN_CARN_NORMAL = 40;
-	private const int WIN_CARN_HARD = 50;
-
-	// constants storing how long the player has to keep the winning conditions
-	private const int WIN_DAYS_EASY = 3;
-	private const int WIN_DAYS_NORMAL = 30;
-	private const int WIN_DAYS_HARD = 60;
+	private const double DAY_LENGTH = 60.0;
 	
 	private GameSpeed prevSpeed;
 	private DateTime startDate;
@@ -99,9 +100,10 @@ public class GameModel {
 	/// How fast the simulation should be updated at the current speed setting
 	/// </summary>
 	public int SpeedMultiplier => GameSpeed switch {
+		GameSpeed.Paused => 0,
 		GameSpeed.Slow => 1,
-		GameSpeed.Medium => mediumMultiplier,
-		_ => fastMultiplier * mediumMultiplier
+		GameSpeed.Medium => MEDIUM_MULTIPLIER,
+		_ => FAST_MULTIPLIER * MEDIUM_MULTIPLIER
 	};
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
@@ -113,7 +115,7 @@ public class GameModel {
 	/// Values between 0 and .5 mean it's daytime,
 	/// Values between .5 and 1 mean it's nighttime
 	/// </summary>
-	public double TimeOfDay => (CurrentTime / dayLength) % 1.0;
+	public double TimeOfDay => (CurrentTime / DAY_LENGTH) % 1.0;
 
 	/// <summary>
 	/// Indicates whether it is currently day time in-game
@@ -124,11 +126,11 @@ public class GameModel {
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
 	/// </summary>
-	public double IngameDays => CurrentTime / dayLength;
+	public double IngameDays => CurrentTime / DAY_LENGTH;
 	/// <summary>
 	/// The current in-game date
 	/// </summary>
-	public DateTime IngameDate => startDate.AddDays(CurrentTime / dayLength);
+	public DateTime IngameDate => startDate.AddDays(CurrentTime / DAY_LENGTH);
 
 	/// <summary>
 	/// The current game level's tilemap
@@ -240,11 +242,11 @@ public class GameModel {
 	public TimeSpan WinTimerTime => winTimerRunning ? TimeSpan.FromDays(WinTimerDays) : TimeSpan.FromDays(WinCriteriaDays);
 	/// <summary>
 	/// Controls whether the model checks for winning / losing (turn off for testing)
-	/// Automatically turned of once the players wins, meaning in "post-game" the player cant lose
+	/// Automatically turned off once the players wins, meaning in "post-game" the player cant lose
 	/// </summary>
 	public bool CheckWinLose { get; set; } = true;
 	/// <summary>
-	/// Stores whether this save was won
+	/// Stores whether this save has been won
 	/// </summary>
 	public bool PostWin { get; set; } = false;
 
@@ -340,7 +342,7 @@ public class GameModel {
 	public void Advance(GameTime gameTime) {
 		CurrentTime += gameTime.ElapsedGameTime.TotalSeconds;
 		if (CheckWinLose && winTimerRunning) {
-			WinTimerDays -= gameTime.ElapsedGameTime.TotalSeconds / dayLength;
+			WinTimerDays -= gameTime.ElapsedGameTime.TotalSeconds / DAY_LENGTH;
 			if (WinTimerDays <= 0.0) {
 				TriggerWin();
 				CheckWinLose = false;
@@ -360,6 +362,30 @@ public class GameModel {
 		if (GameSpeed == GameSpeed.Paused) {
 			GameSpeed = prevSpeed;
 		}
+	}
+
+	public void PrintModelDebugInfos() {
+		GameModel model = GameScene.Active.Model;
+
+		string speedName = "";
+		switch (model.GameSpeed) {
+			case GameSpeed.Slow: speedName = "Slow"; break;
+			case GameSpeed.Medium: speedName = "Medium"; break;
+			case GameSpeed.Fast: speedName = "Fast"; break;
+			case GameSpeed.Paused: speedName = "Paused"; break;
+		}
+		DebugInfoManager.AddInfo("Current gamespeed", speedName, DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("In-game date", $"{model.IngameDate}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Entity count", model.EntityCount + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Win timer", $"{model.WinTimerTime}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Funds", $"{model.Funds}$ / {model.WinCriteriaFunds}$", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Herbivores", $"{model.HerbivoreCount} / {model.WinCriteriaHerb}", DebugInfoPosition.BottomLeft);
+		DebugInfoManager.AddInfo("Carnivores", $"{model.CarnivoreCount} / {model.WinCriteriaCarn}", DebugInfoPosition.BottomLeft);
+
+		// network debug stuff
+		Level level = model.Level;
+		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {

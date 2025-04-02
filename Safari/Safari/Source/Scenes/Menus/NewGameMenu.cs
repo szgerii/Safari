@@ -63,7 +63,7 @@ class NewGameMenu : MenuScene {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        SceneManager.Load(new GameScene());;
+        SceneManager.Load(new GameScene());
     }
 
     private void MenuButtonClicked(Entity entity) {
