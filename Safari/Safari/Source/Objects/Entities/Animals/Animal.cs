@@ -30,12 +30,12 @@ public abstract class Animal : Entity {
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD = 50;
-	private const float INITIAL_HUNGER_DECAY = 0.4f;
+	private const float INITIAL_HUNGER_DECAY = 0.04f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.8f;
+	private const float INITIAL_THIRST_DECAY = 0.08f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
