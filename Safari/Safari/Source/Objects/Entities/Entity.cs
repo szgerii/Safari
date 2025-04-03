@@ -302,4 +302,8 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <returns>A list of the tiles that the entity can interact with</returns>
 	public List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea(ReachArea);
+
+	public override string ToString() {
+		return DisplayName;
+	}
 }

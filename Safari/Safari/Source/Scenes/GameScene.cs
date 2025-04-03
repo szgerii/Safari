@@ -29,7 +29,7 @@ public class GameScene : Scene {
 			if (Active == null) return;
 
 			foreach (GameObject obj in Active.GameObjects) {
-				DebugConsole.Instance.Write(obj.GetType().Name, false);
+				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
 		}));
 	}

@@ -223,6 +223,32 @@ public class Level : GameObject {
 		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
 	}
 
+	private Random rand = new();
+	/// <summary>
+	/// Returns a random (tile) position from the level
+	/// </summary>
+	/// <param name="playAreaOnly">Exclude values from outside of the playing area</param>
+	/// <returns>The random position</returns>
+	public Vector2 GetRandomPosition(bool playAreaOnly = true) {
+		int minX, maxX, minY, maxY;
+		
+		if (playAreaOnly) {
+			minX = PLAY_AREA_CUTOFF_X * TileSize;
+			maxX = (MapWidth - PLAY_AREA_CUTOFF_X - 1) * TileSize;
+			minY = PLAY_AREA_CUTOFF_Y * TileSize;
+			maxY = (MapHeight - PLAY_AREA_CUTOFF_Y - 1) * TileSize;
+		} else {
+			minX = 0; minY = 0;
+			maxX = (MapWidth - 1) * TileSize;
+			maxY = (MapHeight - 1) * TileSize;
+		}
+
+		return new Vector2(
+			rand.Next(minX, maxX),
+			rand.Next(minY, maxY)
+		);
+	}
+
 	public override void Load() {
 		foreach (Tile tile in tiles) {
 			if (tile == null) continue;
@@ -256,10 +282,13 @@ public class Level : GameObject {
 		}
 		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
 
-		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
+		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
+		DebugInfoManager.AddInfo("mouse pos", Utils.Format(mouseWorldPos, false, false), DebugInfoPosition.BottomRight);
 
-		if (!IsOutOfPlayArea((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize)) {
-			Tile targetTile = GetTile((mousePosWorld / TileSize).ToPoint());
+		Vector2 mouseTilePos = GetMouseTilePos();
+		
+		if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize)) {
+			Tile targetTile = GetTile((mouseTilePos / TileSize).ToPoint());
 
 			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];
 			if (InputManager.Mouse.IsDown(MouseButtons.LeftButton) && !alreadyPainted) {
@@ -271,12 +300,12 @@ public class Level : GameObject {
 					tile = (Tile)Activator.CreateInstance(brushes[brushIndex]);
 				}
 
-				SetTile((mousePosWorld / TileSize).ToPoint(), tile);
+				SetTile((mouseTilePos / TileSize).ToPoint(), tile);
 			}
 
 			bool alreadyEmpty = targetTile == null;
 			if (InputManager.Mouse.IsDown(MouseButtons.RightButton) && !alreadyEmpty) {
-				ClearTile((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize);
+				ClearTile((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize);
 			}
 		}
 
@@ -289,7 +318,7 @@ public class Level : GameObject {
 		}
 
 		// TODO: remove once not needed
-		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
+		Vector2 mousePosWorld = GetMouseTilePos();
 		Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
 		base.Draw(gameTime);
@@ -317,5 +346,13 @@ public class Level : GameObject {
 				}
 			}
 		}
+	}
+
+	private Vector2 GetMouseTilePos() {
+		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
+		mouseTilePos.X -= mouseTilePos.X % TileSize;
+		mouseTilePos.Y -= mouseTilePos.Y % TileSize;
+
+		return mouseTilePos;
 	}
 }

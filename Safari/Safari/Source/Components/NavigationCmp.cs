@@ -120,8 +120,7 @@ public class NavigationCmp : Component, IUpdatable {
 
 			Vector2 delta = Target.Value - Owner.Position;
 
-
-			if (delta.Length() > 0.1f) {
+			if (delta.Length() > 0.01f) {
 				delta.Normalize();
 				LastIntendedDelta = delta;
 				delta *= Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -147,7 +146,6 @@ public class NavigationCmp : Component, IUpdatable {
 						CollisionManager.Insert(collCmp);
 					}
 				}
-
 			}
 
 			if (CanReach(Target.Value)) {

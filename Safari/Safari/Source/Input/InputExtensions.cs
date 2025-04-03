@@ -38,8 +38,6 @@ public static class InputExtensions {
         result -= rtOffset;
         result /= rtScale * Camera.Active.Zoom;
         result += Camera.Active.Position;
-        result.X -= result.X % currLevel.TileSize;
-        result.Y -= result.Y % currLevel.TileSize;
 
         return result;
     }
