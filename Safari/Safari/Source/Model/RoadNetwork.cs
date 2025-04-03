@@ -29,6 +29,7 @@ public class RoadNetwork {
 	private RoadState[,] network;
 
 	private List<List<Point>> cachedRoutes = new();
+	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 	private Random rand = new Random();
 
@@ -64,6 +65,15 @@ public class RoadNetwork {
 				UpdateNetwork();
 			}
 			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : new List<Point>();
+		}
+	}
+
+	public List<Point> ReturnRoute {
+		get {
+			if (!upToDate) {
+				UpdateNetwork();
+			}
+			return cachedReturnRoute;
 		}
 	}
 
@@ -236,6 +246,7 @@ public class RoadNetwork {
 	// Must be called every time a road tile changes
 	private void UpdateNetwork() {
 		cachedRoutes = new();
+		cachedReturnRoute = new();
 		CalculateAllRoutes();
 		upToDate = true;
 	}
@@ -277,6 +288,7 @@ public class RoadNetwork {
 			}
 			SaveRoute(route);
 		}
+		cachedReturnRoute = GetPath(End, Start);
 	}
 
 	// Calculates the shortest path between two points

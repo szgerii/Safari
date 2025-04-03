@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
 using Safari.Objects.Entities.Animals;
+using Safari.Objects.Entities.Tourists;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -392,11 +393,14 @@ public static class MapBuilder {
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
 		Point current = new Point(-1, level.Network.Start.Y);
+		Jeep.GarageSpot = new Point(-2, level.Network.Start.Y);
+		Jeep.PickUpSpot = level.Network.Start - new Point(2, 0);
+		Jeep.DropOffSpot = level.Network.End - new Point(0, 2);
 		while (current.X < level.Network.End.X) {
 			current.X++;
 			level.SetTile(current, new Road());
 		}
-		while (current.Y > 0) {
+		while (current.Y > level.Network.End.Y - 2) {
 			current.Y--;
 			level.SetTile(current, new Road());
 		}
@@ -468,6 +472,10 @@ public static class MapBuilder {
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
 			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+
+		for (int i = 0; i < Jeep.STARTING_JEEPS; i++) {
+			Jeep.SpawnJeep();
 		}
 	}
 

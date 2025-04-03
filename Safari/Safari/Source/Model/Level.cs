@@ -130,6 +130,8 @@ public class Level : GameObject {
 		return GetTilesInArea(tilemapArea);
 	}
 
+	public Vector2 GetTileCenter(Point p) => new Vector2(p.X * TileSize + TileSize / 2.0f, p.Y * TileSize + TileSize / 2.0f);
+
 	/// <summary>
 	/// Places or modifies a tile at a tilemap position
 	/// </summary>

@@ -21,6 +21,10 @@ public class LightEntityCmp : Component, IUpdatable {
 	public LightEntityCmp(Level level, int range) {
 		this.level = level;
 		this.range = range;
+		
+	}
+
+	public override void Load() {
 		sprite = Owner.GetComponent<SpriteCmp>();
 	}
 
