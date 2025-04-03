@@ -7,6 +7,7 @@ using Safari.Model;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Safari.Objects.Entities.Tourists;
 
@@ -16,6 +17,7 @@ public enum JeepState {
 	WaitingForTourists,
 	WaitingForNormalRoute,
 	WaitingForReturnRoute,
+	WaitingForEscapeRoute,
 	FollowingRoute,
 	Emptying
 }
@@ -55,6 +57,14 @@ public class Jeep : Entity {
 	private Point postGoal;
 	private JeepState postState;
 	private JeepDirection dir = JeepDirection.Right;
+	private bool needEscape = false;
+	private Point escapeStart;
+
+	private const int TEXTURE_COUNT = 4;
+	private static string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
+	private static Texture2D[] textures = new Texture2D[4] {null, null, null, null};
+
+	private static Random rand = new Random();
 
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 
@@ -86,7 +96,7 @@ public class Jeep : Entity {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-jeep", () => RequestNextJeep()));
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("fill-jeep", () => {
-			for (int i = 0; i < Jeep.CAPACITY; i++) {
+			for (int i = 0; i < CAPACITY; i++) {
 				if (WaitingJeep != null) {
 					WaitingJeep.AddTourist();
 				}
@@ -98,12 +108,16 @@ public class Jeep : Entity {
 		}));
 	}
 
-	public Jeep(Vector2 pos) : base(pos) {
+	public Jeep(Vector2 pos, int color) : base(pos) {
 		DisplayName = "Jeep";
-		// buggy, because it does not account for sprite origin :(
-		//LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 2);
-		//Attach(lightCmp);
-		Sprite = new SpriteCmp(Game.ContentManager.Load<Texture2D>("Assets/Jeep/JeepBrown"));
+		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 3);
+		Attach(lightCmp);
+		for (int i = 0; i < TEXTURE_COUNT; i++) {
+			if (textures[i] == null) {
+				textures[i] = Game.ContentManager.Load<Texture2D>("Assets/Jeep/Jeep" + textureNames[i]);
+			}
+		}
+		Sprite = new SpriteCmp(textures[color]);
 		Sprite.LayerDepth = 0.4f;
 		Sprite.YSortEnabled = true;
 		UpdateSrcRec();
@@ -117,7 +131,7 @@ public class Jeep : Entity {
 	}
 
 	public static void SpawnJeep() {
-		Game.AddObject(new Jeep(CurrentLevel.GetTileCenter(Jeep.GarageSpot)));
+		Game.AddObject(new Jeep(CurrentLevel.GetTileCenter(Jeep.GarageSpot), rand.Next(TEXTURE_COUNT)));
 	}
 
 	public static void RequestNextJeep() {
@@ -168,6 +182,19 @@ public class Jeep : Entity {
 		}
 	}
 
+	public void Kill() {
+		// TODO obvi rewrite to real tourists
+		for (int i = 0; i < 4; i++) {
+			RemoveTourist();
+		}
+		NavCmp.Moving = false;
+		if (StateMachine.CurrentState == JeepState.FollowingRoute) {
+			NavCmp.ReachedTarget -= CheckPointReached;
+		}
+		Position = CurrentLevel.GetTileCenter(GarageSpot);
+		StateMachine.Transition(JeepState.Parking);
+	}
+
 	[StateBegin(JeepState.Parking)]
 	public void BeginParking() {
 		garage.Enqueue(this);
@@ -180,6 +207,7 @@ public class Jeep : Entity {
 		NavCmp.Moving = true;
 		NavCmp.ReachedTarget += PickUpReached;
 		dir = JeepDirection.Right;
+		UpdateSrcRec();
 	}
 
 	public void PickUpReached(object sender, ReachedTargetEventArgs e) {
@@ -207,11 +235,36 @@ public class Jeep : Entity {
 		RequestReturnRoute();
 	}
 
-	public void OnRoadChanged(object sender, EventArgs e) {
-		if (StateMachine.CurrentState == JeepState.WaitingForNormalRoute) {
+	[StateBegin(JeepState.WaitingForEscapeRoute)]
+	public void BeginWaitingForEscapeRoute() {
+		RequestEscapeRoute();
+	}
+
+	public void OnRoadChanged(object sender, RoadChangedEventArgs e) {
+		if (StateMachine.CurrentState == JeepState.WaitingForNormalRoute && e.ChangeType) {
 			RequestNormalRoute();
-		} else if (StateMachine.CurrentState == JeepState.WaitingForReturnRoute) {
+		} else if (StateMachine.CurrentState == JeepState.WaitingForReturnRoute && e.ChangeType) {
 			RequestReturnRoute();
+		} else if (StateMachine.CurrentState == JeepState.WaitingForEscapeRoute && e.ChangeType) {
+			RequestEscapeRoute();
+		} else if (StateMachine.CurrentState == JeepState.FollowingRoute && !e.ChangeType) {
+			if (routeIndex < route.Count && route[routeIndex] == e.Location) {
+				Kill();
+				return;
+			}
+			bool found = false;
+			for (int i = routeIndex + 1; i < route.Count && !found; i++) {
+				if (route[i] == e.Location) {
+					found = true;
+				}
+			}
+			if (found) {
+				needEscape = true;
+			}
+		} else if (StateMachine.CurrentState == JeepState.WaitingForEscapeRoute && !e.ChangeType) {
+			if (escapeStart == e.Location) {
+				Kill();
+			}
 		}
 	}
 
@@ -230,8 +283,16 @@ public class Jeep : Entity {
 		}
 	}
 
+	public void RequestEscapeRoute() {
+		route = CurrentLevel.Network.GetPath(escapeStart, goal);
+		if (route.Count > 0) {
+			StateMachine.Transition(JeepState.FollowingRoute);
+		}
+	}
+
 	[StateBegin(JeepState.FollowingRoute)]
 	public void BeginFollowingRoute() {
+		needEscape = false;
 		routeIndex = 0;
 		NavCmp.ReachedTarget += CheckPointReached;
 		NavCmp.TargetPosition = CurrentLevel.GetTileCenter(route[0]);
@@ -258,7 +319,16 @@ public class Jeep : Entity {
 	}
 
 	public void CheckPointReached(object sender, ReachedTargetEventArgs e) {
+		if (needEscape) {
+			NavCmp.Moving = false;
+			NavCmp.ReachedTarget -= CheckPointReached;
+			escapeStart = route[routeIndex];
+			StateMachine.Transition(JeepState.WaitingForEscapeRoute);
+			return;
+		}
+
 		routeIndex++;
+		
 		if (routeIndex >= route.Count) {
 			NavCmp.ReachedTarget -= CheckPointReached;
 			NavCmp.TargetPosition = CurrentLevel.GetTileCenter(postGoal);
@@ -280,7 +350,7 @@ public class Jeep : Entity {
 	[StateBegin(JeepState.Emptying)]
 	public void BeginEmptying() {
 		// TODO this is debug lolol
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < occupants; i++) {
 			RemoveTourist();
 		}
 	}
