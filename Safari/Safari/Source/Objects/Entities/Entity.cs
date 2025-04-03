@@ -42,14 +42,19 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	public string DisplayName { get; protected init; }
 
+	private Rectangle? boundsBaseOverride;
 	/// <summary>
-	/// The bounding rectangle of the entity's display content
+	/// The bounding rectangle of the entity's display content <br/>
+	/// The setter can be used to override its BASE rectangle, which is then scaled up by the Sprite scaling.
+	/// To later turn off the override, set this to null.
 	/// </summary>
 	public Rectangle Bounds {
 		get {
 			Rectangle result;
 
-			if (Sprite is AnimatedSpriteCmp animSprite) {
+			if (boundsBaseOverride != null) {
+				result = boundsBaseOverride.Value;
+			} else if (Sprite is AnimatedSpriteCmp animSprite) {
 				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
 			} else {
 				result = new Rectangle(Position.ToPoint(), Sprite.SourceRectangle?.Size ?? Sprite.Texture.Bounds.Size);
@@ -57,6 +62,9 @@ public abstract class Entity : GameObject {
 			result.Size = (result.Size.ToVector2() * Sprite.Scale).ToPoint();
 
 			return result;
+		}
+		set {
+			boundsBaseOverride = value;
 		}
 	}
 
@@ -257,6 +265,7 @@ public abstract class Entity : GameObject {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
 	public bool CanSee(GameObject obj) => CanSee(obj.Position);
+	public bool CanSee(Entity e) => SightArea.Contains(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
 	/// </summary>

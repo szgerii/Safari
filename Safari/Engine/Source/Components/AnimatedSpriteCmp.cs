@@ -81,7 +81,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int ColumnCount {
 		get => columnCount;
 		set {
-			FrameWidth = (Texture?.Width ?? 0) / value;
+			FrameWidth = (currentAnim?.Texture?.Width ?? Texture?.Width ?? 0) / value;
 			columnCount = value;
 		}
 	}
@@ -93,7 +93,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int RowCount {
 		get => rowCount;
 		set {
-			FrameHeight = (Texture?.Height ?? 0) / value;
+			FrameHeight = (currentAnim?.Texture?.Height ?? Texture?.Height ?? 0) / value;
 			rowCount = value;
 		}
 	}
@@ -126,6 +126,8 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 	}
 
+	public bool IsPlaying { get; protected set; }
+
 	protected float frameTime;
 
 	public AnimatedSpriteCmp(Texture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
@@ -138,13 +140,17 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	private Texture2D prevTex;
 	public void Update(GameTime gameTime) {
 		// TODO: handle this more efficiently
-		if (Texture != prevTex) {
+		Texture2D inUseTex = currentAnim?.Texture ?? Texture;
+		
+		if (inUseTex != prevTex) {
 			ColumnCount = ColumnCount;
 			RowCount = RowCount;
 		}
-		prevTex = Texture;
+		prevTex = inUseTex;
 
 		if (currentAnim == null) return;
+
+		IsPlaying = true;
 
 		// if it's time, try to play the next frame
 		frameTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -158,6 +164,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 				} else {
 					CurrentFrame = currentAnim.Length - 1;
 					AnimationFinished?.Invoke(this, CurrentAnimation);
+					IsPlaying = false;
 				}
 			}
 		}

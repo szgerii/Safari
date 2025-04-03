@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
+using Safari.Objects.Entities;
 using Safari.Objects.Entities.Animals;
 using System;
 using System.Collections.Generic;
@@ -468,6 +469,10 @@ public static class MapBuilder {
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
 			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
+		}
+
+		for (int i = 0; i < 1; i++) {
+			Game.AddObject(new Poacher(new Vector2(300, 300)));
 		}
 	}
 
