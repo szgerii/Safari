@@ -10,23 +10,50 @@ using System;
 
 namespace Safari.Objects.Entities;
 
+/// <summary>
+/// Enum for showing which behavior the poacher is currently performing
+/// </summary>
 public enum PoacherState {
 	Wandering,
 	Chasing,
 	Smuggling
 }
 
+/// <summary>
+/// Class for poacher entities
+/// </summary>
 public class Poacher : Entity {
+	/// <summary>
+	/// The chance of shooting the chased animal upon reaching them (versus smuggling them out of the park)
+	/// </summary>
 	private const float SHOOT_CHANCE = 0.3f;
+	/// <summary>
+	/// The speed of the poachers (relative to the default NavCmp speed)
+	/// </summary>
 	private const float SPEED = 0.7f;
 
+	/// <summary>
+	/// The poacher's state machine for handling behavior
+	/// </summary>
 	public StateMachineCmp<PoacherState> StateMachine { get; init; }
+	/// <summary>
+	/// Shorthand for StateMachine.State
+	/// </summary>
 	public PoacherState State => StateMachine.CurrentState;
+	/// <summary>
+	/// The currently chased animal (or null if not chasing any right now)
+	/// </summary>
 	public Animal ChaseTarget { get; private set; } = null;
+	/// <summary>
+	/// The animal that is currently being smuggled out of the park (or null if State != Smuggling)
+	/// </summary>
 	public Animal CaughtAnimal { get; private set; } = null;
 
 	private AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
 
+	/// <summary>
+	/// Whether to force reveal all poacher, regardless of not being seen by any friendly entity
+	/// </summary>
 	private static bool revealAll = false;
 
 	public Poacher(Vector2 pos) : base(pos) {
@@ -113,16 +140,17 @@ public class Poacher : Entity {
 		return $"{DisplayName}, {State}, target: {target}";
 	}
 
+	/// <summary>
+	/// Reveal the poacher (visually) for the current frame <br/>
+	/// Can be called during Update, PostUpdate or PreDraw
+	/// </summary>
 	public void Reveal() {
 		Sprite.Visible = true;
 	}
 
-	private void OnWanderingTargetReached(object sender, ReachedTargetEventArgs e) {
-		if (e.TargetPosition != null) {
-			NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
-		}
-	}
-
+	/// <summary>
+	/// Delegate method for transitioning into Wandering state
+	/// </summary>
 	[StateBegin(PoacherState.Wandering)]
 	public void StartWandering() {
 		NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
@@ -131,12 +159,10 @@ public class Poacher : Entity {
 		NavCmp.Moving = true;
 	}
 
-	[StateEnd(PoacherState.Wandering)]
-	public void EndWandering() {
-		NavCmp.ReachedTarget -= OnWanderingTargetReached;
-		NavCmp.Moving = false;
-	}
-
+	/// <summary>
+	/// Delegate method for performing frame-by-frame Wandering logic
+	/// </summary>
+	/// <param name="gameTime">The current MonoGame game time</param>
 	[StateUpdate(PoacherState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		foreach (Entity entity in GetEntitiesInSight()) {
@@ -149,7 +175,60 @@ public class Poacher : Entity {
 		}
 	}
 
-	private Random rand = new();
+	/// <summary>
+	/// Delegate method for transitioning out of Wandering state
+	/// </summary>
+	[StateEnd(PoacherState.Wandering)]
+	public void EndWandering() {
+		NavCmp.ReachedTarget -= OnWanderingTargetReached;
+		NavCmp.Moving = false;
+	}
+
+	private void OnWanderingTargetReached(object sender, ReachedTargetEventArgs e) {
+		if (e.TargetPosition != null) {
+			NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
+		}
+	}
+
+	/// <summary>
+	/// Delegate method for transitioning into Chasing state
+	/// </summary>
+	[StateBegin(PoacherState.Chasing)]
+	public void StartChasing() {
+		if (ChaseTarget == null) {
+			StateMachine.Transition(PoacherState.Wandering);
+			return;
+		}
+
+		NavCmp.TargetObject = ChaseTarget;
+		NavCmp.Moving = true;
+		NavCmp.StopOnTargetReach = true;
+		NavCmp.ReachedTarget += OnChaseTargetReached;
+	}
+
+	/// <summary>
+	/// Delegate method for handling frame-by-frame Chasing logic
+	/// </summary>
+	/// <param name="gameTime">The current MonoGame game time</param>
+	[StateUpdate(PoacherState.Chasing)]
+	public void ChasingUpdate(GameTime gameTime) {
+		if (!CanSee(ChaseTarget)) {
+			StateMachine.Transition(PoacherState.Wandering);
+		}
+	}
+
+	/// <summary>
+	/// Delegate method for transitioning out of Chasing state
+	/// </summary>
+	[StateEnd(PoacherState.Chasing)]
+	public void EndChasing() {
+		ChaseTarget = null;
+		NavCmp.TargetObject = null;
+		NavCmp.Moving = false;
+		NavCmp.ReachedTarget -= OnChaseTargetReached;
+	}
+
+	private readonly Random rand = new();
 	private void OnChaseTargetReached(object sender, ReachedTargetEventArgs e) {
 		if (ChaseTarget.IsCaught || ChaseTarget.IsDead) {
 			StateMachine.Transition(PoacherState.Wandering);
@@ -168,36 +247,11 @@ public class Poacher : Entity {
 		}
 	}
 
-	[StateBegin(PoacherState.Chasing)]
-	public void OnBeginChasing() {
-		if (ChaseTarget == null) {
-			StateMachine.Transition(PoacherState.Wandering);
-			return;
-		}
-
-		NavCmp.TargetObject = ChaseTarget;
-		NavCmp.Moving = true;
-		NavCmp.StopOnTargetReach = true;
-		NavCmp.ReachedTarget += OnChaseTargetReached;
-	}
-
-	[StateEnd(PoacherState.Chasing)]
-	public void OnEndChasing() {
-		ChaseTarget = null;
-		NavCmp.TargetObject = null;
-		NavCmp.Moving = false;
-		NavCmp.ReachedTarget -= OnChaseTargetReached;
-	}
-
-	[StateUpdate(PoacherState.Chasing)]
-	public void ChasingUpdate(GameTime gameTime) {
-		if (!CanSee(ChaseTarget)) {
-			StateMachine.Transition(PoacherState.Wandering);
-		}
-	}
-
+	/// <summary>
+	/// Delegate method for transitioning into Smuggling state
+	/// </summary>
 	[StateBegin(PoacherState.Smuggling)]
-	public void OnBeginSmuggling() {
+	public void StartSmuggling() {
 		Rectangle lvlBounds = GameScene.Active.Model.Level.PlayAreaBounds;
 
 		Vector2[] potentialEscapes = [
@@ -236,8 +290,11 @@ public class Poacher : Entity {
 		ReachDistance = 4;
 	}
 
+	/// <summary>
+	/// Delegate method for transitioning out of Smuggling state
+	/// </summary>
 	[StateEnd(PoacherState.Smuggling)]
-	public void OnEndSmuggling() {
+	public void EndSmuggling() {
 		CaughtAnimal = null;
 		NavCmp.ReachedTarget -= OnEscapeReached;
 		Died -= OnDiedWhileEscaping;
