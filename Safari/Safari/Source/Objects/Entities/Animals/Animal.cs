@@ -170,7 +170,7 @@ public abstract class Animal : Entity {
 		birthTime = GameScene.Active.Model.IngameDate;
 
 		Died += (object sender, EventArgs e) => {
-			Group.Leave(this);
+			Group?.Leave(this);
 		};
 
 		// animations
@@ -408,7 +408,11 @@ public abstract class Animal : Entity {
 		}
 
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (entity is not Animal anim) {
+			if (entity is Poacher poacher) {
+				poacher.Reveal();
+			}
+
+			if (entity is not Animal anim || anim.Group == null) {
 				continue;
 			}
 

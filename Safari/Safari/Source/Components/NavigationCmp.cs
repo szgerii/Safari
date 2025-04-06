@@ -81,7 +81,15 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// The current position the component is trying to move towards
 	/// </summary>
-	public Vector2? Target => TargetObject?.Position ?? TargetPosition;
+	public Vector2? Target {
+		get {
+			if (TargetObject != null) {
+				return TargetObject is Entity entity ? entity.CenterPosition : TargetObject.Position;
+			} else {
+				return TargetPosition;
+			}
+		}
+	}
 
 	/// <summary>
 	/// The speed at which the component's owner is moving
@@ -149,12 +157,12 @@ public class NavigationCmp : Component, IUpdatable {
 			}
 
 			if (CanReach(Target.Value)) {
-				ReachedTargetEventArgs args = TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
-				ReachedTarget?.Invoke(this, args);
-
 				if (StopOnTargetReach) {
 					Moving = false;
 				}
+
+				ReachedTargetEventArgs args = TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
+				ReachedTarget?.Invoke(this, args);
 			}
 		}
 	}

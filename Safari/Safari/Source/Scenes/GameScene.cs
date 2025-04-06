@@ -29,6 +29,8 @@ public class GameScene : Scene {
 			if (Active == null) return;
 
 			foreach (GameObject obj in Active.GameObjects) {
+				string objStr = obj is Entity e ? e.ToString() : obj.ToString();
+
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
 		}));
