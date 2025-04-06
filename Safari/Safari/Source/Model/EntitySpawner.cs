@@ -114,7 +114,6 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 		}
 
 		Vector2 pos = Utils.GetRandomPosition(SpawnArea ?? GameScene.Active.Model.Level.PlayAreaBounds);
-		pos = new(100, 100);
 		T entity = (T)Activator.CreateInstance(typeof(T), [ pos ]);
 		GameScene.Active.AddObject(entity);
 		LastSuccessfulSpawn = LastSpawnAttempt;

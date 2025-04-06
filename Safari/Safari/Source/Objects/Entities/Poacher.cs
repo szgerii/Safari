@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Collision;
 using Engine.Components;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
@@ -72,6 +73,13 @@ public class Poacher : Entity {
 		Attach(Sprite);
 
 		animSprite.CurrentAnimation = "walk-right";
+
+		/*Collider collider = (new Collider(6, 54, 20, 12)).WithSpriteScale(Sprite.Scale);
+		CollisionCmp collisionCmp = new CollisionCmp(collider) {
+			Tags = CollisionTags.Poacher,
+			Targets = CollisionTags.World
+		};
+		Attach(collisionCmp);*/
 
 		Bounds = new Rectangle(0, 0, 16, 64);
 		SightDistance = 6;
