@@ -364,6 +364,7 @@ public abstract class Animal : Entity {
 
 		Position = releasePosition;
 		IsCaught = false;
+		Group = new AnimalGroup(this);
 	}
 
 	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
@@ -412,20 +413,18 @@ public abstract class Animal : Entity {
 				poacher.Reveal();
 			}
 
-			if (entity is not Animal anim || anim.Group == null) {
-				continue;
-			}
+			if (entity is Animal anim && anim.Group != null) {
+				if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
+					Group.MergeWith(anim.Group);
+				}
 
-			if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
-				Group.MergeWith(anim.Group);
-			}
-
-			if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
-				if (CanReach(anim)) {
-					HungerLevel = 100f;
-					anim.Die();
-				} else {
-					// TODO: set nav target to anim
+				if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
+					if (CanReach(anim)) {
+						HungerLevel = 100f;
+						anim.Die();
+					} else {
+						// TODO: set nav target to anim
+					}
 				}
 			}
 		}

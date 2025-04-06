@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Objects.Entities.Animals;
-using Safari.Popups;
 using Safari.Scenes;
 using System;
 
@@ -19,6 +18,7 @@ public enum PoacherState {
 
 public class Poacher : Entity {
 	private const float SHOOT_CHANCE = 0.3f;
+	private const float SPEED = 0.7f;
 
 	public StateMachineCmp<PoacherState> StateMachine { get; init; }
 	public PoacherState State => StateMachine.CurrentState;
@@ -48,8 +48,8 @@ public class Poacher : Entity {
 
 		Bounds = new Rectangle(0, 0, 16, 64);
 		SightDistance = 6;
-		ReachDistance = 3;
-		NavCmp.Speed *= 0.75f;
+		ReachDistance = 2;
+		NavCmp.Speed *= SPEED;
 
 		StateMachine = new StateMachineCmp<PoacherState>(PoacherState.Wandering);
 		Attach(StateMachine);
@@ -58,6 +58,14 @@ public class Poacher : Entity {
 	static Poacher() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("reveal-poachers", () => revealAll = true));
 		DebugMode.AddFeature(new ExecutedDebugFeature("hide-poachers", () => revealAll = false));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("kill-poachers", () => {
+			foreach (GameObject obj in GameScene.Active.GameObjects) {
+				if (obj is Poacher p) {
+					p.Die();
+				}
+			}
+		}));
 	}
 
 	public override void Load() {
@@ -132,7 +140,7 @@ public class Poacher : Entity {
 	[StateUpdate(PoacherState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (entity is Animal a) {
+			if (entity is Animal a && !a.IsCaught && !a.IsDead) {
 				ChaseTarget = a;
 				StateMachine.Transition(PoacherState.Chasing);
 			}
@@ -143,7 +151,13 @@ public class Poacher : Entity {
 
 	private Random rand = new();
 	private void OnChaseTargetReached(object sender, ReachedTargetEventArgs e) {
+		if (ChaseTarget.IsCaught || ChaseTarget.IsDead) {
+			StateMachine.Transition(PoacherState.Wandering);
+			return;
+		}
+
 		bool shoot = rand.NextSingle() <= SHOOT_CHANCE;
+
 		if (shoot) {
 			ChaseTarget.Die();
 			StateMachine.Transition(PoacherState.Wandering);
@@ -228,7 +242,7 @@ public class Poacher : Entity {
 		NavCmp.ReachedTarget -= OnEscapeReached;
 		Died -= OnDiedWhileEscaping;
 
-		if (!Dead) {
+		if (!IsDead) {
 			Die();
 		}
 	}

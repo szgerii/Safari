@@ -12,16 +12,16 @@ namespace Safari.Model;
 /// Static helper class that can generate the starting map
 /// </summary>
 public static class MapBuilder {
-	private static Random rand = new Random();
+	private readonly static Random rand = new Random();
 
-	public static int ZEBRA_COUNT = 16;
-	public static int GIRAFFE_COUNT = 8;
-	public static int ELEPHANT_COUNT = 6;
-	public static int LION_COUNT = 8;
-	public static int TIGER_COUNT = 6;
-	public static int TIGER_WHITE_COUNT = 3;
+	public readonly static int ZEBRA_COUNT = 16;
+	public readonly static int GIRAFFE_COUNT = 8;
+	public readonly static int ELEPHANT_COUNT = 6;
+	public readonly static int LION_COUNT = 8;
+	public readonly static int TIGER_COUNT = 6;
+	public readonly static int TIGER_WHITE_COUNT = 3;
 
-	public static List<Point> LAKE_LOC = new() {
+	public readonly static List<Point> LAKE_LOC = new() {
 		new Point(13, 42),
 		new Point(13, 43),
 		new Point(13, 44),
@@ -153,7 +153,7 @@ public static class MapBuilder {
 		new Point(90, 32),
 		new Point(90, 33),
 	};
-	public static List<Point> GRASS_LOC = new() {
+	public readonly static List<Point> GRASS_LOC = new() {
 		new Point(12, 10),
 		new Point(12, 11),
 		new Point(12, 12),
@@ -325,16 +325,16 @@ public static class MapBuilder {
 		new Point(88, 39),
 		new Point(88, 40),
 	};
-	public static List<Point> BUSH_LOC = new() {
+	public readonly static List<Point> BUSH_LOC = new() {
 		new Point(24, 25),
 		new Point(35, 38),
 	};
-	public static List<Point> WBUSH_LOC = new() {
+	public readonly static List<Point> WBUSH_LOC = new() {
 		new Point(54, 23),
 		new Point(89, 14),
 		new Point(91, 14),
 	};
-	public static List<(Point, TreeType)> TREE_LOC = new() {
+	public readonly static List<(Point, TreeType)> TREE_LOC = new() {
 		(new Point(10, 15), TreeType.Za),
 		(new Point(18, 30), TreeType.Grandideri),
 		(new Point(55, 34), TreeType.Gregorii),
@@ -347,35 +347,35 @@ public static class MapBuilder {
 	public static void DumpMap(Level level) {
 		List<Tile> tiles = level.GetTilesInArea(new Rectangle(0, 0, level.MapWidth, level.MapHeight));
 		using (StreamWriter sw = new StreamWriter("map_dump.txt")) {
-			sw.WriteLine("public static List<Point> LAKE_LOC = new() {");
+			sw.WriteLine("public readonly static List<Point> LAKE_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Water) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public static List<Point> GRASS_LOC = new() {");
+			sw.WriteLine("public readonly static List<Point> GRASS_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Grass) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public static List<Point> BUSH_LOC = new() {");
+			sw.WriteLine("public readonly static List<Point> BUSH_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Bush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public static List<Point> WBUSH_LOC = new() {");
+			sw.WriteLine("public readonly static List<Point> WBUSH_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is WideBush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public static List<(Point, TreeType)> TREE_LOC = new() {");
+			sw.WriteLine("public readonly static List<(Point, TreeType)> TREE_LOC = new() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Tree) {
 					sw.WriteLine($"\t(new Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}), TreeType.Digitata),");
@@ -469,10 +469,6 @@ public static class MapBuilder {
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
 			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
-		}
-
-		for (int i = 0; i < 1; i++) {
-			Game.AddObject(new Poacher(new Vector2(300, 300)));
 		}
 	}
 

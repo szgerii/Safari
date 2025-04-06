@@ -87,7 +87,7 @@ public class GameScene : Scene {
 
 		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
-				if (obj is Entity e && e.Dead) continue;
+				if (obj is Entity e && e.IsDead) continue;
 
 				obj.Update(gameTime);
 			}
@@ -97,7 +97,7 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 
 			foreach (GameObject actor in simulationActors) {
-				if (actor is Entity e && e.Dead) continue;
+				if (actor is Entity e && e.IsDead) continue;
 
 				actor.Update(gameTime);
 			}

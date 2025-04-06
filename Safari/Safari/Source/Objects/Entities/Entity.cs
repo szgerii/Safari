@@ -76,7 +76,7 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
 	/// </summary>
-	public int SightDistance { get; set; } = 4;
+	public int SightDistance { get; set; } = 5;
 	/// <summary>
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
@@ -133,7 +133,7 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// Indicates if the entity has died
 	/// </summary>
-	public bool Dead { get; private set; } = false;
+	public bool IsDead { get; private set; } = false;
 
 	/// <summary>
 	/// The navigation component controlling the entity's movement
@@ -173,7 +173,7 @@ public abstract class Entity : GameObject {
 		List<Entity> results = [];
 
 		foreach (Entity e in ActiveEntities) {
-			if (!e.Dead && area.Contains(e.Position)) {
+			if (!e.IsDead && area.Contains(e.Position)) {
 				results.Add(e);
 			}
 		}
@@ -245,10 +245,10 @@ public abstract class Entity : GameObject {
 	/// Removes the entity from the game
 	/// </summary>
 	public void Die() {
-		if (Dead) return;
+		if (IsDead) return;
 
 		Died?.Invoke(this, EventArgs.Empty);
-		Dead = true;
+		IsDead = true;
 
 		Game.RemoveObject(this);
 	}
