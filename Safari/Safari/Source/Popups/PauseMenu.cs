@@ -17,11 +17,11 @@ class PauseMenu : PopupMenu {
     private Button SaveButton;
     private Button SaveAndExitButton;
     private Button ExitButton;
-    private bool visible;
+    private bool visible;       
 
     public static PauseMenu Instance => instance;
 
-    public PauseMenu() {
+    private PauseMenu() {
         visible = false;
         panel = new Panel(new Vector2(0.4f, 0.7f), PanelSkin.Default, Anchor.Center);
         panel.MaxSize = new Vector2(400, 600);

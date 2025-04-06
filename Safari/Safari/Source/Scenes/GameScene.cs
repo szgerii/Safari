@@ -37,7 +37,7 @@ public class GameScene : Scene {
 	public override void Unload() {
 		model.GameLost -= OnGameLost;
 		model.GameWon -= OnGameWon;
-
+        Statusbar.Instance.UnLoad();
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
@@ -74,6 +74,8 @@ public class GameScene : Scene {
         base.Load();
 
 		MapBuilder.BuildStartingMap(model.Level);
+
+		Statusbar.Instance.Load();
 	}
 
 	public override void Update(GameTime gameTime) {
