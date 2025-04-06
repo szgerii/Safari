@@ -96,7 +96,7 @@ class PauseMenu : PopupMenu {
         }
     }
 
-    public void Update(GameTime gameTime) {
+    public override void Update(GameTime gameTime) {
         if (InputManager.IsGameFocused) return;
         if (JustPressed(Keys.Escape)) {
             TogglePauseMenu();
