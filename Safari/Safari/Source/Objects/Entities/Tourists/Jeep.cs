@@ -164,9 +164,9 @@ public class Jeep : Entity {
 		Sprite.LayerDepth = 0.4f;
 		Sprite.YSortEnabled = true;
 		UpdateSrcRec();
-		Sprite.Origin = new Vector2(36, 36); // just by the 'vibes'
+		Sprite.Origin = new Vector2(32, 42); // just by the 'vibes'
 		NavCmp.AccountForBounds = false;
-		NavCmp.Speed = 150f;
+		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
 		ReachDistance = 0;
 		Attach(Sprite);
@@ -216,10 +216,14 @@ public class Jeep : Entity {
 		if (StateMachine.CurrentState == JeepState.WaitingForTourists) {
 			occupants++;
 			if (occupants >= CAPACITY) {
+				// jeep is full here
 				StateMachine.Transition(JeepState.WaitingForNormalRoute);
 				goal = CurrentLevel.Network.End;
 				postGoal = DropOffSpot;
 				postState = JeepState.Emptying;
+				if (debugAutoRequest) {
+					RequestNextJeep();
+				}
 			}
 		}
 	}
@@ -335,10 +339,11 @@ public class Jeep : Entity {
 		route = CurrentLevel.Network.RandomRoute;
 		if (route.Count > 0) {
 			WaitingJeep = null;
-			if (debugAutoRequest) {
+			// jeep gets going
+			StateMachine.Transition(JeepState.FollowingRoute);
+			if (SomeoneWaitingForJeep) {
 				RequestNextJeep();
 			}
-			StateMachine.Transition(JeepState.FollowingRoute);
 		}
 	}
 

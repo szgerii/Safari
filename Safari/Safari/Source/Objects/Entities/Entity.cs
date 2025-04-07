@@ -221,6 +221,9 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
 	public void DrawInteractBounds(GameTime gameTime) {
+		if (SightArea.Width == 0 || SightArea.Height == 0 || ReachArea.Width == 0 || ReachArea.Height == 0) {
+			return;
+		}
 		if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
 			sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
 		}
