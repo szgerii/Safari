@@ -69,7 +69,7 @@ public class Poacher : Entity {
 		Sprite = animSprite;
 		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
 		Sprite.YSortEnabled = true;
-		Sprite.YSortOffset = 32;
+		Sprite.YSortOffset = 64;
 		Attach(Sprite);
 
 		animSprite.CurrentAnimation = "walk-right";
@@ -81,7 +81,7 @@ public class Poacher : Entity {
 		};
 		Attach(collisionCmp);*/
 
-		Bounds = new Rectangle(0, 0, 16, 64);
+		Bounds = new Rectangle(0, 0, 32, 64);
 		SightDistance = 6;
 		ReachDistance = 2;
 		NavCmp.Speed *= SPEED;
