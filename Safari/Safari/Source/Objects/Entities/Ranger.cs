@@ -119,7 +119,7 @@ public class Ranger : Entity {
 		DateTime date = GameScene.Active.Model.IngameDate;
 		if (lastSalaryMonth != date.Month) {
 			int monthDays = DateTime.DaysInMonth(date.Year, date.Month);
-			float salaryRatio = (float)(monthDays - date.Day - 1) / monthDays;
+			float salaryRatio = (float)(monthDays - date.Day + 1) / monthDays;
 			GameScene.Active.Model.Funds -= (int)(SALARY * salaryRatio);
 			lastSalaryMonth = date.Month;
 		}
