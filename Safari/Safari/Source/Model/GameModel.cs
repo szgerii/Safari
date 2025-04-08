@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
 using Safari.Model.Tiles;
 using Safari.Objects.Entities.Animals;
+using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -329,6 +330,8 @@ public class GameModel {
 
 		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
+
+		Jeep.Init(250);
 
 		Game.AddObject(Level);
 

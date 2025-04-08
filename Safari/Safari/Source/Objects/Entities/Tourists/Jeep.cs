@@ -72,7 +72,7 @@ public class Jeep : Entity {
 	/// <summary>
 	/// The jeep that is currently being filled with tourists (or null)
 	/// </summary>
-	public static Jeep WaitingJeep { get; private set; }
+	public static Jeep WaitingJeep { get; private set; } = null;
 
 	/// <summary>
 	/// The spot where the jeeps park (offscreen)
@@ -137,8 +137,34 @@ public class Jeep : Entity {
 				RequestNextJeep();
 			}
 		}));
+	}
 
+	/// <summary>
+	/// Initializes the static state of the jeeps
+	/// </summary>
+	public static void Init(int baseRentFee) {
+		SomeoneWaitingForJeep = false;
+		debugAutoFill = false;
+		debugAutoRequest = false;
+		WaitingJeep = null;
+		RentFee = baseRentFee;
+		for (int i = 0; i < TEXTURE_COUNT; i++) {
+			if (textures[i] == null) {
+				textures[i] = Game.ContentManager.Load<Texture2D>("Assets/Jeep/Jeep" + textureNames[i]);
+			}
+		}
 		JeepReadyToFill += DebugReadyToFill;
+		jeepEntering = false;
+		garage = new();
+	}
+
+	public static void Cleanup() {
+		foreach (Delegate d in JeepReadyToFill.GetInvocationList()) {
+			JeepReadyToFill -= (EventHandler)d;
+			for (int i = 0; i < TEXTURE_COUNT; i++) {
+				textures[i] = null;
+			}
+		}
 	}
 
 	private static void DebugReadyToFill(object sender, EventArgs e) {
@@ -155,11 +181,6 @@ public class Jeep : Entity {
 		DisplayName = "Jeep";
 		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 3);
 		Attach(lightCmp);
-		for (int i = 0; i < TEXTURE_COUNT; i++) {
-			if (textures[i] == null) {
-				textures[i] = Game.ContentManager.Load<Texture2D>("Assets/Jeep/Jeep" + textureNames[i]);
-			}
-		}
 		Sprite = new SpriteCmp(textures[color]);
 		Sprite.LayerDepth = 0.4f;
 		Sprite.YSortEnabled = true;
