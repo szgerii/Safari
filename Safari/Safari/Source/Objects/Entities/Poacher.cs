@@ -1,11 +1,11 @@
 ﻿using Engine;
-using Engine.Collision;
 using Engine.Components;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Objects.Entities.Animals;
+using Safari.Popups;
 using Safari.Scenes;
 using System;
 
@@ -119,7 +119,7 @@ public class Poacher : Entity {
 
 	public override void Update(GameTime gameTime) {
 		if (NavCmp.LastIntendedDelta != Vector2.Zero) {
-			bool right = NavCmp.LastIntendedDelta.X > -0.075f;
+			bool right = NavCmp.LastIntendedDelta.X > 0;
 			string anim = $"walk-{(right ? "right" : "left")}";
 
 			if (!AnimatedSprite.IsPlaying || (AnimatedSprite.CurrentAnimation != anim && AnimatedSprite.CurrentAnimation.StartsWith("walk"))) {
@@ -177,9 +177,8 @@ public class Poacher : Entity {
 			if (entity is Animal a && !a.IsCaught && !a.IsDead) {
 				ChaseTarget = a;
 				StateMachine.Transition(PoacherState.Chasing);
+				break;
 			}
-
-			return;
 		}
 	}
 
@@ -220,7 +219,11 @@ public class Poacher : Entity {
 	/// <param name="gameTime">The current MonoGame game time</param>
 	[StateUpdate(PoacherState.Chasing)]
 	public void ChasingUpdate(GameTime gameTime) {
-		if (!CanSee(ChaseTarget)) {
+		SightDistance++;
+		bool canSeeTarget = CanSee(ChaseTarget);
+		SightDistance--;
+
+		if (!canSeeTarget) {
 			StateMachine.Transition(PoacherState.Wandering);
 		}
 	}

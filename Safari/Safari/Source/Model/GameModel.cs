@@ -3,12 +3,9 @@ using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
-using Safari.Model.Tiles;
 using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
-using System.Collections.Generic;
 
 namespace Safari.Model;
 

@@ -265,7 +265,7 @@ public abstract class Entity : GameObject {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
 	public bool CanSee(GameObject obj) => CanSee(obj.Position);
-	public bool CanSee(Entity e) => SightArea.Contains(e.Bounds);
+	public bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
 	/// </summary>
@@ -278,6 +278,7 @@ public abstract class Entity : GameObject {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's reach</returns>
 	public bool CanReach(GameObject obj) => CanReach(obj.Position);
+	public bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
 
 	/// <summary>
 	/// Retrieves a list of all other active and alive entities inside the entity's sight
