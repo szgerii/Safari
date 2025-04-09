@@ -12,6 +12,7 @@ using Engine.Debug;
 using Safari.Objects.Entities;
 using Safari.Popups;
 using Safari.Scenes.Menus;
+using Safari.Objects.Entities.Tourists;
 
 namespace Safari.Scenes;
 
@@ -39,6 +40,8 @@ public class GameScene : Scene {
 	public override void Unload() {
 		model.GameLost -= OnGameLost;
 		model.GameWon -= OnGameWon;
+
+		Jeep.Cleanup();
 
         base.Unload();
 
