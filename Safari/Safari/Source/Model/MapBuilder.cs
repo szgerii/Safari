@@ -478,6 +478,16 @@ public static class MapBuilder {
 		for (int i = 0; i < Jeep.STARTING_JEEPS; i++) {
 			Jeep.SpawnJeep();
 		}
+
+		Ranger ranger1 = new Ranger(new Vector2(300, 300)) {
+			TargetSpecies = AnimalSpecies.Lion
+		};
+		Game.AddObject(ranger1);
+
+		Ranger ranger2 = new Ranger(new Vector2(1500, 700)) {
+			TargetSpecies = AnimalSpecies.TigerWhite
+		};
+		Game.AddObject(ranger2);
 	}
 
 	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;

@@ -211,6 +211,14 @@ public class Poacher : Entity {
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = true;
 		NavCmp.ReachedTarget += OnChaseTargetReached;
+		ChaseTarget.Died += OnChaseTargetDied;
+	}
+
+	private void OnChaseTargetDied(object sender, EventArgs e) {
+		ChaseTarget.Died -= OnChaseTargetDied;
+		ChaseTarget = null;
+		NavCmp.TargetObject = null;
+		StateMachine.Transition(PoacherState.Wandering);
 	}
 
 	/// <summary>
@@ -233,6 +241,10 @@ public class Poacher : Entity {
 	/// </summary>
 	[StateEnd(PoacherState.Chasing)]
 	public void EndChasing() {
+		if (ChaseTarget != null) {
+			ChaseTarget.Died -= OnChaseTargetDied;
+		}
+
 		ChaseTarget = null;
 		NavCmp.TargetObject = null;
 		NavCmp.Moving = false;
