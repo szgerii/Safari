@@ -30,8 +30,8 @@ public static class Utils {
 	}
 
 	/// <summary>
-	/// Merges an array of textures into a single atlas texture
-	/// The size of a cell inside the atlas is determined by the max width and height of the textures
+	/// Merges an array of textures into a single atlas texture <br/>
+	/// The size of a cell inside the atlas is determined by the max width and height of the textures <br/>
 	/// Smaller textures are padded with transparent pixels on the right and bottom
 	/// </summary>
 	/// <param name="textures">The textures to place in the atlas</param>

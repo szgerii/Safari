@@ -244,7 +244,7 @@ class DebugConsole : PopupMenu, IUpdatable {
 
     //Scrolls the text log to the bottom.
     private void ScrollConsoleDown() {
-        scrollNeeded = 3;   
+        scrollNeeded = 3;
     }
 
     //skips a line in the console, without the > char

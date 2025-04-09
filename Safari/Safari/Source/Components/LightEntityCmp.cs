@@ -21,6 +21,10 @@ public class LightEntityCmp : Component, IUpdatable {
 	public LightEntityCmp(Level level, int range) {
 		this.level = level;
 		this.range = range;
+		
+	}
+
+	public override void Load() {
 		sprite = Owner.GetComponent<SpriteCmp>();
 	}
 
@@ -29,18 +33,25 @@ public class LightEntityCmp : Component, IUpdatable {
 		Point offset = new Point(0, 0);
 		if (sprite != null) {
 			offset = (sprite.SourceRectangle?.Size ?? sprite.Texture.Bounds.Size) / new Point(2);
+			offset -= new Point((int)sprite.Origin.X, (int)sprite.Origin.Y);
 		}
 		Point centerPoint = Owner.Position.ToPoint() + offset;
 		int map_x = (int)(centerPoint.X / (float)level.TileSize);
 		int map_y = (int)(centerPoint.Y / (float)level.TileSize);
 		Point map_pos = new Point(map_x, map_y);
 		if (old_map_pos == null) {
-			level.LightManager.AddLightSource(map_pos, range);
+			if (!level.IsOutOfBounds(map_pos.X, map_pos.Y)) {
+				level.LightManager.AddLightSource(map_pos, range);
+			}
 			old_map_pos = map_pos;
 		} else {
 			if (old_map_pos != map_pos) {
-				level.LightManager.RemoveLightsource((Point)old_map_pos, range);
-				level.LightManager.AddLightSource(map_pos, range);
+				if (!level.IsOutOfBounds(old_map_pos.Value.X, old_map_pos.Value.Y)) {
+					level.LightManager.RemoveLightsource((Point)old_map_pos, range);
+				}
+				if (!level.IsOutOfBounds(map_pos.X, map_pos.Y)) {
+					level.LightManager.AddLightSource(map_pos, range);
+				}
 				old_map_pos = map_pos;
 			}
 		}

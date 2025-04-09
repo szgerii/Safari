@@ -42,10 +42,13 @@ public class AnimalGroup : GameObject {
 	/// </summary>
 	public AnimalSpecies Species { get; private init; }
 	/// <summary>
-	/// The state that determines which activity the group is currently performing
+	/// The state machine that determines which activity the group is currently performing
 	/// </summary>
-	public AnimalGroupState State { get; private set; }
-
+	public StateMachineCmp<AnimalGroupState> StateMachine { get; private set; } = new(AnimalGroupState.Wandering);
+	/// <summary>
+	/// Shorthand for accessing the state machine's current state
+	/// </summary>
+	public AnimalGroupState State => StateMachine.CurrentState;
 	/// <summary>
 	/// A list of the animals inside the group
 	/// </summary>
@@ -112,6 +115,8 @@ public class AnimalGroup : GameObject {
 		NavCmp = new NavigationCmp(Speed);
 		Attach(NavCmp);
 
+		Attach(StateMachine);
+
 		Game.AddObject(this);
 	}
 
@@ -137,7 +142,7 @@ public class AnimalGroup : GameObject {
 	public override void Load() {
 		OnSizeChange();
 
-		Transition(AnimalGroupState.Wandering);
+		StateMachine.Transition(AnimalGroupState.Wandering);
 
 		base.Load();
 	}
@@ -211,7 +216,7 @@ public class AnimalGroup : GameObject {
 
 		bool validState = State == AnimalGroupState.Idle || State == AnimalGroupState.Wandering;
 		if (validState && HasHungryMember) {
-			Transition(AnimalGroupState.SeekingFood);
+			StateMachine.Transition(AnimalGroupState.SeekingFood);
 		}
 	}
 
@@ -226,7 +231,7 @@ public class AnimalGroup : GameObject {
 
 		bool validState = State == AnimalGroupState.Idle || State == AnimalGroupState.Wandering;
 		if (validState && HasThirstyMember) {
-			Transition(AnimalGroupState.SeekingWater);
+			StateMachine.Transition(AnimalGroupState.SeekingWater);
 		}
 	}
 
@@ -254,33 +259,6 @@ public class AnimalGroup : GameObject {
 		}
 
 		return true;
-	}
-
-	public override void Update(GameTime gameTime) {
-		switch (State) {
-			case AnimalGroupState.Idle:
-				IdleUpdate(gameTime);
-				break;
-			case AnimalGroupState.Wandering:
-				WanderingUpdate(gameTime);
-				break;
-			case AnimalGroupState.SeekingFood:
-				SeekingFoodUpdate(gameTime);
-				break;
-			case AnimalGroupState.SeekingWater:
-				SeekingWaterUpdate(gameTime);
-				break;
-			case AnimalGroupState.Feeding:
-				FeedingUpdate(gameTime);
-				break;
-			case AnimalGroupState.Drinking:
-				DrinkingUpdate(gameTime);
-				break;
-			default:
-				break;
-		}
-
-		base.Update(gameTime);
 	}
 
 	private void AddMember(Animal animal) {
@@ -316,54 +294,18 @@ public class AnimalGroup : GameObject {
 	private void OnHungryMember(object sender, EventArgs e) {
 		if (State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) return;
 
-		Transition(AnimalGroupState.SeekingFood);
+		StateMachine.Transition(AnimalGroupState.SeekingFood);
 	}
 
 	private void OnThirstyMember(object sender, EventArgs e) {
 		if (State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) return;
 
-		Transition(AnimalGroupState.SeekingWater);
-	}
-
-	private void Transition(AnimalGroupState newState) {
-		switch (State) {
-			case AnimalGroupState.Wandering:
-				EndWandering();
-				break;
-		}
-
-		State = newState;
-
-		switch (newState) {
-			case AnimalGroupState.Idle:
-				BeginIdle();
-				break;
-			case AnimalGroupState.Wandering:
-				BeginWandering();
-				break;
-			case AnimalGroupState.SeekingFood:
-				if (Species.IsCarnivorous()) {
-					Transition(AnimalGroupState.Wandering);
-					return;
-				}
-				BeginSeekingFood();
-				break;
-			case AnimalGroupState.Feeding:
-				NavCmp.Moving = false;
-				break;
-			case AnimalGroupState.SeekingWater:
-				BeginSeekingWater();
-				break;
-			case AnimalGroupState.Drinking:
-				NavCmp.Moving = false;
-				break;
-			default:
-				break;
-		}
+		StateMachine.Transition(AnimalGroupState.SeekingWater);
 	}
 
 	private DateTime idleStart;
-	private void BeginIdle() {
+	[StateBegin(AnimalGroupState.Idle)]
+	public void BeginIdle() {
 		idleStart = GameScene.Active.Model.IngameDate;
 
 		NavCmp.Moving = false;
@@ -397,18 +339,16 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	private void IdleUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.Idle)]
+	public void IdleUpdate(GameTime gameTime) {
 		if ((GameScene.Active.Model.IngameDate - idleStart).TotalHours > 2) {
-			Transition(AnimalGroupState.Wandering);
+			StateMachine.Transition(AnimalGroupState.Wandering);
 		}
 	}
 
 	private void SetNewWanderingPos() {
 		Level currLevel = GameScene.Active.Model.Level;
-		NavCmp.TargetPosition = new Vector2(
-			rand.Next(Level.PLAY_AREA_CUTOFF_X * currLevel.TileSize, (currLevel.MapWidth - Level.PLAY_AREA_CUTOFF_X - 1) * currLevel.TileSize),
-			rand.Next(Level.PLAY_AREA_CUTOFF_Y * currLevel.TileSize, (currLevel.MapHeight - Level.PLAY_AREA_CUTOFF_Y - 1) * currLevel.TileSize)
-		);
+		NavCmp.TargetPosition = currLevel.GetRandomPosition();
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = false;
 	}
@@ -417,17 +357,20 @@ public class AnimalGroup : GameObject {
 		SetNewWanderingPos();
 	}
 
-	private void BeginWandering() {
+	[StateBegin(AnimalGroupState.Wandering)]
+	public void BeginWandering() {
 		SetNewWanderingPos();
 		NavCmp.ReachedTarget += OnWanderTargetReached;
 	}
 
-	private void EndWandering() {
+	[StateEnd(AnimalGroupState.Wandering)]
+	public void EndWandering() {
 		NavCmp.ReachedTarget -= OnWanderTargetReached;
 	}
 
 	private readonly Random rand = new();
-	private void WanderingUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.Wandering)]
+	public void WanderingUpdate(GameTime gameTime) {
 		SyncToFormation();
 	}
 
@@ -437,9 +380,14 @@ public class AnimalGroup : GameObject {
 		NavCmp.ReachedTarget -= OnNearDestination;
 	}
 
-	private void BeginSeekingFood() {
+	[StateBegin(AnimalGroupState.SeekingFood)]
+	public void BeginSeekingFood() {
+		if (Species.IsCarnivorous()) {
+			StateMachine.Transition(AnimalGroupState.Wandering);
+		}
+
 		if (knownFoodSpots.Count == 0) {
-			Transition(AnimalGroupState.Wandering);
+			StateMachine.Transition(AnimalGroupState.Wandering);
 			return;
 		}
 
@@ -450,10 +398,11 @@ public class AnimalGroup : GameObject {
 		NavCmp.TargetPosition = GetNearestFromList(knownFoodSpots);
 	}
 
-	private void SeekingFoodUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.SeekingFood)]
+	public void SeekingFoodUpdate(GameTime gameTime) {
 		// this shouldn't really happen, but let's be extra careful
 		if (NavCmp.Target == null) {
-			Transition(AnimalGroupState.SeekingFood);
+			StateMachine.Transition(AnimalGroupState.SeekingFood);
 			return;
 		}
 
@@ -481,16 +430,17 @@ public class AnimalGroup : GameObject {
 			}
 
 			if (everyoneCanEat) {
-				Transition(AnimalGroupState.Feeding);
+				StateMachine.Transition(AnimalGroupState.Feeding);
 				NavCmp.Moving = false;
 				NavCmp.TargetPosition = null;
 			}
 		}
 	}
 
-	private void BeginSeekingWater() {
+	[StateBegin(AnimalGroupState.SeekingWater)]
+	public void BeginSeekingWater() {
 		if (knownWaterSpots.Count == 0) {
-			Transition(AnimalGroupState.Wandering);
+			StateMachine.Transition(AnimalGroupState.Wandering);
 			return;
 		}
 
@@ -501,10 +451,11 @@ public class AnimalGroup : GameObject {
 		NavCmp.TargetPosition = GetNearestFromList(knownWaterSpots);
 	}
 
-	private void SeekingWaterUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.SeekingWater)]
+	public void SeekingWaterUpdate(GameTime gameTime) {
 		// this shouldn't really happen, but let's be extra careful
 		if (NavCmp.Target == null) {
-			Transition(AnimalGroupState.SeekingWater);
+			StateMachine.Transition(AnimalGroupState.SeekingWater);
 			return;
 		}
 
@@ -532,14 +483,15 @@ public class AnimalGroup : GameObject {
 			}
 
 			if (everyoneCanDrink) {
-				Transition(AnimalGroupState.Drinking);
+				StateMachine.Transition(AnimalGroupState.Drinking);
 				NavCmp.StopOnTargetReach = false;
 				NavCmp.TargetPosition = null;
 			}
 		}
 	}
 
-	private void FeedingUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.Feeding)]
+	public void FeedingUpdate(GameTime gameTime) {
 		bool everybodyFull = true;
 		bool hasThirsty = false;
 
@@ -556,11 +508,12 @@ public class AnimalGroup : GameObject {
 		}
 
 		if (everybodyFull) {
-			Transition(hasThirsty ? AnimalGroupState.SeekingWater : AnimalGroupState.Idle);
+			StateMachine.Transition(hasThirsty ? AnimalGroupState.SeekingWater : AnimalGroupState.Idle);
 		}
 	}
 
-	private void DrinkingUpdate(GameTime gameTime) {
+	[StateUpdate(AnimalGroupState.Drinking)]
+	public void DrinkingUpdate(GameTime gameTime) {
 		bool everybodyFull = true;
 		bool hasHungry = false;
 
@@ -577,7 +530,7 @@ public class AnimalGroup : GameObject {
 		}
 
 		if (everybodyFull) {
-			Transition(hasHungry ? AnimalGroupState.SeekingFood : AnimalGroupState.Idle);
+			StateMachine.Transition(hasHungry ? AnimalGroupState.SeekingFood : AnimalGroupState.Idle);
 		}
 	}
 
