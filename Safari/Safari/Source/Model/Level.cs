@@ -34,10 +34,7 @@ public class Level : GameObject {
 	/// </summary>
 	public int MapHeight { get; init; }
 
-	private readonly Tile[,] tiles;
-
-	private readonly Texture2D debugGridTex;
-	private readonly Texture2D selectedTileTex;
+	public Rectangle PlayAreaBounds => new(new Point(PLAY_AREA_CUTOFF_X * TileSize, PLAY_AREA_CUTOFF_Y * TileSize), new Point((MapWidth - (2 * PLAY_AREA_CUTOFF_X)) * TileSize, (MapHeight - (2 * PLAY_AREA_CUTOFF_X)) * TileSize));
 
 	/// <summary>
 	/// The network managing the roads and paths in this level
@@ -47,6 +44,11 @@ public class Level : GameObject {
 	/// The object responsible for light sources and lighting in general
 	/// </summary>
 	public LightManager LightManager { get; init; }
+
+	private readonly Tile[,] tiles;
+
+	private readonly Texture2D debugGridTex;
+	private readonly Texture2D selectedTileTex;
 
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;

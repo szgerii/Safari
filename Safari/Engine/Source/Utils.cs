@@ -272,4 +272,16 @@ public static class Utils {
 		Random rand = new();
 		return (EnumType)values.GetValue(rand.Next(values.Length));
 	}
+
+	/// <summary>
+	/// Returns a random position from a bounds Rectangle (edges included)
+	/// </summary>
+	/// <param name="bounds">The bounds to pick from (inclusive)</param>
+	/// <returns>The random position</returns>
+	public static Vector2 GetRandomPosition(Rectangle bounds) {
+		int x = rand.Next(bounds.X, bounds.Right + 1);
+		int y = rand.Next(bounds.Y, bounds.Bottom + 1);
+
+		return new Vector2(x, y);
+	}
 }

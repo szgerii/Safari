@@ -16,6 +16,6 @@ public class Giraffe : Animal {
 		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
 
 		ReachDistance = 2;
-		SightDistance = 6;
+		SightDistance = 7;
 	}
 }

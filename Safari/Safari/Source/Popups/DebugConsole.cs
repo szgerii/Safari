@@ -1,12 +1,10 @@
 ﻿using Engine;
 using Engine.Debug;
 using Engine.Input;
-using Engine.Objects;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Safari.Components;
 using System.Collections.Generic;
 using System.Text;
 
@@ -101,6 +99,14 @@ class DebugConsole : PopupMenu, IUpdatable {
         ScrollConsoleDown();
     }
 
+    /// <summary>
+    /// Clears previous console output
+    /// </summary>
+    public void Clear() {
+        builder = new();
+        consoleTextLog.Text = "";
+    }
+
     //Checks if the user had hit an Enter and if yes,
     //outputs it, tries to run the entered text as a debug command, and informs the user if it was successful.
     private void ProcessInput(Entity entity) {
@@ -142,6 +148,9 @@ class DebugConsole : PopupMenu, IUpdatable {
         switch (input) {
             case "help":
                 Help();
+                return true;
+            case "clear":
+                Clear();
                 return true;
             default:
                 return false;
@@ -240,6 +249,7 @@ class DebugConsole : PopupMenu, IUpdatable {
         SkipLine();
         Info("{{BOLD}}Debug console commands:{{DEFAULT}}");
         Info("help");
+        Info("clear");
     }
 
     //Scrolls the text log to the bottom.

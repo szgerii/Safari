@@ -13,7 +13,7 @@ public delegate void UpdateStateHandler(GameTime gameTime);
 /// <summary>
 /// Abstract attribute type for state handler method attributes
 /// </summary>
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
 public abstract class StateHandlerAttribute : Attribute {
 	public object TargetState { get; private init; }
 

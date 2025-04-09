@@ -3,12 +3,12 @@ using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
+using Safari.Objects.Entities;
 using Safari.Model.Tiles;
 using Safari.Objects.Entities.Animals;
 using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
 using System;
-using System.Collections.Generic;
 
 namespace Safari.Model;
 
@@ -334,6 +334,13 @@ public class GameModel {
 		Jeep.Init(250);
 
 		Game.AddObject(Level);
+
+		// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
+		EntitySpawner<Poacher> poacherSpawner = new(6, 0.5f, 0.05f) {
+			EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
+			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
+		};
+		Game.AddObject(poacherSpawner);
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
