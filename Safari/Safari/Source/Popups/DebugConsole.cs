@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Safari.Popups;
-class DebugConsole : PopupMenu, IUpdatable {
+class DebugConsole : PopupMenu {
     private readonly static DebugConsole instance = new DebugConsole();
     private Panel consoleTextPanel;
     private RichParagraph consoleTextLog;
@@ -140,11 +140,6 @@ class DebugConsole : PopupMenu, IUpdatable {
         switch (input) {
             case "help":
                 Help();
-                return true;
-            case "popup":
-                new AlertMenu("Test", "test test test test test test").Show();
-                new AlertMenu("ASD", "test test test test test test").Show();
-                new AlertMenu("sadsfd", "test test test test test test").Show();
                 return true;
             default:
                 return false;

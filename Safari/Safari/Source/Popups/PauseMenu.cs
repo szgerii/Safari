@@ -82,7 +82,7 @@ class PauseMenu : PopupMenu {
     }
 
     public void TogglePauseMenu() {
-        if(SceneManager.Active is not GameScene) {
+        if (SceneManager.Active is not GameScene) {
             return;
         }
         if (visible) {

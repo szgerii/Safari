@@ -1,5 +1,4 @@
-﻿using GeonBit.UI;
-using GeonBit.UI.Entities;
+﻿using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -12,9 +11,10 @@ class AlertMenu : PopupMenu {
     private Button button1;
     private Button button2 = null;
     private static Queue<AlertMenu> queue = new Queue<AlertMenu>();
-    private static bool next = false;
     private static int waitCounter = 0;
     private static bool waitNeeded = false;
+    private static AlertMenu Active = null;
+    private static bool nextAlertShowable = false;
 
     public event EventHandler<bool> Chosen;
 
@@ -90,55 +90,54 @@ class AlertMenu : PopupMenu {
     }
 
     private void Agree(Entity entity) {
-        HideWithRefocus();
+        Hide();
         Chosen?.Invoke(this, true);
     }
 
     private void Disagree(Entity entity) {
-        HideWithRefocus();
+        Hide();
         Chosen?.Invoke(this, false);
     }
 
     public override void Show() {
         if (Active == null) {
-            base.Show();
             Active = this;
+            base.Show();
         } else {
             queue.Enqueue(this);
         }
     }
 
-    public static void test() {
-        new AlertMenu("test1", "first").Show();
-        new AlertMenu("test2", "second").Show();
-        new AlertMenu("test3", "third").Show();
-    }
-
-    public override void HideWithRefocus() {
-        base.HideWithRefocus();
-    }
-
-    private void ShowNextAlert() {
+    public override void Hide() {
+        base.Hide();
+        nextAlertShowable = true;
         Active = null;
+    }
+
+    //shows the next alert in the queue
+    private static void ShowNextAlert() {
         if (Active == null && queue.TryDequeue(out AlertMenu nextAlert)) {
             nextAlert.Show();
         }
     }
 
-    public override void Update(GameTime gameTime) {
-
-        if (mousePosUpdate) {
-            mousePosUpdate = false;
-            /*UserInterface.Active.MouseInputProvider.UpdateMousePosition(mousePosStorage.Value);*/
-            waitCounter = 2;
-            waitNeeded = true;
+    new public static void Update(GameTime gameTime) {
+        if (Active != null) {
+            return;
         }
-
+        if (nextAlertShowable) {
+            nextAlertShowable = false;
+            if (queue.Count != 0) {
+                waitCounter = 2;
+                waitNeeded = true;
+            }
+        }
         if (waitNeeded) {
             if (waitCounter > 0) {
                 --waitCounter;
                 return;
             } else {
+                waitCounter = 0;
                 waitNeeded = false;
                 ShowNextAlert();
             }

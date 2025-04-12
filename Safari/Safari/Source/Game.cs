@@ -84,7 +84,7 @@ public class Game : Engine.Game {
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
-		AlertMenu.Active?.Update(gameTime);
+		AlertMenu.Update(gameTime);
         PauseMenu.Instance?.Update(gameTime);
 
         DateTime start = DateTime.Now;
@@ -136,7 +136,6 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
 
         // debug
-        InputManager.Keyboard.OnPressed(Keys.F2, () => AlertMenu.test());
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
         InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));

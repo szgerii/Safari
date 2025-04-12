@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Linq;
 
 namespace Engine.Input;
 
@@ -54,14 +55,18 @@ public static class InputManager {
 
 	public static void Update(GameTime gameTime) {
 		// update focus
-		bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
-		bool passiveFocused = UserInterface.Active.ActiveEntity.Tag == "PassiveFocus";
+		int rootChildren = UserInterface.Active.Root.Children.Count;
+		bool allPassiveFocus = true;
+        for (int i = 0; i < rootChildren && allPassiveFocus; i++) {
+			if (UserInterface.Active.Root.Children[i].Tag != "PassiveFocus") {
+                allPassiveFocus = false;
+			}
+        }
+        WasGameFocused = IsGameFocused;
+		IsGameFocused = allPassiveFocus; 
 
-		WasGameFocused = IsGameFocused;
-		IsGameFocused = rootFocused || passiveFocused;
-
-		// Update states
-		prevKS = currentKS;
+        // Update states
+        prevKS = currentKS;
 		prevMS = currentMS;
 		for (int i = 0; i < 4; i++) {
 			prevGPS[i] = currentGPS[i];
