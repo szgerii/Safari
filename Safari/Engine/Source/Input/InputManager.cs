@@ -63,7 +63,7 @@ public static class InputManager {
 			}
         }
         WasGameFocused = IsGameFocused;
-		IsGameFocused = allPassiveFocus || true; 
+		IsGameFocused = allPassiveFocus; 
 
         // Update states
         prevKS = currentKS;

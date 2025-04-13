@@ -46,9 +46,10 @@ class SettingsMenu : MenuScene {
     private int currentResolution;
 
     private Panel buttonPanel;
-    private Button menuButton;
     private Button saveChangesButton;
-    private Button discardChangesButton;
+    private Button menuAndDiscardButton;
+
+    private float scale;
 
     public static SettingsMenu Instance => instance;
 
@@ -86,18 +87,22 @@ class SettingsMenu : MenuScene {
         #region VSYNC
         //VSYNC Settings
         vsyncPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+        
         vsyncPanel.Padding = new Vector2(0);
+        
         vsyncText = new Label("VSync:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         vsyncText.Padding = new Vector2(10);
+        
         vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50));
         vsyncButton.ToggleMode = true;
         vsyncButton.Checked = DisplayManager.VSync;
         vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
+        vsyncButton.Padding = new Vector2(0);
         vsyncButton.OnValueChange = (Entity entity) => {
             vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
             DisplayManager.SetVSync(vsyncButton.Checked, false);
         };
-        vsyncButton.Padding = new Vector2(0);
+        
         vsyncPanel.AddChild(vsyncText);
         vsyncPanel.AddChild(vsyncButton);
         settingsPanel.AddChild(vsyncPanel);
@@ -107,8 +112,10 @@ class SettingsMenu : MenuScene {
         //SCREEN TYPE Settings
         screenTypePanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         screenTypePanel.Padding = new Vector2(0);
+        
         screenTypeText = new Label("Window mode: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         screenTypeText.Padding = new Vector2(10);
+        
         screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight);
         screenTypeButtonPanel.Padding = new Vector2(0, 0.25f);
 
@@ -122,6 +129,7 @@ class SettingsMenu : MenuScene {
             DisplayManager.SetWindowType(WindowType.WINDOWED, false);
         };
         screenTypeButtonPanel.AddChild(screenTypeWindowed);
+        
         screenTypeBorderless = new Button("Borderless", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
         screenTypeBorderless.Padding = new Vector2(0);
         screenTypeBorderless.ToggleMode = true;
@@ -132,6 +140,7 @@ class SettingsMenu : MenuScene {
             DisplayManager.SetWindowType(WindowType.BORDERLESS, false);
         };
         screenTypeButtonPanel.AddChild(screenTypeBorderless);
+        
         screenTypeFullscreen = new Button("Fullscreen", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
         screenTypeFullscreen.Padding = new Vector2(0);
         screenTypeFullscreen.ToggleMode = true;
@@ -141,11 +150,13 @@ class SettingsMenu : MenuScene {
             screenTypeFullscreen.Checked = true;
             DisplayManager.SetWindowType(WindowType.FULL_SCREEN, false);
         };
+        
         switch (DisplayManager.WindowType) {
             case WindowType.WINDOWED: screenTypeWindowed.Checked = true; break;
             case WindowType.BORDERLESS: screenTypeBorderless.Checked = true; break;
             case WindowType.FULL_SCREEN: screenTypeFullscreen.Checked = true; break;
             default: screenTypeWindowed.Checked = true; break;
+        
         }
         screenTypeButtonPanel.AddChild(screenTypeFullscreen);
         screenTypePanel.AddChild(screenTypeText);
@@ -226,24 +237,21 @@ class SettingsMenu : MenuScene {
         settingsPanel.AddChild(resolutionPanel);
         #endregion
 
+        scaleText();
+
         //button setup
-        buttonPanel = new Panel(new Vector2(0.75f, 0.1f), PanelSkin.None, Anchor.BottomRight);
+        buttonPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.None, Anchor.BottomRight);
 
         saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, -1));
         saveChangesButton.Padding = new Vector2(10);
         saveChangesButton.OnClick = saveChangesButtonClicked;
 
-        discardChangesButton = new Button("Discard", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, -1));
-        discardChangesButton.OnClick = discardChangesButtonClicked;
-        discardChangesButton.Padding = new Vector2(10);
+        menuAndDiscardButton = new Button("Exit & Discard", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.55f, -1));
+        menuAndDiscardButton.Padding = new Vector2(10);
+        menuAndDiscardButton.OnClick = menuAndDiscardButtonClicked;
 
-        menuButton = new Button("Back to Menu", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
-        menuButton.OnClick = menuButtonClicked;
-        menuButton.Padding = new Vector2(10);
-
-        buttonPanel.AddChild(menuButton);
+        buttonPanel.AddChild(menuAndDiscardButton);
         buttonPanel.AddChild(saveChangesButton);
-        buttonPanel.AddChild(discardChangesButton);
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
@@ -255,24 +263,20 @@ class SettingsMenu : MenuScene {
         DisplayManager.ApplyChanges();
     }
 
+    private void menuAndDiscardButtonClicked(Entity entity) {
+        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        DisplayManager.DiscardChanges();
+        SceneManager.Load(MainMenu.Instance);
+    }
+
     private void scaleText() {
-        float scale = ((float)selectedResolution.Item2 / 1080f) * 1.25f;
+        scale = ((float)selectedResolution.Item2 / 1080f) * 1.25f;
         fpsText.Scale = scale;
         vsyncText.Scale = scale;
         screenTypeText.Scale = scale;
         cameraSpeedText.Scale = scale;
         resolutionText.Scale = scale;
         resolutionsDisplay.Scale = scale;
-    }
-
-    private void discardChangesButtonClicked(Entity entity) {
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
-        DisplayManager.DiscardChanges();
-    }
-
-    private void menuButtonClicked(Entity entity) {
-        discardChangesButtonClicked(entity);
-        SceneManager.Load(MainMenu.Instance);
     }
 
     protected override void DestroyUI() {
@@ -302,8 +306,7 @@ class SettingsMenu : MenuScene {
         nextResolution = null;
         resolutions = null;
         buttonPanel = null;
-        menuButton = null;
+        menuAndDiscardButton = null;
         saveChangesButton = null;
-        discardChangesButton = null;
     }
 }
