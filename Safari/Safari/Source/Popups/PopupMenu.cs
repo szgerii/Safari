@@ -6,14 +6,16 @@ using Microsoft.Xna.Framework;
 namespace Safari.Popups;
 
 public abstract class PopupMenu : IUpdatable {
-    private Panel background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
+    protected Panel background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
     protected Panel panel;
 
     /// <summary>
     /// Shows the popup.
     /// </summary>
     public virtual void Show() {
-        UserInterface.Active.AddEntity(background);
+        if (background != null) {
+            UserInterface.Active.AddEntity(background);
+        }
         UserInterface.Active.AddEntity(panel);
         panel.BringToFront();
     }
@@ -22,7 +24,9 @@ public abstract class PopupMenu : IUpdatable {
     /// Hides the popup.
     /// </summary>
     public virtual void Hide() {
-        UserInterface.Active.RemoveEntity(background);
+        if (background != null) {
+            UserInterface.Active.RemoveEntity(background);
+        }
         UserInterface.Active.RemoveEntity(panel);
     }
 
