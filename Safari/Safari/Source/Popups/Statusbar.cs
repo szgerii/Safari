@@ -5,33 +5,65 @@ using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Model;
+using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
 
 namespace Safari.Popups;
 
 class Statusbar : PopupMenu, IUpdatable {
     private static readonly Statusbar instance = new Statusbar();
+
     private Panel speedButtonPanel;
     private Button pauseButton;
     private Button slowButton;
     private Button mediumButton;
     private Button fastButton;
+
     private Panel categoryMenuPanel;
+
     private CategoryMenu animals;
     private Button animalsButton;
     private CategoryMenu tiles;
     private Button tilesButton;
 
+    private Panel indicatorPanel;
+
+    private Panel moneyPanel;
+    private Label moneyText;
+    private int moneyPrev;
+    private int moneyCurr;
+
+    private Panel ratingPanel;
+    private Label ratingText;
+    private float ratingPrev;
+    private float ratingCurr;
+
+    private Panel carnivorePanel;
+    private Label carnivoreText;
+    private int carnivorePrev;
+    private int carnivoreCurr;
+
+    private Panel herbivorePanel;
+    private Label herbivoreText;
+    private int herbivorePrev;
+    private int herbivoreCurr;
+
+    private Button entityManagerButton;
+
     public static Statusbar Instance => instance;
-    public static int Height => (int)(DisplayManager.Height * 0.25);
 
     private Statusbar() {
         panel = new Panel(new Vector2(0, 0.25f), PanelSkin.Default, Anchor.BottomCenter);
-        panel.Padding = new Vector2(20);
+        panel.Padding = new Vector2(0);
+        panel.Tag = "PassiveFocus";
+        //panel.MaxSize = new Vector2(0, 200);ff
 
-        speedButtonPanel = new Panel(new Vector2(0.25f, 0.1f), PanelSkin.None, Anchor.TopLeft);
+        #region SPEED_BUTTONS
+        speedButtonPanel = new Panel(new Vector2(0.25f, 0.5f), PanelSkin.None, Anchor.TopLeft);
         speedButtonPanel.Padding = new Vector2(0);
-        speedButtonPanel.MaxSize = new Vector2(400, 280);
+        speedButtonPanel.Offset = new Vector2(20);
+        //speedButtonPanel.MaxSize = new Vector2(400, 280);
+        speedButtonPanel.Tag = "PassiveFocus";
 
         Vector2 btnMaxSize = new Vector2(80, 50);
 
@@ -68,29 +100,45 @@ class Statusbar : PopupMenu, IUpdatable {
         speedButtonPanel.AddChild(slowButton);
         speedButtonPanel.AddChild(mediumButton);
         speedButtonPanel.AddChild(fastButton);
+        #endregion
 
-        categoryMenuPanel = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
-
-        animals = new CategoryMenu("Animals");
-        tiles = new CategoryMenu("Tiles");
-
-        animalsButton = new Button("Animals", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.25f,0));
-        animalsButton.Padding = new Vector2(0);
-        animalsButton.OnClick = (Entity entity) => {
-            animals.ToggleCategoryMenu();
+        entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.3f, 0.3f), new Vector2(20));
+        entityManagerButton.Padding = new Vector2(0);
+        entityManagerButton.OnClick = (Entity entity) => {
+            new AlertMenu("clicked", entityManagerButton.GetActualDestRect().Width.ToString()).Show();
         };
-        animalsButton.MaxSize = new Vector2(0, 100);
-        categoryMenuPanel.AddChild(animalsButton);
+        //entityManagerButton.MaxSize = new Vector2(400, 0.3f);
+        panel.AddChild(entityManagerButton);
 
-        tilesButton = new Button("Tiles", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.25f, 0));
-        tilesButton.Padding = new Vector2(0);
-        tilesButton.OnClick = (Entity entity) => {
-            tiles.ToggleCategoryMenu();
-        };
-        tilesButton.MaxSize = new Vector2(0, 100);
-        categoryMenuPanel.AddChild(tilesButton);
+        indicatorPanel = new Panel(new Vector2(0, 0.5f), PanelSkin.None, Anchor.BottomLeft);
+        indicatorPanel.Padding = new Vector2(0);
 
-        panel.AddChild(categoryMenuPanel);
+        Vector2 panelsize = new Vector2(0.25f,0);
+
+        moneyPanel = new Panel(panelsize, PanelSkin.Default, Anchor.CenterLeft);
+        ratingPanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
+        carnivorePanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
+        herbivorePanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
+
+        moneyText = new Label("Money:", Anchor.CenterLeft);
+        ratingText = new Label("Rating:", Anchor.CenterLeft);
+        carnivoreText = new Label("Carnivores:", Anchor.CenterLeft);
+        herbivoreText = new Label("Herbivores:", Anchor.CenterLeft);
+
+        moneyPanel.AddChild(moneyText);
+        ratingPanel.AddChild(ratingText);
+        carnivorePanel.AddChild(carnivoreText);
+        herbivorePanel.AddChild(herbivoreText);
+
+        indicatorPanel.AddChild(moneyPanel);
+        indicatorPanel.AddChild(ratingPanel);
+        indicatorPanel.AddChild(carnivorePanel);
+        indicatorPanel.AddChild(herbivorePanel);
+
+        panel.AddChild(indicatorPanel);
+        panel.AddChild(speedButtonPanel);
+
+        //panel.AddChild(categoryMenuPanel);
     }
 
     private void adjustSpeedSettings(Entity entity) {
@@ -140,7 +188,7 @@ class Statusbar : PopupMenu, IUpdatable {
 
     public void Load() {
         UserInterface.Active.AddEntity(panel);
-        UserInterface.Active.AddEntity(speedButtonPanel);
+        //UserInterface.Active.AddEntity(speedButtonPanel);
         adjustSpeedButtons();
     }
 
@@ -170,9 +218,25 @@ class Statusbar : PopupMenu, IUpdatable {
 
     public void UnLoad() {
         UserInterface.Active.RemoveEntity(panel);
-        UserInterface.Active.RemoveEntity(speedButtonPanel);
+        //UserInterface.Active.RemoveEntity(speedButtonPanel);
     }
 
     public void Update(GameTime gameTime) {
+
+        moneyPrev = moneyCurr;
+        moneyCurr = GameScene.Active.Model.Funds;
+        moneyText.Text = "Money: " + moneyCurr;
+
+        ratingPrev = ratingCurr;
+        ratingCurr = Tourist.AvgRating;
+        ratingText.Text = "Rating: " + ratingCurr;
+
+        carnivorePrev = carnivoreCurr;
+        carnivoreCurr = GameScene.Active.Model.CarnivoreCount;
+        carnivoreText.Text = "Carnivores: " + carnivoreCurr;
+
+        herbivorePrev = herbivoreCurr;
+        herbivoreCurr = GameScene.Active.Model.HerbivoreCount;
+        herbivoreText.Text = "Herbivores: " + herbivoreCurr;
     }
 }
