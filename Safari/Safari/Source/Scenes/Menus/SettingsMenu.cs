@@ -277,9 +277,11 @@ class SettingsMenu : MenuScene {
         cameraSpeedText.Scale = scale;
         resolutionText.Scale = scale;
         resolutionsDisplay.Scale = scale;
-    }
 
-    protected override void DestroyUI() {
+        // TODO button scaling and sizing
+	}
+
+	protected override void DestroyUI() {
         title = null;
         settingsPanel = null;
         fpsPanel = null;
