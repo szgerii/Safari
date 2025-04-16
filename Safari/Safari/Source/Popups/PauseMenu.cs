@@ -21,6 +21,8 @@ class PauseMenu : PopupMenu {
 
     public static PauseMenu Instance => instance;
 
+    public static bool Visible => Instance.visible;
+
     public PauseMenu() {
         visible = false;
         panel = new Panel(new Vector2(0.4f, 0.7f), PanelSkin.Default, Anchor.Center);

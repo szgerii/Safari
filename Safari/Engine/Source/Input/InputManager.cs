@@ -1,6 +1,7 @@
 ﻿using GeonBit.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Safari.Popups;
 using System;
 using System.Linq;
 
@@ -55,6 +56,7 @@ public static class InputManager {
 
 	public static void Update(GameTime gameTime) {
 		// update focus
+        bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
 		int rootChildren = UserInterface.Active.Root.Children.Count;
 		bool allPassiveFocus = true;
         for (int i = 0; i < rootChildren && allPassiveFocus; i++) {
@@ -63,7 +65,7 @@ public static class InputManager {
 			}
         }
         WasGameFocused = IsGameFocused;
-		IsGameFocused = allPassiveFocus; 
+		IsGameFocused = allPassiveFocus || (rootFocused && DebugConsole.Visible && !PauseMenu.Visible);
 
         // Update states
         prevKS = currentKS;

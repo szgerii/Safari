@@ -1,5 +1,4 @@
-﻿using Engine;
-using Engine.Debug;
+﻿using Engine.Debug;
 using Engine.Input;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
@@ -27,7 +26,10 @@ class DebugConsole : PopupMenu {
     /// </summary>
     public static DebugConsole Instance => instance;
 
+    public static bool Visible => Instance.visible;
+
     private DebugConsole() {
+        background = null;
         //initialize the main panel and set visibility to false
         visible = false;
         panel = new Panel(new Vector2(0.7f, 0.5f), PanelSkin.Default, Anchor.Center);

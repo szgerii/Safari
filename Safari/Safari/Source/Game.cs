@@ -84,7 +84,7 @@ public class Game : Engine.Game {
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
-		AlertMenu.Update(gameTime);
+		AlertMenu.Adjust();
         PauseMenu.Instance?.Update(gameTime);
 
         DateTime start = DateTime.Now;

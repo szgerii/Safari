@@ -121,7 +121,7 @@ class AlertMenu : PopupMenu {
         }
     }
 
-    new public static void Update(GameTime gameTime) {
+    public static void Adjust() {
         if (Active != null) {
             return;
         }
