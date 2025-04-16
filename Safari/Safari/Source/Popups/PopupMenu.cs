@@ -1,16 +1,22 @@
-﻿using GeonBit.UI;
+﻿using Engine;
+using GeonBit.UI;
 using GeonBit.UI.Entities;
+using Microsoft.Xna.Framework;
 
 namespace Safari.Popups;
 
-public abstract class PopupMenu {
+public abstract class PopupMenu : IUpdatable {
+    protected Panel background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
     protected Panel panel;
 
     /// <summary>
     /// Shows the popup.
     /// </summary>
     public virtual void Show() {
-        UserInterface.Active.AddEntity(this.panel);
+        if (background != null) {
+            UserInterface.Active.AddEntity(background);
+        }
+        UserInterface.Active.AddEntity(panel);
         panel.BringToFront();
     }
 
@@ -18,6 +24,11 @@ public abstract class PopupMenu {
     /// Hides the popup.
     /// </summary>
     public virtual void Hide() {
-        UserInterface.Active.RemoveEntity(this.panel);
+        if (background != null) {
+            UserInterface.Active.RemoveEntity(background);
+        }
+        UserInterface.Active.RemoveEntity(panel);
     }
+
+    public virtual void Update(GameTime gameTime) { }
 }
