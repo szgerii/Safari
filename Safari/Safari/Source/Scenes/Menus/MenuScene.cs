@@ -8,14 +8,14 @@ public abstract class MenuScene : Scene {
 
     public override void Load() {
         base.Load();
-        this.ConstructUI();
+        ConstructUI();
         UserInterface.Active.AddEntity(panel);
     }
 
     public override void Unload() {
         base.Unload();
         UserInterface.Active.RemoveEntity(panel);
-        this.DestroyUI();
+        DestroyUI();
     }
 
     protected abstract void ConstructUI();

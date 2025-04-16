@@ -81,6 +81,7 @@ public static class DebugInfoManager {
 	/// </summary>
 	public static void ShowInfos() {
 		foreach (Paragraph p in infoParagraphs.Values) {
+			p.Tag = "PassiveFocus";
 			UserInterface.Active.AddEntity(p);
 		}
 	}

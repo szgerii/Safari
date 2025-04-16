@@ -1,17 +1,14 @@
-﻿using Engine;
-using Engine.Debug;
+﻿using Engine.Debug;
 using Engine.Input;
-using Engine.Objects;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Safari.Components;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Safari.Popups;
-class DebugConsole : PopupMenu, IUpdatable {
+class DebugConsole : PopupMenu {
     private readonly static DebugConsole instance = new DebugConsole();
     private Panel consoleTextPanel;
     private RichParagraph consoleTextLog;
@@ -20,16 +17,19 @@ class DebugConsole : PopupMenu, IUpdatable {
     private StringBuilder builder;
     private int scrollNeeded;
     private bool tryFocusInput = true;
-	private Vector2? mousePosStorage = null;
+    private Vector2? mousePosStorage = null;
     private LinkedList<string> commandHistory = new();
     private LinkedListNode<string> currentHistoryNode = null;
 
-	/// <summary>
-	/// This provides accessibility to the debug console and its methods.
-	/// </summary>
-	public static DebugConsole Instance => instance;
+    /// <summary>
+    /// This provides accessibility to the debug console and its methods.
+    /// </summary>
+    public static DebugConsole Instance => instance;
+
+    public static bool Visible => Instance.visible;
 
     private DebugConsole() {
+        background = null;
         //initialize the main panel and set visibility to false
         visible = false;
         panel = new Panel(new Vector2(0.7f, 0.5f), PanelSkin.Default, Anchor.Center);
@@ -68,7 +68,7 @@ class DebugConsole : PopupMenu, IUpdatable {
 
         //autoscroll to the bottom
         consoleTextLog.AfterDraw = (Entity entity) => {
-            if(scrollNeeded > 0) {
+            if (scrollNeeded > 0) {
                 consoleTextPanel.Scrollbar.Value = consoleTextPanel.Scrollbar.Max;
                 --scrollNeeded;
             }
@@ -80,7 +80,7 @@ class DebugConsole : PopupMenu, IUpdatable {
     /// </summary>
     public void ToggleDebugConsole() {
         if (visible) {
-			input.IsFocused = false;
+            input.IsFocused = false;
             base.Hide();
             visible = false;
         } else {
@@ -101,6 +101,14 @@ class DebugConsole : PopupMenu, IUpdatable {
         ScrollConsoleDown();
     }
 
+    /// <summary>
+    /// Clears previous console output
+    /// </summary>
+    public void Clear() {
+        builder = new();
+        consoleTextLog.Text = "";
+    }
+
     //Checks if the user had hit an Enter and if yes,
     //outputs it, tries to run the entered text as a debug command, and informs the user if it was successful.
     private void ProcessInput(Entity entity) {
@@ -118,7 +126,7 @@ class DebugConsole : PopupMenu, IUpdatable {
         Write(consoleInput);
 
         if (RunDebugCustomCommands(consoleInput)) {
-            
+
         } else if (DebugMode.HasExecutedFeature(consoleInput)) {
             DebugMode.Execute(consoleInput);
             Confirm($"{consoleInput} executed successfully");
@@ -142,6 +150,9 @@ class DebugConsole : PopupMenu, IUpdatable {
         switch (input) {
             case "help":
                 Help();
+                return true;
+            case "clear":
+                Clear();
                 return true;
             default:
                 return false;
@@ -178,27 +189,27 @@ class DebugConsole : PopupMenu, IUpdatable {
         ScrollConsoleDown();
     }
 
-	// geonbit power ups & window closing
-	public void Update(GameTime gameTime) {
-		if (tryFocusInput) {
-			if (mousePosStorage == null) {
-				Rectangle inputDestRect = input.GetActualDestRect();
+    // geonbit power ups & window closing
+    public override void Update(GameTime gameTime) {
+        if (tryFocusInput) {
+            if (mousePosStorage == null) {
+                Rectangle inputDestRect = input.GetActualDestRect();
 
-				if (!inputDestRect.IsEmpty) {
-					mousePosStorage = UserInterface.Active.MouseInputProvider.MousePosition;
-					UserInterface.Active.MouseInputProvider.UpdateMousePosition(inputDestRect.Center.ToVector2());
-					UserInterface.Active.MouseInputProvider.DoClick();
-				}
-			} else {
-				UserInterface.Active.MouseInputProvider.UpdateMousePosition(mousePosStorage.Value);
-				mousePosStorage = null;
-				tryFocusInput = false;
-			}
-		}
+                if (!inputDestRect.IsEmpty) {
+                    mousePosStorage = UserInterface.Active.MouseInputProvider.MousePosition;
+                    UserInterface.Active.MouseInputProvider.UpdateMousePosition(inputDestRect.Center.ToVector2());
+                    UserInterface.Active.MouseInputProvider.DoClick();
+                }
+            } else {
+                UserInterface.Active.MouseInputProvider.UpdateMousePosition(mousePosStorage.Value);
+                mousePosStorage = null;
+                tryFocusInput = false;
+            }
+        }
 
-		input.IsFocused = UserInterface.Active.ActiveEntity == input;
+        input.IsFocused = UserInterface.Active.ActiveEntity == input;
 
-		if (InputManager.IsGameFocused) return;
+        if (InputManager.IsGameFocused) return;
 
         if (input.IsFocused) {
             if (JustPressed(Keys.Up)) {
@@ -211,23 +222,23 @@ class DebugConsole : PopupMenu, IUpdatable {
                 input.Value = currentHistoryNode?.Value ?? "";
                 input.Caret = -1;
             } else if (JustPressed(Keys.Down)) {
-				if (currentHistoryNode != null) {
-					currentHistoryNode = currentHistoryNode.Previous;
-				}
+                if (currentHistoryNode != null) {
+                    currentHistoryNode = currentHistoryNode.Previous;
+                }
 
-				input.Value = currentHistoryNode?.Value ?? "";
+                input.Value = currentHistoryNode?.Value ?? "";
                 input.Caret = -1;
-			}
-		}
+            }
+        }
 
-		if (JustPressed(Keys.F1)) {
-			ToggleDebugConsole();
-			UserInterface.Active.MouseInputProvider.DoClick();
-		}
-	}
+        if (JustPressed(Keys.F1)) {
+            ToggleDebugConsole();
+            UserInterface.Active.MouseInputProvider.DoClick();
+        }
+    }
 
-	//prints out the available debug commands
-	private void Help() {
+    //prints out the available debug commands
+    private void Help() {
         Info("{{BOLD}}Execute commands:{{DEFAULT}}");
         foreach (ExecutedDebugFeature item in DebugMode.ExecutedFeatures) {
             Info($"{item.Name}");
@@ -240,11 +251,12 @@ class DebugConsole : PopupMenu, IUpdatable {
         SkipLine();
         Info("{{BOLD}}Debug console commands:{{DEFAULT}}");
         Info("help");
+        Info("clear");
     }
 
     //Scrolls the text log to the bottom.
     private void ScrollConsoleDown() {
-        scrollNeeded = 3;   
+        scrollNeeded = 3;
     }
 
     //skips a line in the console, without the > char
@@ -255,9 +267,9 @@ class DebugConsole : PopupMenu, IUpdatable {
     }
 
     private bool JustPressed(Keys key) {
-		bool wasUp = InputManager.Keyboard.PrevKS.IsKeyUp(key);
-		bool isDown = InputManager.Keyboard.CurrentKS.IsKeyDown(key);
+        bool wasUp = InputManager.Keyboard.PrevKS.IsKeyUp(key);
+        bool isDown = InputManager.Keyboard.CurrentKS.IsKeyDown(key);
 
         return wasUp && isDown;
-	}
+    }
 }

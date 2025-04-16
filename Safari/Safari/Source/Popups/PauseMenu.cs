@@ -21,7 +21,9 @@ class PauseMenu : PopupMenu {
 
     public static PauseMenu Instance => instance;
 
-    private PauseMenu() {
+    public static bool Visible => Instance.visible;
+
+    public PauseMenu() {
         visible = false;
         panel = new Panel(new Vector2(0.4f, 0.7f), PanelSkin.Default, Anchor.Center);
         panel.MaxSize = new Vector2(400, 600);
@@ -82,7 +84,7 @@ class PauseMenu : PopupMenu {
     }
 
     public void TogglePauseMenu() {
-        if(SceneManager.Active is not GameScene) {
+        if (SceneManager.Active is not GameScene) {
             return;
         }
         if (visible) {
@@ -96,7 +98,7 @@ class PauseMenu : PopupMenu {
         }
     }
 
-    public void Update(GameTime gameTime) {
+    public override void Update(GameTime gameTime) {
         if (InputManager.IsGameFocused) return;
         if (JustPressed(Keys.Escape)) {
             TogglePauseMenu();

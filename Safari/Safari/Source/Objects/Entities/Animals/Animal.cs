@@ -170,7 +170,7 @@ public abstract class Animal : Entity {
 		birthTime = GameScene.Active.Model.IngameDate;
 
 		Died += (object sender, EventArgs e) => {
-			Group.Leave(this);
+			Group?.Leave(this);
 		};
 
 		// animations
@@ -364,6 +364,7 @@ public abstract class Animal : Entity {
 
 		Position = releasePosition;
 		IsCaught = false;
+		Group = new AnimalGroup(this);
 	}
 
 	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
@@ -408,20 +409,22 @@ public abstract class Animal : Entity {
 		}
 
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (entity is not Animal anim) {
-				continue;
+			if (entity is Poacher poacher) {
+				poacher.Reveal();
 			}
 
-			if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
-				Group.MergeWith(anim.Group);
-			}
+			if (entity is Animal anim && anim.Group != null) {
+				if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
+					Group.MergeWith(anim.Group);
+				}
 
-			if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
-				if (CanReach(anim)) {
-					HungerLevel = 100f;
-					anim.Die();
-				} else {
-					// TODO: set nav target to anim
+				if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
+					if (CanReach(anim)) {
+						HungerLevel = 100f;
+						anim.Die();
+					} else {
+						// TODO: set nav target to anim
+					}
 				}
 			}
 		}

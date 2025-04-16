@@ -81,7 +81,15 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// The current position the component is trying to move towards
 	/// </summary>
-	public Vector2? Target => TargetObject?.Position ?? TargetPosition;
+	public Vector2? Target {
+		get {
+			if (TargetObject != null) {
+				return TargetObject is Entity entity ? entity.CenterPosition : TargetObject.Position;
+			} else {
+				return TargetPosition;
+			}
+		}
+	}
 
 	/// <summary>
 	/// The speed at which the component's owner is moving
@@ -101,6 +109,8 @@ public class NavigationCmp : Component, IUpdatable {
 	/// </summary>
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
 
+	public bool AccountForBounds { get; set; } = true;
+
 	public NavigationCmp(float speed = 50f) {
 		Speed = speed;
 	}
@@ -112,57 +122,48 @@ public class NavigationCmp : Component, IUpdatable {
 
 		if (Moving) {
 			Vector2 targetPos = Target.Value;
-			if (Owner is Entity ownerEntity) {
+			if (AccountForBounds && Owner is Entity ownerEntity) {
 				targetPos -= ownerEntity.Bounds.Size.ToVector2() / 2f;
 				if (targetPos.X < 0) targetPos.X = 0;
 				if (targetPos.Y < 0) targetPos.Y = 0;
 			}
 
 			Vector2 delta = Target.Value - Owner.Position;
+			Vector2 delta_saved = delta;
 
-
-			if (delta.Length() > 0.1f) {
+			if (delta.Length() > 0.01f) {
 				delta.Normalize();
 				LastIntendedDelta = delta;
 				delta *= Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-				Level currLevel = GameScene.Active.Model.Level;
-				Vector2 minPos = Vector2.Zero;
-				Vector2 maxPos = new Vector2(currLevel.MapWidth, currLevel.MapHeight) * currLevel.TileSize + new Vector2(currLevel.TileSize);
 				if (Owner.GetComponent(out CollisionCmp collCmp)) {
-					collCmp.MoveOwner(delta);
+					if (delta.Length() > delta_saved.Length()) {
+						collCmp.MoveOwner(delta_saved);
+					} else {
+						collCmp.MoveOwner(delta);
+					}
 				} else {
-					Owner.Position += delta;
-				}
-
-				Vector2 clampPos = Vector2.Clamp(Owner.Position, minPos, maxPos);
-				if (clampPos != Owner.Position) {
-					if (collCmp != null) {
-						CollisionManager.Remove(collCmp);
-					}
-
-					Owner.Position = clampPos;
-
-					if (collCmp != null) {
-						CollisionManager.Insert(collCmp);
+					if (delta.Length() > delta_saved.Length()) {
+						Owner.Position = Target.Value;
+					} else {
+						Owner.Position += delta;
 					}
 				}
-
 			}
 
 			if (CanReach(Target.Value)) {
-				ReachedTargetEventArgs args = TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
-				ReachedTarget?.Invoke(this, args);
-
 				if (StopOnTargetReach) {
 					Moving = false;
 				}
+
+				ReachedTargetEventArgs args = TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
+				ReachedTarget?.Invoke(this, args);
 			}
 		}
 	}
 
 	private bool CanReach(Vector2 pos) {
-		if (Owner is Entity ownerEntity) {
+		if (Owner is Entity ownerEntity && ownerEntity.ReachDistance > 0) {
 			return ownerEntity.CanReach(pos);
 		}
 

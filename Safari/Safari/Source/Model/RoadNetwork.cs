@@ -23,12 +23,29 @@ public enum RoadState {
 	FromNone
 }
 
+public class RoadChangedEventArgs : EventArgs {
+	/// <summary>
+	/// The tilemap coordinates of the changed point
+	/// </summary>
+	public Point Location { get; set; }
+	/// <summary>
+	/// The type of change (true -> road added, false -> road removed)
+	/// </summary>
+	public bool ChangeType { get; set; }
+
+	public RoadChangedEventArgs(Point location, bool changeType) {
+		Location = location;
+		ChangeType = changeType;
+	}
+};
+
 public class RoadNetwork {
 	private int width;
 	private int height;
 	private RoadState[,] network;
 
 	private List<List<Point>> cachedRoutes = new();
+	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 	private Random rand = new Random();
 
@@ -67,6 +84,15 @@ public class RoadNetwork {
 		}
 	}
 
+	public List<Point> ReturnRoute {
+		get {
+			if (!upToDate) {
+				UpdateNetwork();
+			}
+			return cachedReturnRoute;
+		}
+	}
+
 	/// <summary>
 	/// The example route used for debugging / presenting
 	/// </summary>
@@ -77,7 +103,7 @@ public class RoadNetwork {
 	/// Use this event any time an object store a route from this network.
 	/// This event gets invoked when the extisting, saved routes are invalidated.
 	/// </summary>
-	public event EventHandler RoadChanged;
+	public event EventHandler<RoadChangedEventArgs> RoadChanged;
 
 	static RoadNetwork() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
@@ -144,7 +170,7 @@ public class RoadNetwork {
 		SetAt(end, RoadState.Road);
 		this.Start = start;
 		this.End = end;
-		RoadChanged += (object sender, EventArgs e) => DebugRoute = new List<Point>();
+		RoadChanged += (object sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
 	}
 
 	/// <summary>
@@ -160,8 +186,9 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Road;
 			if (upToDate) {
 				upToDate = false;
-				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
+			RoadChangedEventArgs e = new RoadChangedEventArgs(new Point(x, y), true);
+			RoadChanged?.Invoke(this, e);
 		}
 	}
 	/// <summary>
@@ -183,8 +210,9 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Empty;
 			if (upToDate) {
 				upToDate = false;
-				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
+			RoadChangedEventArgs e = new RoadChangedEventArgs(new Point(x, y), false);
+			RoadChanged?.Invoke(this, e);
 		}
 	}
 	/// <summary>
@@ -236,6 +264,7 @@ public class RoadNetwork {
 	// Must be called every time a road tile changes
 	private void UpdateNetwork() {
 		cachedRoutes = new();
+		cachedReturnRoute = new();
 		CalculateAllRoutes();
 		upToDate = true;
 	}
@@ -277,10 +306,16 @@ public class RoadNetwork {
 			}
 			SaveRoute(route);
 		}
+		cachedReturnRoute = GetPath(End, Start);
 	}
 
-	// Calculates the shortest path between two points
-	private List<Point> GetPath(Point from, Point to) {
+	/// <summary>
+	/// Calculates the shortest path between two points
+	/// </summary>
+	/// <param name="from"></param>
+	/// <param name="to"></param>
+	/// <returns>The route or an empty list</returns>
+	public List<Point> GetPath(Point from, Point to) {
 		Queue<Point> points = new();
 		HashSet<Point> used = new();
 		points.Enqueue(from);
@@ -321,6 +356,9 @@ public class RoadNetwork {
 		Point back = to;
 		List<Point> route = new();
 		if (!finished) {
+			foreach (Point p1 in used) {
+				SetAt(p1, RoadState.Road);
+			}
 			return route;
 		}
 		while (back != from) {

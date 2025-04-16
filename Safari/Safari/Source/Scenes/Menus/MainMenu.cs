@@ -1,6 +1,8 @@
 ﻿using Engine.Scenes;
+using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 class MainMenu : MenuScene {
@@ -17,7 +19,7 @@ class MainMenu : MenuScene {
 
     protected override void ConstructUI() {
         this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
-        
+
         title = new Header("Safari", Anchor.TopCenter);
 
         buttonPanel = new Panel(new Vector2(0.3f, 0.75f), PanelSkin.None, Anchor.Center);

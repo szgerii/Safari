@@ -42,14 +42,19 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	public string DisplayName { get; protected init; }
 
+	private Rectangle? boundsBaseOverride;
 	/// <summary>
-	/// The bounding rectangle of the entity's display content
+	/// The bounding rectangle of the entity's display content <br/>
+	/// The setter can be used to override its BASE rectangle, which is then scaled up by the Sprite scaling.
+	/// To later turn off the override, set this to null.
 	/// </summary>
 	public Rectangle Bounds {
 		get {
 			Rectangle result;
 
-			if (Sprite is AnimatedSpriteCmp animSprite) {
+			if (boundsBaseOverride != null) {
+				result = boundsBaseOverride.Value;
+			} else if (Sprite is AnimatedSpriteCmp animSprite) {
 				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
 			} else {
 				result = new Rectangle(Position.ToPoint(), Sprite.SourceRectangle?.Size ?? Sprite.Texture.Bounds.Size);
@@ -57,6 +62,9 @@ public abstract class Entity : GameObject {
 			result.Size = (result.Size.ToVector2() * Sprite.Scale).ToPoint();
 
 			return result;
+		}
+		set {
+			boundsBaseOverride = value;
 		}
 	}
 
@@ -68,7 +76,7 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
 	/// </summary>
-	public int SightDistance { get; set; } = 4;
+	public int SightDistance { get; set; } = 5;
 	/// <summary>
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
@@ -125,7 +133,7 @@ public abstract class Entity : GameObject {
 	/// <summary>
 	/// Indicates if the entity has died
 	/// </summary>
-	public bool Dead { get; private set; } = false;
+	public bool IsDead { get; private set; } = false;
 
 	/// <summary>
 	/// The navigation component controlling the entity's movement
@@ -165,7 +173,7 @@ public abstract class Entity : GameObject {
 		List<Entity> results = [];
 
 		foreach (Entity e in ActiveEntities) {
-			if (!e.Dead && area.Contains(e.Position)) {
+			if (!e.IsDead && area.Contains(e.Position)) {
 				results.Add(e);
 			}
 		}
@@ -221,6 +229,9 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
 	public void DrawInteractBounds(GameTime gameTime) {
+		if (SightArea.Width == 0 || SightArea.Height == 0 || ReachArea.Width == 0 || ReachArea.Height == 0) {
+			return;
+		}
 		if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
 			sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
 		}
@@ -237,10 +248,10 @@ public abstract class Entity : GameObject {
 	/// Removes the entity from the game
 	/// </summary>
 	public void Die() {
-		if (Dead) return;
+		if (IsDead) return;
 
 		Died?.Invoke(this, EventArgs.Empty);
-		Dead = true;
+		IsDead = true;
 
 		Game.RemoveObject(this);
 	}
@@ -257,6 +268,7 @@ public abstract class Entity : GameObject {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
 	public bool CanSee(GameObject obj) => CanSee(obj.Position);
+	public bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
 	/// </summary>
@@ -269,6 +281,7 @@ public abstract class Entity : GameObject {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's reach</returns>
 	public bool CanReach(GameObject obj) => CanReach(obj.Position);
+	public bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
 
 	/// <summary>
 	/// Retrieves a list of all other active and alive entities inside the entity's sight
@@ -302,4 +315,8 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <returns>A list of the tiles that the entity can interact with</returns>
 	public List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea(ReachArea);
+
+	public override string ToString() {
+		return DisplayName;
+	}
 }
