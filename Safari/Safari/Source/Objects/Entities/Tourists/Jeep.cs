@@ -193,6 +193,7 @@ public class Jeep : Entity {
 		Sprite.YSortEnabled = true;
 		UpdateSrcRec();
 		Sprite.Origin = new Vector2(32, 42); // just by the 'vibes'
+		SightDistance = 6;
 		NavCmp.AccountForBounds = false;
 		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
@@ -268,7 +269,7 @@ public class Jeep : Entity {
 	private void Kill() {
 		for (int i = 0; i < 4; i++) {
 			Tourist t = RemoveFirstTourist();
-			// TODO terrible review
+			t.TourFailed();
 			t.Die();
 		}
 		NavCmp.Moving = false;
@@ -397,6 +398,9 @@ public class Jeep : Entity {
 			WaitingJeep = null;
 			// jeep gets going
 			StateMachine.Transition(JeepState.FollowingRoute);
+			foreach (Tourist t in occupants) {
+				t.Pay();
+			}
 			if (SomeoneWaitingForJeep) {
 				RequestNextJeep();
 			}
@@ -490,8 +494,7 @@ public class Jeep : Entity {
 		if (now > lastDrop + TimeSpan.FromMinutes(2)) {
 			Tourist t = RemoveFirstTourist();
 			lastDrop = now;
-			// TODO ask tourist for review
-			// TODO add money somewhere xd
+			t.TourFinished();
 			t.LeaveJeep();
 			if (occupants.Count <= 0) {
 				StateMachine.Transition(JeepState.WaitingForReturnRoute);

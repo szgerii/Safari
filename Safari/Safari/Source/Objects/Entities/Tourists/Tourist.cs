@@ -18,20 +18,24 @@ public enum TouristState {
 };
 
 public class Tourist : Entity {
-	private static int[] recentRatings = new int[30];
+	private static double[] recentRatings = new double[50];
 	private static int ratingCount = 0;
+	public static EntitySpawner<Tourist> Spawner { get; set; }
+	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
+	private static Random rand = new Random();
 
 	private HashSet<Animal> seenAnimals = new();
 	private HashSet<AnimalSpecies> seenAnimalSpecies = new();
 
-	public static EntitySpawner<Tourist> Spawner { get; set; }
-	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
-	private static Random rand = new Random();
 
 	private int targetQueueIndex = -1;
 	private int queueIndex = -1;
 	private int reachedQueueIndex = -1;
 	private bool shouldDraw = true;
+	private int payedAmount = 0;
+	private double rating = 3f;
+	private int moneyThreshold;
+	private AnimalSpecies favSpecies;
 
 	/// <summary>
 	/// The animated sprite component of the ranger
@@ -52,16 +56,36 @@ public class Tourist : Entity {
 
 	/// <summary>
 	/// The average rating of the park based on the 30 newest ratings by tourist
+	/// Ratings are always in [1.0, 5.0]
 	/// </summary>
-	public static int AvgRating {
+	public static double AvgRating {
 		get {
-			int count = 0;
-			int sum = 0;
+			double sum = 0;
 			for (int i = 0; i < ratingCount; i++) {
 				sum += recentRatings[i];
-				count++;
 			}
-			return count == 0 ? 0 : (sum / count);
+			int remaining = recentRatings.Length - ratingCount;
+			sum += remaining * 2.5f;
+			return sum / recentRatings.Length;
+		}
+	}
+
+	public const double SPAWN_LOWER = 0.35f;
+	public const double SPAWN_UPPER = 0.9f;
+	public static double SpawnRate {
+		get {
+			// base spawn rate -> lerp
+			double spawnRate = SPAWN_LOWER + (SPAWN_UPPER - SPAWN_LOWER) * (AvgRating / 5.0f);
+			if (AvgRating >= 3f) {
+				spawnRate += 0.1f;
+			}
+			if (AvgRating >= 4f) {
+				spawnRate += 0.15f;
+			}
+			if (AvgRating >= 4.75f) {
+				spawnRate += 0.25f;
+			}
+			return spawnRate;
 		}
 	}
 
@@ -72,12 +96,31 @@ public class Tourist : Entity {
 
 	public static void Init() {
 		Queue = new List<Tourist>();
+		recentRatings = new double[30];
+		ratingCount = 0;
 	}
 
 	public static void UpdateQueue() {
 		for (int i = 0; i < Queue.Count; i++) {
 			Queue[i].queueIndex = i;
 		}
+	}
+
+	public static void AddReview(double review) {
+		if (ratingCount < recentRatings.Length) {
+			recentRatings[ratingCount] = review;
+			ratingCount++;
+		} else {
+			for (int i = 1; i < recentRatings.Length; i++) {
+				recentRatings[i - 1] = recentRatings[i];
+			}
+			recentRatings[recentRatings.Length - 1] = review;
+		}
+		UpdateSpawner();
+	}
+
+	public static void UpdateSpawner() {
+		Spawner.Frequency = 1.0f / (SpawnRate);
 	}
 
 	public Tourist(Vector2 pos) : base(pos) {
@@ -99,6 +142,10 @@ public class Tourist : Entity {
 		Sprite.YSortEnabled = true;
 		Sprite.YSortOffset = 64;
 		Sprite.Origin = new Vector2(16, 64); // just by the 'vibes'
+		SightDistance = rand.Next(4, 8);
+		var values = Enum.GetValues(typeof(AnimalSpecies));
+		favSpecies = (AnimalSpecies)values.GetValue(rand.Next(values.Length));
+		moneyThreshold = rand.Next(5, 11) * 100;
 		Attach(Sprite);
 		animSprite.CurrentAnimation = "idle";
 
@@ -216,12 +263,37 @@ public class Tourist : Entity {
 	[StateUpdate(TouristState.InJeep)]
 	public void InJeepUpdate(GameTime gameTime) {
 		Position = Vehicle.Position;
+		foreach (Entity entity in GetEntitiesInSight()) {
+			if (entity is Animal animal && !seenAnimals.Contains(animal)) {
+				seenAnimals.Add(animal);
+				rating += 0.25f;
+				if (animal.Species == favSpecies) {
+					rating += 0.35f;
+				}
+				if (!seenAnimalSpecies.Contains(animal.Species)) {
+					seenAnimalSpecies.Add(animal.Species);
+					rating += 0.4f;
+					if (animal.Species == favSpecies) {
+						rating += 0.6f;
+					}
+				}
+			}
+		}
 	}
 
 	public void LeaveJeep() {
 		Vehicle = null;
 		shouldDraw = true;
 		StateMachine.Transition(TouristState.Leaving);
+	}
+
+	public void TourFinished() {
+		rating = Math.Clamp(rating, 1.0, 5.0);
+		AddReview(rating);
+	}
+
+	public void TourFailed() {
+		AddReview(1.0f);
 	}
 
 	private Vector2 GetNearestEdge() {
@@ -259,10 +331,11 @@ public class Tourist : Entity {
 		Die();
 	}
 
-	// TODO payup
-	// TODO watch for animals :(
-	// TODO rating system design
-	// TODO when dying (mid ride) give the worst possible review xd
-	// TODO ratedown
-	// TODO control spawning rates
+	public void Pay() {
+		GameScene.Active.Model.Funds += Jeep.RentFee;
+		payedAmount = Jeep.RentFee;
+		if (Jeep.RentFee > 600) {
+			rating -= 0.05f * ((Jeep.RentFee - 600) / 50);
+		}
+	}
 }
