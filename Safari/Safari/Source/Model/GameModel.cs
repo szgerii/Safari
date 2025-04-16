@@ -63,7 +63,7 @@ public class GameModel {
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double DAY_LENGTH = 60.0;
+	private const double DAY_LENGTH = 210.0;
 	
 	private GameSpeed prevSpeed;
 	private DateTime startDate;
@@ -332,6 +332,7 @@ public class GameModel {
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
 		Jeep.Init(250);
+		Tourist.Init();
 
 		Game.AddObject(Level);
 
@@ -341,6 +342,14 @@ public class GameModel {
 			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
 		};
 		Game.AddObject(poacherSpawner);
+
+		Tourist.Spawner = new(.2f, 0.65f, 0.1f) {
+			EntityLimit = 30,
+			EntityCount = () => Tourist.Queue.Count,
+			SpawnArea = new Rectangle(-64, 512, 32, 320),
+			ExtraCondition = () => IsDaytime
+		};
+		Game.AddObject(Tourist.Spawner);
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}

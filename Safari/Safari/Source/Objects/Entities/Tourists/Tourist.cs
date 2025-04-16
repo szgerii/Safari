@@ -1,16 +1,54 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Components;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Safari.Components;
+using Safari.Model;
+using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
 namespace Safari.Objects.Entities.Tourists;
 
+public enum TouristState {
+	Entering,
+	Leaving,
+	InQueue,
+	InJeep
+};
+
 public class Tourist : Entity {
-	private float rating = 2.5f;
-	private static Queue<Tourist> jeepQueue = new Queue<Tourist>();
 	private static int[] recentRatings = new int[30];
-	private bool inQueue = true;
-	private Jeep vehicle;
+	private static int ratingCount = 0;
+
+	private HashSet<Animal> seenAnimals = new();
+	private HashSet<AnimalSpecies> seenAnimalSpecies = new();
+
+	public static EntitySpawner<Tourist> Spawner { get; set; }
+	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
+	private static Random rand = new Random();
+
+	private int targetQueueIndex = -1;
+	private int queueIndex = -1;
+	private int reachedQueueIndex = -1;
+	private bool shouldDraw = true;
+
+	/// <summary>
+	/// The animated sprite component of the ranger
+	/// </summary>
+	public AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
+
+	/// <summary>
+	/// The state machine used for transitioning between the different tourist behavior types
+	/// </summary>
+	public StateMachineCmp<TouristState> StateMachine { get; init; }
+
+	/// <summary>
+	/// The spot at which the tourists get picked up
+	/// </summary>
+	public static Point PickupSpot { get; set; }
+	public static Level CurrentLevel => GameScene.Active.Model.Level;
+	public static double QueueOffset => CurrentLevel.TileSize / 2;
 
 	/// <summary>
 	/// The average rating of the park based on the 30 newest ratings by tourist
@@ -19,41 +57,58 @@ public class Tourist : Entity {
 		get {
 			int count = 0;
 			int sum = 0;
-			for (int i = 0; i < recentRatings.Length && recentRatings[i] != 0; i++) {
+			for (int i = 0; i < ratingCount; i++) {
 				sum += recentRatings[i];
 				count++;
 			}
 			return count == 0 ? 0 : (sum / count);
 		}
 	}
-	/// <summary>
-	/// The rating this tourist gives about the ride
-	/// </summary>
-	public float Rating => rating;
-	/// <summary>
-	/// How many tourists are waiting for a free jeep
-	/// 0 means no queue
-	/// </summary>
-	public static int QueueLength => jeepQueue.Count;
+
 	/// <summary>
 	/// The jeep this tourist is assigned to
 	/// </summary>
-	public Jeep Vehicle {
-		get => vehicle;
-		set => vehicle = value;
+	public Jeep Vehicle { get; set; }
+
+	public static void Init() {
+		Queue = new List<Tourist>();
 	}
 
-	/// <summary>
-	/// Invoked every time this tourist sees an animal during the tour
-	/// </summary>
-	public event EventHandler<SawAnimalEventArgs> SawAnimal;
-	/// <summary>
-	/// Invoked when a jeep becomes available
-	/// </summary>
-	public event EventHandler<JeepAvailableEventArgs> JeepAvailable;
+	public static void UpdateQueue() {
+		for (int i = 0; i < Queue.Count; i++) {
+			Queue[i].queueIndex = i;
+		}
+	}
 
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";
+		AnimatedSpriteCmp animSprite;
+		if (rand.Next(2) == 1) {
+			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Man/Walk"), 10, 2, 8);
+			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
+			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
+			animSprite.Animations["idle"] = new Animation(0, 1, true, 8);
+		} else {
+			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Woman/Walk"), 8, 2, 10);
+			animSprite.Animations["walk-right"] = new Animation(0, 8, true);
+			animSprite.Animations["walk-left"] = new Animation(1, 8, true);
+			animSprite.Animations["idle"] = new Animation(0, 1, true, 4);
+		}
+		Sprite = animSprite;
+		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
+		Sprite.YSortEnabled = true;
+		Sprite.YSortOffset = 64;
+		Sprite.Origin = new Vector2(16, 64); // just by the 'vibes'
+		Attach(Sprite);
+		animSprite.CurrentAnimation = "idle";
+
+		NavCmp.AccountForBounds = false;
+		NavCmp.Speed = 60f;
+		NavCmp.StopOnTargetReach = true;
+		ReachDistance = 0;
+
+		StateMachine = new StateMachineCmp<TouristState>(TouristState.Entering);
+		Attach(StateMachine);
 	}
 
 	public override void Load() {
@@ -67,4 +122,147 @@ public class Tourist : Entity {
 
 		base.Unload();
 	}
+
+	public override void Update(GameTime gameTime) {
+		if (NavCmp.LastIntendedDelta != Vector2.Zero && NavCmp.Moving) {
+			bool right = NavCmp.LastIntendedDelta.X > -0.075f;
+			string anim = $"walk-{(right ? "right" : "left")}";
+
+			if (!AnimatedSprite.IsPlaying || AnimatedSprite.CurrentAnimation != anim) {
+				AnimatedSprite.CurrentAnimation = anim;
+			}
+		} else {
+			AnimatedSprite.CurrentAnimation = "idle";
+		}
+
+		if (StateMachine.CurrentState == TouristState.Entering || StateMachine.CurrentState == TouristState.InQueue) {
+			if (!GameScene.Active.Model.IsDaytime) {
+				Queue.Remove(this);
+				UpdateQueue();
+				StateMachine.Transition(TouristState.Leaving);
+			}
+		}
+
+		base.Update(gameTime);
+	}
+
+	public override void Draw(GameTime gameTime) {
+		if (shouldDraw) {
+			base.Draw(gameTime);
+		}
+	}
+
+	[StateBegin(TouristState.Entering)]
+	public void BeginEntering() {
+		targetQueueIndex = Queue.Count;
+		queueIndex = targetQueueIndex;
+		Queue.Add(this);
+		NavCmp.TargetPosition = GetQueueSpot(targetQueueIndex);
+		NavCmp.StopOnTargetReach = true;
+		NavCmp.Moving = true;
+		NavCmp.ReachedTarget += ReachedQueueSpot;
+	}
+
+	private void ReachedQueueSpot(object sender, ReachedTargetEventArgs e) {
+		reachedQueueIndex = targetQueueIndex;
+		targetQueueIndex = -1;
+		NavCmp.ReachedTarget -= ReachedQueueSpot;
+		if (StateMachine.CurrentState != TouristState.InQueue) {
+			StateMachine.Transition(TouristState.InQueue);
+		}
+		if (reachedQueueIndex == 0) {
+			if (!TryEntering()) {
+				Jeep.JeepReadyToFill += OnReadyToFill;
+				Jeep.RequestNextJeep();
+			}
+		}
+	}
+
+	private void OnReadyToFill(object sender, EventArgs e) => TryEntering();
+
+	private bool TryEntering() {
+		Jeep jeep = Jeep.WaitingJeep;
+		if (jeep != null && jeep.AddTourist(this)) {
+			Queue.Remove(this);
+			UpdateQueue();
+			Vehicle = jeep;
+			StateMachine.Transition(TouristState.InJeep);
+			Jeep.JeepReadyToFill -= OnReadyToFill;
+			return true;
+		}
+		return false;
+	}
+
+	[StateUpdate(TouristState.InQueue)]
+	public void InQueueUpdate(GameTime gameTime) {
+		if (queueIndex < reachedQueueIndex && targetQueueIndex == -1 && GameScene.Active.Model.IsDaytime) {
+			targetQueueIndex = queueIndex;
+			NavCmp.TargetPosition = GetQueueSpot(targetQueueIndex);
+			NavCmp.StopOnTargetReach = true;
+			NavCmp.Moving = true;
+			NavCmp.ReachedTarget += ReachedQueueSpot;
+		}
+	}
+
+	private Vector2 GetQueueSpot(int index) {
+		return CurrentLevel.GetTileCenter(PickupSpot) + (new Vector2(0, -1.0f * index * (float)QueueOffset));
+	}
+
+	[StateBegin(TouristState.InJeep)]
+	public void BeginInJeep() {
+		shouldDraw = false;
+	}
+
+	[StateUpdate(TouristState.InJeep)]
+	public void InJeepUpdate(GameTime gameTime) {
+		Position = Vehicle.Position;
+	}
+
+	public void LeaveJeep() {
+		Vehicle = null;
+		shouldDraw = true;
+		StateMachine.Transition(TouristState.Leaving);
+	}
+
+	private Vector2 GetNearestEdge() {
+		Vector2[] options = [
+			new Vector2(-10, Position.Y),
+			new Vector2(CurrentLevel.MapWidth * CurrentLevel.TileSize + 10, Position.Y),
+			new Vector2(Position.X, CurrentLevel.MapHeight * CurrentLevel.TileSize + 10),
+			new Vector2(Position.X, -10)
+		];
+
+		Vector2 minVec = options[0];
+		float minDist = Vector2.Distance(Position, minVec);
+		for (int i = 1; i < options.Length; i++) {
+			float dist = Vector2.Distance(Position, options[i]);
+
+			if (dist < minDist) {
+				minVec = options[i];
+				minDist = dist;
+			}
+		}
+
+		return minVec;
+	}
+
+	[StateBegin(TouristState.Leaving)]
+	public void BeginLeaving() {
+		NavCmp.TargetPosition = GetNearestEdge();
+		NavCmp.StopOnTargetReach = true;
+		NavCmp.Moving = true;
+		NavCmp.ReachedTarget += LeftPark;
+	}
+
+	private void LeftPark(object sender, ReachedTargetEventArgs e) {
+		NavCmp.ReachedTarget -= LeftPark;
+		Die();
+	}
+
+	// TODO payup
+	// TODO watch for animals :(
+	// TODO rating system design
+	// TODO when dying (mid ride) give the worst possible review xd
+	// TODO ratedown
+	// TODO control spawning rates
 }
