@@ -132,7 +132,7 @@ class SettingsMenu : MenuScene {
         screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight);
         screenTypeButtonPanel.Padding = new Vector2(0, 0.25f);
 
-        screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.33f, 0.5f));
+        screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0.5f));
         screenTypeWindowed.Padding = new Vector2(0);
         screenTypeWindowed.ToggleMode = true;
         screenTypeWindowed.OnClick = (Entity entity) => {
@@ -143,7 +143,7 @@ class SettingsMenu : MenuScene {
         };
         screenTypeButtonPanel.AddChild(screenTypeWindowed);
 
-        screenTypeBorderless = new Button("Borderless", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
+        screenTypeBorderless = new Button("Borderless", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, 0.5f));
         screenTypeBorderless.Padding = new Vector2(0);
         screenTypeBorderless.ToggleMode = true;
         screenTypeBorderless.OnClick = (Entity entity) => {
@@ -154,7 +154,7 @@ class SettingsMenu : MenuScene {
         };
         screenTypeButtonPanel.AddChild(screenTypeBorderless);
 
-        screenTypeFullscreen = new Button("Fullscreen", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
+        screenTypeFullscreen = new Button("Fullscreen", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0.5f));
         screenTypeFullscreen.Padding = new Vector2(0);
         screenTypeFullscreen.ToggleMode = true;
         screenTypeFullscreen.OnClick = (Entity entity) => {
@@ -214,6 +214,10 @@ class SettingsMenu : MenuScene {
             if (item.Width == 1280 && item.Height == 720) {
                 addRest = true;
             }
+            if (item.Width == 1920 && item.Height == 1080) {
+                addRest = false;
+                resolutions.Add((item.Width, item.Height));
+            }
             if (addRest) {
                 resolutions.Add((item.Width, item.Height));
             }
@@ -256,8 +260,6 @@ class SettingsMenu : MenuScene {
         settingsPanel.AddChild(resolutionPanel);
         #endregion
 
-        scaleText();
-
         //button setup
         buttonPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.None, Anchor.BottomRight);
 
@@ -274,6 +276,8 @@ class SettingsMenu : MenuScene {
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
+
+        scaleText();
     }
 
     private void saveChangesButtonClicked(Entity entity) {
