@@ -170,12 +170,16 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 	}
 
+	public Rectangle CalculateSrcRec() {
+		return new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight);
+	}
+
 	public override void Draw(GameTime gameTime) {
 		if (currentAnim == null || !Visible) {
 			return;
 		}
 
 		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, CalculateSrcRec(), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 }

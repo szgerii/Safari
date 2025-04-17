@@ -5,10 +5,18 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
+using Safari.Objects.Entities;
+using Safari.Objects.Entities.Animals;
+using Safari.Popups;
 using System;
 using System.Collections.Generic;
 
 namespace Safari.Model;
+
+public enum MouseMode {
+	Build,
+	Inspect
+}
 
 /// <summary>
 /// Stores the static parts of the game world
@@ -275,9 +283,32 @@ public class Level : GameObject {
 	}
 
 	// TODO: remove this whole tile placement part once not needed
+	// TODO the mouse mode should also be moved to the ConstructionHelper
 	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree), typeof(Fence), typeof(Bush), typeof(WideBush)];
 	private int brushIndex = 0;
+	private MouseMode mouseMode = MouseMode.Inspect;
 	public override void Update(GameTime gameTime) {
+		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
+		DebugInfoManager.AddInfo("mouse pos", Utils.Format(mouseWorldPos, false, false), DebugInfoPosition.BottomRight);
+		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.D0)) {
+			if (mouseMode == MouseMode.Inspect) {
+				mouseMode = MouseMode.Build;
+			} else {
+				mouseMode = MouseMode.Inspect;
+			}
+		} else {
+			UpdateBrush();
+			if (mouseMode == MouseMode.Build) {
+				UpdateDebugBuild();
+			} else {
+				UpdateInspect();
+			}
+		}
+
+		base.Update(gameTime);
+	}
+
+	private void UpdateBrush() {
 		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
 			brushIndex = Math.Max(0, brushIndex - 1);
 		}
@@ -285,12 +316,11 @@ public class Level : GameObject {
 			brushIndex = Math.Min(brushes.Length - 1, brushIndex + 1);
 		}
 		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
+	}
 
-		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
-		DebugInfoManager.AddInfo("mouse pos", Utils.Format(mouseWorldPos, false, false), DebugInfoPosition.BottomRight);
-
+	private void UpdateDebugBuild() {
 		Vector2 mouseTilePos = GetMouseTilePos();
-		
+
 		if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize)) {
 			Tile targetTile = GetTile((mouseTilePos / TileSize).ToPoint());
 
@@ -312,8 +342,19 @@ public class Level : GameObject {
 				ClearTile((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize);
 			}
 		}
+	}
 
-		base.Update(gameTime);
+	private void UpdateInspect() {
+		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
+			Entity entity = GetMouseEntity();
+			if (entity != null && entity is Ranger ranger) {
+				EntityControllerMenu controller = new EntityControllerMenu(ranger);
+				controller.Show();
+			} else if (entity != null && entity is Animal animal) {
+				EntityControllerMenu controller = new AnimalControllerMenu(animal);
+				controller.Show();
+			}
+		}
 	}
 
 	public override void Draw(GameTime gameTime) {
@@ -322,9 +363,10 @@ public class Level : GameObject {
 		}
 
 		// TODO: remove once not needed
-		Vector2 mousePosWorld = GetMouseTilePos();
-		Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-
+		if (mouseMode == MouseMode.Build) {
+			Vector2 mousePosWorld = GetMouseTilePos();
+			Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+		}
 		base.Draw(gameTime);
 	}
 
@@ -358,5 +400,22 @@ public class Level : GameObject {
 		mouseTilePos.Y -= mouseTilePos.Y % TileSize;
 
 		return mouseTilePos;
+	}
+
+	// Prefers rangers, then animals, could be null
+	private Entity GetMouseEntity() {
+		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
+		Rectangle catchRectangle = new Rectangle((int)mouseTilePos.X - 48, (int)mouseTilePos.Y - 48, 96, 96);
+		var entities = Entity.GetEntitiesInArea(catchRectangle);
+		Entity result = null;
+		foreach (Entity entity in entities) {
+			if (entity is Ranger && entity.Visible) {
+				result = entity;
+				return result;
+			} else if (entity is Animal && result is not Ranger && entity.Visible) {
+				result = entity;
+			}
+		}
+		return result;
 	}
 }

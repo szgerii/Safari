@@ -47,6 +47,9 @@ public class GameScene : Scene {
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		PostProcessPasses.Remove(model.Level.LightManager);
+
+		EntityControllerMenu.Active?.Hide();
+
 		Game.ContentManager.Unload();
 	}
 
