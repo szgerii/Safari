@@ -1,5 +1,6 @@
 ﻿using Engine.Components;
 using Engine.Input;
+using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Scenes;
@@ -23,13 +24,15 @@ public class EntityControllerMenu : PopupMenu {
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
 			image = new Image(anim.Texture, new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
 			image.Offset = new Vector2(0, 0.3f);
+			UpdateSourceRectangle();
 			panel.AddChild(image);
 		}
 	}
 
+	private Vector2? prevOffset = null;
 	private void PrepareUI() {
 		background = null;
-		panel = new Panel(new Vector2(0.3f, 0.8f), PanelSkin.Default, Anchor.TopRight, new Vector2(16, 16));
+		panel = new Panel(new Vector2(0.3f, 0.9f), PanelSkin.Default, Anchor.TopRight, prevOffset ?? new Vector2(16, 16));
 		panel.Tag = "PassiveFocus";
 		panel.Padding = new Vector2(20, 20);
 
@@ -62,15 +65,18 @@ public class EntityControllerMenu : PopupMenu {
 		Active = this;
 		closeButton.OnClick += OnCloseClick;
 		controlledEntity.Died += OnEntityDied;
+		controlledEntity.IsBeingInspected = true;
 		base.Show();
 		maskArea = this.panel.CalcDestRect();
 		GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
-		
+
+		UpdateData();
 	}
 
 	public override void Hide() {
 		closeButton.OnClick -= OnCloseClick;
 		controlledEntity.Died -= OnEntityDied;
+		controlledEntity.IsBeingInspected = false;
 		base.Hide();
 		Active = null;
 		
@@ -78,9 +84,16 @@ public class EntityControllerMenu : PopupMenu {
 	}
 
 	public override void Update(GameTime gameTime) {
+		UpdateSourceRectangle();
+		UpdateData();
+
+		base.Update(gameTime);
+	}
+
+	protected virtual void UpdateSourceRectangle() {
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
 			Rectangle r = anim.CalculateSrcRec();
-			
+
 			image.SourceRectangle = r;
 			if (r.Width >= r.Height) {
 				float width = 96;
@@ -94,6 +107,7 @@ public class EntityControllerMenu : PopupMenu {
 		} else {
 			image.SourceRectangle = null;
 		}
-		base.Update(gameTime);
 	}
+
+	protected virtual void UpdateData() { }
 }

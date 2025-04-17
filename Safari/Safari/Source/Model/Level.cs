@@ -361,7 +361,7 @@ public class Level : GameObject {
 			if (entity != null && entity is Ranger ranger) {
 				EntityControllerMenu controller = new RangerControllerMenu(ranger);
 				controller.Show();
-			} else if (entity != null && entity is Animal animal) {
+			} else if (entity != null && entity is Animal animal && !animal.IsCaught) {
 				EntityControllerMenu controller = new AnimalControllerMenu(animal);
 				controller.Show();
 			}
@@ -419,7 +419,10 @@ public class Level : GameObject {
 		Entity result = null;
 
 		foreach (Entity e in Entity.ActiveEntities) {
-			if (!e.IsDead && e.Bounds.Contains(mouseWorldPos) && e.Visible) {
+			Rectangle bounds = e.Bounds;
+			bounds.Inflate(TileSize / 3, TileSize / 3);
+
+			if (!e.IsDead && bounds.Contains(mouseWorldPos) && e.Visible) {
 				if (e is Ranger) {
 					result = e;
 					return result;

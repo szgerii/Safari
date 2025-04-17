@@ -180,6 +180,6 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 
 		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, CalculateSrcRec(), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 }

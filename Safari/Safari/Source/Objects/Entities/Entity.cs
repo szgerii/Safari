@@ -150,6 +150,11 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	public SpriteCmp Sprite { get; protected set; }
 
+	/// <summary>
+	/// Whether the entity is currently being inspected through the entity controller
+	/// </summary>
+	public bool IsBeingInspected { get; set; }
+
 	private DateTime lastHourUpdate;
 	private DateTime lastDayUpdate;
 	private DateTime lastWeekUpdate;
@@ -223,9 +228,18 @@ public abstract class Entity : GameObject {
 	}
 
 	public override void Draw(GameTime gameTime) {
-		if (Visible) {
-			base.Draw(gameTime);
+		if (!Visible) {
+			return;
 		}
+
+		if (IsBeingInspected) {
+			float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
+			Sprite.Tint = Color.White * (0.5f + fadeFactor);
+		} else {
+			Sprite.Tint = Color.White;
+		}
+
+		base.Draw(gameTime);
 	}
 
 	private Texture2D sightAreaTex = null, reachAreaTex = null;

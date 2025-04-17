@@ -18,7 +18,7 @@ public class RangerControllerMenu : EntityControllerMenu {
 		dropDown = new DropDown(new Vector2(0.9f, 0.6f), Anchor.AutoCenter, null, PanelSkin.Simple, PanelSkin.Simple);
 		dropDown.SelectList.Scale = 0.5f;
 		foreach (int value in animalTypes) {
-			dropDown.AddItem(((AnimalSpecies)value).ToString(), value);
+			dropDown.AddItem(((AnimalSpecies)value).GetDisplayName(), value);
 			if (value > nullValue) {
 				nullValue = value;
 			}
@@ -47,6 +47,10 @@ public class RangerControllerMenu : EntityControllerMenu {
 		fireButton.OnClick -= OnFireBtnClick;
 		base.Hide();
 		InputManager.Mouse.ScrollLock = false;
+	}
+
+	protected override void UpdateData() {
+		dropDown.SelectedIndex = ranger.TargetSpecies != null ? (int)ranger.TargetSpecies : nullValue;
 	}
 
 	private void OnDropDownChanged(Entity e) {
