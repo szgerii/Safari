@@ -343,7 +343,7 @@ public class GameModel {
 		};
 		Game.AddObject(poacherSpawner);
 
-		Tourist.Spawner = new(.2f, 0.65f, 0.1f) {
+		Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
 			EntityLimit = 30,
 			EntityCount = () => Tourist.Queue.Count,
 			SpawnArea = new Rectangle(-64, 512, 32, 320),
@@ -409,6 +409,7 @@ public class GameModel {
 
 		// Tourist debug stuff
 		DebugInfoManager.AddInfo("Average rating", Tourist.AvgRating + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Tourists pawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {

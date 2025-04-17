@@ -7,6 +7,7 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 
 namespace Safari.Objects.Entities.Tourists;
 
@@ -18,7 +19,7 @@ public enum TouristState {
 };
 
 public class Tourist : Entity {
-	private static double[] recentRatings = new double[50];
+	private static double[] recentRatings = new double[360];
 	private static int ratingCount = 0;
 	public static EntitySpawner<Tourist> Spawner { get; set; }
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
@@ -33,9 +34,12 @@ public class Tourist : Entity {
 	private int reachedQueueIndex = -1;
 	private bool shouldDraw = true;
 	private int payedAmount = 0;
-	private double rating = 3f;
+	private double rating = 2.5f;
 	private int moneyThreshold;
 	private AnimalSpecies favSpecies;
+	private float xOffset;
+	private bool preferStandingRight = true;
+	private DateTime nextSwitch;
 
 	/// <summary>
 	/// The animated sprite component of the ranger
@@ -52,7 +56,7 @@ public class Tourist : Entity {
 	/// </summary>
 	public static Point PickupSpot { get; set; }
 	public static Level CurrentLevel => GameScene.Active.Model.Level;
-	public static double QueueOffset => CurrentLevel.TileSize / 2;
+	public static double QueueOffset => CurrentLevel.TileSize / 1.23;
 
 	/// <summary>
 	/// The average rating of the park based on the 30 newest ratings by tourist
@@ -65,27 +69,25 @@ public class Tourist : Entity {
 				sum += recentRatings[i];
 			}
 			int remaining = recentRatings.Length - ratingCount;
-			sum += remaining * 2.5f;
+			sum += remaining * 2f;
 			return sum / recentRatings.Length;
 		}
 	}
 
-	public const double SPAWN_LOWER = 0.35f;
-	public const double SPAWN_UPPER = 0.9f;
+	public const int milestoneCount = 12;
+	public static double[] milestones = new double[milestoneCount] {1.0, 2.0, 2.5, 3.0, 3.3, 3.7, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0};
+	public static double[] spawnRates = new double[milestoneCount] { 0.4, 0.7, 1.0, 1.5, 1.9, 2.5, 3.2, 4.2, 5.1, 6.0, 7.0, 8.0 };
 	public static double SpawnRate {
 		get {
 			// base spawn rate -> lerp
-			double spawnRate = SPAWN_LOWER + (SPAWN_UPPER - SPAWN_LOWER) * (AvgRating / 5.0f);
-			if (AvgRating >= 3f) {
-				spawnRate += 0.1f;
+			int i = 1;
+			for (i = 1; i < milestoneCount - 1; i++) {
+				if (AvgRating < milestones[i]) {
+					break;
+				}
 			}
-			if (AvgRating >= 4f) {
-				spawnRate += 0.15f;
-			}
-			if (AvgRating >= 4.75f) {
-				spawnRate += 0.25f;
-			}
-			return spawnRate;
+			double factor = (AvgRating - milestones[i - 1]) / (milestones[i] - milestones[i - 1]);
+			return spawnRates[i - 1] + factor * (spawnRates[i] - spawnRates[i - 1]);
 		}
 	}
 
@@ -130,12 +132,14 @@ public class Tourist : Entity {
 			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Man/Walk"), 10, 2, 8);
 			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
-			animSprite.Animations["idle"] = new Animation(0, 1, true, 8);
+			animSprite.Animations["idle-right"] = new Animation(0, 1, true, 8);
+			animSprite.Animations["idle-left"] = new Animation(1, 1, true, 8);
 		} else {
 			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Woman/Walk"), 8, 2, 10);
 			animSprite.Animations["walk-right"] = new Animation(0, 8, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 8, true);
-			animSprite.Animations["idle"] = new Animation(0, 1, true, 4);
+			animSprite.Animations["idle-right"] = new Animation(0, 1, true, 4);
+			animSprite.Animations["idle-left"] = new Animation(1, 1, true, 4);
 		}
 		Sprite = animSprite;
 		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
@@ -147,7 +151,8 @@ public class Tourist : Entity {
 		favSpecies = (AnimalSpecies)values.GetValue(rand.Next(values.Length));
 		moneyThreshold = rand.Next(5, 11) * 100;
 		Attach(Sprite);
-		animSprite.CurrentAnimation = "idle";
+		animSprite.CurrentAnimation = "idle-right";
+		xOffset = (float)rand.NextDouble() * 24f - 12f;
 
 		NavCmp.AccountForBounds = false;
 		NavCmp.Speed = 60f;
@@ -179,7 +184,10 @@ public class Tourist : Entity {
 				AnimatedSprite.CurrentAnimation = anim;
 			}
 		} else {
-			AnimatedSprite.CurrentAnimation = "idle";
+			string anim = $"idle-{(preferStandingRight ? "right" : "left")}";
+			if (!AnimatedSprite.IsPlaying || AnimatedSprite.CurrentAnimation != anim) {
+				AnimatedSprite.CurrentAnimation = anim;
+			}
 		}
 
 		if (StateMachine.CurrentState == TouristState.Entering || StateMachine.CurrentState == TouristState.InQueue) {
@@ -225,6 +233,11 @@ public class Tourist : Entity {
 		}
 	}
 
+	[StateBegin(TouristState.InQueue)]
+	public void BeginInQueue() {
+		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(rand.NextDouble() * 30 + 10.0);
+	}
+
 	private void OnReadyToFill(object sender, EventArgs e) => TryEntering();
 
 	private bool TryEntering() {
@@ -249,10 +262,16 @@ public class Tourist : Entity {
 			NavCmp.Moving = true;
 			NavCmp.ReachedTarget += ReachedQueueSpot;
 		}
+		
+		DateTime now = GameScene.Active.Model.IngameDate;
+		if (now >= nextSwitch) {
+			preferStandingRight = !preferStandingRight;
+			nextSwitch = now + TimeSpan.FromMinutes(rand.NextDouble() * 11 + 6);
+		}
 	}
 
 	private Vector2 GetQueueSpot(int index) {
-		return CurrentLevel.GetTileCenter(PickupSpot) + (new Vector2(0, -1.0f * index * (float)QueueOffset));
+		return CurrentLevel.GetTileCenter(PickupSpot) + (new Vector2(0, -1.0f * index * (float)QueueOffset)) + new Vector2(1.0f, 0) * xOffset;
 	}
 
 	[StateBegin(TouristState.InJeep)]

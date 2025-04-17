@@ -40,12 +40,11 @@ public class Jeep : Entity {
 	/// <summary>
 	/// The number of jeeps the player starts out with
 	/// </summary>
-	public const int STARTING_JEEPS = 2;
+	public const int STARTING_JEEPS = 1;
 	/// <summary>
 	/// Once the hours specified here have passed, a jeep can start its journey even if its not full
-	/// This also means that nighttime - MAX_WAITING_HOURS is the last time a jeep can start gathering tourists
 	/// </summary>
-	public const double MAX_WAITING_HOURS = 6;
+	public const double MAX_WAITING_HOURS = 4;
 
 	private List<Tourist> occupants = new List<Tourist>();
 	private static Queue<Jeep> garage = new Queue<Jeep>();
@@ -288,6 +287,7 @@ public class Jeep : Entity {
 				SomeoneWaitingForJeep = false;
 			} else {
 				SomeoneWaitingForJeep = false;
+				garage.Enqueue(this);
 			}
 		} else {
 			garage.Enqueue(this);
