@@ -409,7 +409,7 @@ public class GameModel {
 
 		// Tourist debug stuff
 		DebugInfoManager.AddInfo("Average rating", Tourist.AvgRating + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Tourists pawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Tourists spawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {
