@@ -4,6 +4,7 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
+using System;
 using System.Collections.Generic;
 
 namespace Safari.Scenes.Menus;
@@ -40,12 +41,28 @@ class SettingsMenu : MenuScene {
     private Button prevResolution;
     private Button nextResolution;
     private List<(int, int)> resolutions;
+    private (int, int) selectedResolution;
     private int currentResolution;
 
     private Panel buttonPanel;
-    private Button menuButton;
     private Button saveChangesButton;
-    private Button discardChangesButton;
+    private Button menuAndDiscardButton;
+
+    private float scale;
+    public static event EventHandler<float> ScaleChanged;
+
+    /// <summary>
+    /// Get the scaling for text that matches the resolution.
+    /// </summary>
+    public float Scale {
+        get {
+            return scale;
+        }
+        private set {
+            scale = value;
+            ScaleChanged?.Invoke(this, value);
+        }
+    }
 
     public static SettingsMenu Instance => instance;
 
@@ -57,49 +74,65 @@ class SettingsMenu : MenuScene {
 
         settingsPanel = new Panel(new Vector2(0, 0.8f), PanelSkin.None, Anchor.TopCenter);
 
-        //fps settings setup
+        #region FPS
+        //FPS Settings
         fpsPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         fpsPanel.Padding = new Vector2(0);
+
         fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         fpsText.Padding = new Vector2(10);
+
         fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
         fpsSlider.Value = DisplayManager.TargetFPS == 0 ? 91 : DisplayManager.TargetFPS;
+
         fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
+
         fpsSlider.OnValueChange = (Entity entity) => {
             fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
             DisplayManager.SetTargetFPS(fpsSlider.Value == 91 ? 0 : fpsSlider.Value, false);
         };
+
         fpsPanel.AddChild(fpsText);
         fpsPanel.AddChild(fpsSlider);
         settingsPanel.AddChild(fpsPanel);
+        #endregion
 
-        //vsync settings setup
+        #region VSYNC
+        //VSYNC Settings
         vsyncPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+
         vsyncPanel.Padding = new Vector2(0);
+
         vsyncText = new Label("VSync:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         vsyncText.Padding = new Vector2(10);
+
         vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50));
         vsyncButton.ToggleMode = true;
         vsyncButton.Checked = DisplayManager.VSync;
         vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
+        vsyncButton.Padding = new Vector2(0);
         vsyncButton.OnValueChange = (Entity entity) => {
             vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
             DisplayManager.SetVSync(vsyncButton.Checked, false);
         };
-        vsyncButton.Padding = new Vector2(0);
+
         vsyncPanel.AddChild(vsyncText);
         vsyncPanel.AddChild(vsyncButton);
         settingsPanel.AddChild(vsyncPanel);
+        #endregion
 
-        //screen type settings setup
+        #region SCREEN_TYPE
+        //SCREEN TYPE Settings
         screenTypePanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         screenTypePanel.Padding = new Vector2(0);
+
         screenTypeText = new Label("Window mode: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         screenTypeText.Padding = new Vector2(10);
+
         screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight);
         screenTypeButtonPanel.Padding = new Vector2(0, 0.25f);
 
-        screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.33f, 0.5f));
+        screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0.5f));
         screenTypeWindowed.Padding = new Vector2(0);
         screenTypeWindowed.ToggleMode = true;
         screenTypeWindowed.OnClick = (Entity entity) => {
@@ -109,7 +142,8 @@ class SettingsMenu : MenuScene {
             DisplayManager.SetWindowType(WindowType.WINDOWED, false);
         };
         screenTypeButtonPanel.AddChild(screenTypeWindowed);
-        screenTypeBorderless = new Button("Borderless", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
+
+        screenTypeBorderless = new Button("Borderless", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, 0.5f));
         screenTypeBorderless.Padding = new Vector2(0);
         screenTypeBorderless.ToggleMode = true;
         screenTypeBorderless.OnClick = (Entity entity) => {
@@ -119,7 +153,8 @@ class SettingsMenu : MenuScene {
             DisplayManager.SetWindowType(WindowType.BORDERLESS, false);
         };
         screenTypeButtonPanel.AddChild(screenTypeBorderless);
-        screenTypeFullscreen = new Button("Fullscreen", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.33f, 0.5f));
+
+        screenTypeFullscreen = new Button("Fullscreen", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0.5f));
         screenTypeFullscreen.Padding = new Vector2(0);
         screenTypeFullscreen.ToggleMode = true;
         screenTypeFullscreen.OnClick = (Entity entity) => {
@@ -128,18 +163,22 @@ class SettingsMenu : MenuScene {
             screenTypeFullscreen.Checked = true;
             DisplayManager.SetWindowType(WindowType.FULL_SCREEN, false);
         };
+
         switch (DisplayManager.WindowType) {
             case WindowType.WINDOWED: screenTypeWindowed.Checked = true; break;
             case WindowType.BORDERLESS: screenTypeBorderless.Checked = true; break;
             case WindowType.FULL_SCREEN: screenTypeFullscreen.Checked = true; break;
             default: screenTypeWindowed.Checked = true; break;
+
         }
         screenTypeButtonPanel.AddChild(screenTypeFullscreen);
         screenTypePanel.AddChild(screenTypeText);
         screenTypePanel.AddChild(screenTypeButtonPanel);
         settingsPanel.AddChild(screenTypePanel);
+        #endregion
 
-        //camera speed setting setup
+        #region CAMERA_SPEED
+        //CAMERA SPEED Settings
         cameraSpeedPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         cameraSpeedPanel.Padding = new Vector2(0);
 
@@ -159,18 +198,35 @@ class SettingsMenu : MenuScene {
         cameraSpeedPanel.AddChild(cameraSpeedText);
         cameraSpeedPanel.AddChild(cameraSpeedSlider);
         settingsPanel.AddChild(cameraSpeedPanel);
+        #endregion
 
-        //resolution setting setup
+        #region RESOLUTION
+        //RESOLUTION Settings
         resolutionPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         resolutionPanel.Padding = new Vector2(0);
+
         resolutionText = new Label("Resolution: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         resolutionText.Padding = new Vector2(10);
+
         resolutions = new List<(int, int)>();
+        bool addRest = false;
         foreach (DisplayMode item in DisplayManager.supportedResolutions) {
-            resolutions.Add((item.Width, item.Height));
+            if (item.Width == 1280 && item.Height == 720) {
+                addRest = true;
+            }
+            if (item.Width == 1920 && item.Height == 1080) {
+                addRest = false;
+                resolutions.Add((item.Width, item.Height));
+            }
+            if (addRest) {
+                resolutions.Add((item.Width, item.Height));
+            }
         }
+
         resolutionChangePanel = new Panel(new Vector2(0.5f, 0), PanelSkin.None, Anchor.CenterRight);
         currentResolution = resolutions.FindIndex(x => x == (DisplayManager.Width, DisplayManager.Height));
+        selectedResolution = resolutions[currentResolution];
+
         resolutionsDisplay = new Label(resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2, Anchor.Center, new Vector2(0.5f, 0));
 
         prevResolution = new Button("-", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.25f, 0));
@@ -178,10 +234,12 @@ class SettingsMenu : MenuScene {
         prevResolution.OnClick = (Entity entity) => {
             if (currentResolution != 0) {
                 --currentResolution;
-            } 
-                resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
+            }
+            resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
+            selectedResolution = resolutions[currentResolution];
             DisplayManager.SetResolution(resolutions[currentResolution].Item1, resolutions[currentResolution].Item2, false);
         };
+
         nextResolution = new Button("+", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.25f, 0));
         nextResolution.Padding = new Vector2(0);
         nextResolution.OnClick = (Entity entity) => {
@@ -189,8 +247,8 @@ class SettingsMenu : MenuScene {
                 ++currentResolution;
             }
             resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
+            selectedResolution = resolutions[currentResolution];
             DisplayManager.SetResolution(resolutions[currentResolution].Item1, resolutions[currentResolution].Item2, false);
-
         };
 
         resolutionChangePanel.AddChild(prevResolution);
@@ -200,46 +258,55 @@ class SettingsMenu : MenuScene {
         resolutionPanel.AddChild(resolutionText);
         resolutionPanel.AddChild(resolutionChangePanel);
         settingsPanel.AddChild(resolutionPanel);
+        #endregion
 
         //button setup
-        buttonPanel = new Panel(new Vector2(0.75f, 0.1f), PanelSkin.None, Anchor.BottomRight);
+        buttonPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.None, Anchor.BottomRight);
 
-        saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, -1));
+        menuAndDiscardButton = new Button("Exit & Discard", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.55f, -1));
+        menuAndDiscardButton.Padding = new Vector2(10);
+        menuAndDiscardButton.OnClick = menuAndDiscardButtonClicked;
+
+        saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
         saveChangesButton.Padding = new Vector2(10);
         saveChangesButton.OnClick = saveChangesButtonClicked;
 
-        discardChangesButton = new Button("Discard", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, -1));
-        discardChangesButton.OnClick = discardChangesButtonClicked;
-        discardChangesButton.Padding = new Vector2(10);
-
-        menuButton = new Button("Back to Menu", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
-        menuButton.OnClick = menuButtonClicked;
-        menuButton.Padding = new Vector2(10);
-
-        buttonPanel.AddChild(menuButton);
+        buttonPanel.AddChild(menuAndDiscardButton);
         buttonPanel.AddChild(saveChangesButton);
-        buttonPanel.AddChild(discardChangesButton);
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
+
+        scaleText();
     }
 
     private void saveChangesButtonClicked(Entity entity) {
         CameraControllerCmp.DefaultScrollSpeed = cameraStoredValue;
+        scaleText();
         DisplayManager.ApplyChanges();
     }
 
-    private void discardChangesButtonClicked(Entity entity) {
+    private void menuAndDiscardButtonClicked(Entity entity) {
         cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
         DisplayManager.DiscardChanges();
-    }
-
-    private void menuButtonClicked(Entity entity) {
-        discardChangesButtonClicked(entity);
         SceneManager.Load(MainMenu.Instance);
     }
 
+    private void scaleText() {
+        Scale = ((float)selectedResolution.Item2 / 1080f) * 1.25f;
+        fpsText.Scale = Scale;
+        vsyncText.Scale = Scale;
+        screenTypeText.Scale = Scale;
+        cameraSpeedText.Scale = Scale;
+        resolutionText.Scale = Scale;
+        resolutionsDisplay.Scale = Scale;
+
+        prevResolution.ButtonParagraph.Scale = Scale;
+        nextResolution.ButtonParagraph.Scale = Scale;
+    }
+
     protected override void DestroyUI() {
+        panel = null;
         title = null;
         settingsPanel = null;
         fpsPanel = null;
@@ -266,8 +333,7 @@ class SettingsMenu : MenuScene {
         nextResolution = null;
         resolutions = null;
         buttonPanel = null;
-        menuButton = null;
+        menuAndDiscardButton = null;
         saveChangesButton = null;
-        discardChangesButton = null;
     }
 }

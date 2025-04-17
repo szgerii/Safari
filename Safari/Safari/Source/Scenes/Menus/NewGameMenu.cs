@@ -2,10 +2,11 @@
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Popups;
+using Engine;
 
 namespace Safari.Scenes.Menus;
 
-class NewGameMenu : MenuScene {
+class NewGameMenu : MenuScene, IUpdatable {
     private readonly static NewGameMenu instance = new NewGameMenu();
     private Header title;
     private Panel itemPanel;
@@ -17,14 +18,15 @@ class NewGameMenu : MenuScene {
     private RadioButton radioEasy;
     private RadioButton radioMedium;
     private RadioButton radioHard;
+    private bool loadGame = false;
 
     public static NewGameMenu Instance => instance;
 
     protected override void ConstructUI() {
-        this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
+        panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
 
         title = new Header("Safari", Anchor.TopCenter);
-        this.panel.AddChild(title);
+        panel.AddChild(title);
 
         itemPanel = new Panel(new Vector2(0.4f, 0.8f), PanelSkin.None, Anchor.Center);
 
@@ -48,11 +50,11 @@ class NewGameMenu : MenuScene {
         startButton.OnClick = StartButtonClicked;
         itemPanel.AddChild(startButton);
 
-        this.panel.AddChild(itemPanel);
+        panel.AddChild(itemPanel);
 
         menuButton = new Button("Back to Menu", ButtonSkin.Default, Anchor.BottomRight, new Vector2(250, 60));
         menuButton.OnClick = MenuButtonClicked;
-        this.panel.AddChild(menuButton);
+        panel.AddChild(menuButton);
     }
 
     private void StartButtonClicked(Entity entity) {
@@ -63,7 +65,8 @@ class NewGameMenu : MenuScene {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        SceneManager.Load(new GameScene());
+        SceneManager.Load(LoadingScene.Instance);
+        loadGame = true;
     }
 
     private void MenuButtonClicked(Entity entity) {
@@ -71,6 +74,7 @@ class NewGameMenu : MenuScene {
     }
 
     protected override void DestroyUI() {
+        panel = null;
         title = null;
         itemPanel = null;
         input = null;
@@ -81,5 +85,12 @@ class NewGameMenu : MenuScene {
         radioEasy = null;
         radioMedium = null;
         radioHard = null;
+    }
+
+    public override void Update(GameTime gameTime) {
+        if (loadGame) {
+            SceneManager.Load(new GameScene());
+            loadGame = false;
+        }
     }
 }

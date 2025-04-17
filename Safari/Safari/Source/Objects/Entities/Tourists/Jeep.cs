@@ -197,6 +197,7 @@ public class Jeep : Entity {
 		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
 		ReachDistance = 0;
+		Bounds = new Rectangle(0, 0, 0, 0);
 		Attach(Sprite);
 		Attach(StateMachine);
 	}
