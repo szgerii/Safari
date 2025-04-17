@@ -52,11 +52,14 @@ class Statusbar : PopupMenu, IUpdatable {
 
     public static Statusbar Instance => instance;
 
+    public static int Height => Instance.panel.GetActualDestRect().Height;
+
     private Statusbar() {
+        background = null;
+
         panel = new Panel(new Vector2(0, 0.25f), PanelSkin.Default, Anchor.BottomCenter);
         panel.Padding = new Vector2(0);
         panel.Tag = "PassiveFocus";
-        //panel.MaxSize = new Vector2(0, 200);ff
 
         #region SPEED_BUTTONS
         speedButtonPanel = new Panel(new Vector2(0.25f, 0.5f), PanelSkin.None, Anchor.TopLeft);
@@ -107,7 +110,7 @@ class Statusbar : PopupMenu, IUpdatable {
         entityManagerButton.OnClick = (Entity entity) => {
             new AlertMenu("clicked", entityManagerButton.GetActualDestRect().Width.ToString()).Show();
         };
-        //entityManagerButton.MaxSize = new Vector2(400, 0.3f);
+        entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
 
         indicatorPanel = new Panel(new Vector2(0, 0.5f), PanelSkin.None, Anchor.BottomLeft);
@@ -115,6 +118,7 @@ class Statusbar : PopupMenu, IUpdatable {
 
         Vector2 panelsize = new Vector2(0.25f,0);
 
+        #region INDICATORS
         moneyPanel = new Panel(panelsize, PanelSkin.Default, Anchor.CenterLeft);
         ratingPanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
         carnivorePanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
@@ -134,11 +138,10 @@ class Statusbar : PopupMenu, IUpdatable {
         indicatorPanel.AddChild(ratingPanel);
         indicatorPanel.AddChild(carnivorePanel);
         indicatorPanel.AddChild(herbivorePanel);
+        #endregion
 
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
-
-        //panel.AddChild(categoryMenuPanel);
     }
 
     private void adjustSpeedSettings(Entity entity) {
@@ -147,48 +150,32 @@ class Statusbar : PopupMenu, IUpdatable {
                 if (SceneManager.Active is GameScene) {
                     GameModel model = GameScene.Active.Model;
                     model.Pause();
-                    pauseButton.Checked = true;
-                    slowButton.Checked = false;
-                    mediumButton.Checked = false;
-                    fastButton.Checked = false;
                 }
                 break;
             case "slow-button":
                 if (SceneManager.Active is GameScene) {
                     GameModel model = GameScene.Active.Model;
                     model.GameSpeed = GameSpeed.Slow;
-                    pauseButton.Checked = false;
-                    slowButton.Checked = true;
-                    mediumButton.Checked = false;
-                    fastButton.Checked = false;
                 }
                 break;
             case "medium-button":
                 if (SceneManager.Active is GameScene) {
                     GameModel model = GameScene.Active.Model;
                     model.GameSpeed = GameSpeed.Medium;
-                    pauseButton.Checked = false;
-                    slowButton.Checked = false;
-                    mediumButton.Checked = true;
-                    fastButton.Checked = false;
                 }
                 break;
             case "fast-button":
                 if (SceneManager.Active is GameScene) {
                     GameModel model = GameScene.Active.Model;
                     model.GameSpeed = GameSpeed.Fast;
-                    pauseButton.Checked = false;
-                    slowButton.Checked = false;
-                    mediumButton.Checked = false;
-                    fastButton.Checked = true;
                 }
                 break;
         }
+        adjustSpeedButtons();
     }
 
     public void Load() {
         UserInterface.Active.AddEntity(panel);
-        //UserInterface.Active.AddEntity(speedButtonPanel);
         adjustSpeedButtons();
     }
 
@@ -218,11 +205,9 @@ class Statusbar : PopupMenu, IUpdatable {
 
     public void UnLoad() {
         UserInterface.Active.RemoveEntity(panel);
-        //UserInterface.Active.RemoveEntity(speedButtonPanel);
     }
 
-    public void Update(GameTime gameTime) {
-
+    public override void Update(GameTime gameTime) {
         moneyPrev = moneyCurr;
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " + moneyCurr;
