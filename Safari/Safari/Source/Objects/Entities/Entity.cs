@@ -248,19 +248,19 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
 	public void DrawInteractBounds(GameTime gameTime) {
-		if (SightArea.Width == 0 || SightArea.Height == 0 || ReachArea.Width == 0 || ReachArea.Height == 0) {
-			return;
-		}
-		if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
-			sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
-		}
-
-		if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size) {
-			reachAreaTex = Utils.GenerateTexture(ReachArea.Width, ReachArea.Height, Color.White, true);
+		if (SightArea.Width != 0 && SightArea.Height != 0) {
+			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
+				sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
+			}
+			Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
-		Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
-		Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+		if (ReachArea.Width != 0 && ReachArea.Height != 0) {
+			if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size) {
+				reachAreaTex = Utils.GenerateTexture(ReachArea.Width, ReachArea.Height, Color.White, true);
+			}
+			Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+		}
 	}
 
 	/// <summary>

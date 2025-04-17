@@ -56,6 +56,10 @@ public class LightManager : IPostProcessPass {
 		Game.SpriteBatch.End();
 
 		dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
+		dayNightPass.Parameters["sunrise_start"].SetValue((float)GameModel.SUNRISE_START);
+		dayNightPass.Parameters["sunrise_end"].SetValue((float)GameModel.SUNRISE_END);
+		dayNightPass.Parameters["sunset_start"].SetValue((float)GameModel.SUNSET_START);
+		dayNightPass.Parameters["sunset_end"].SetValue((float)GameModel.SUNSET_END);
 		dayNightPass.Parameters["LightMap"].SetValue(_lightTexture);
 	}
 

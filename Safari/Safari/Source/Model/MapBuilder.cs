@@ -397,6 +397,7 @@ public static class MapBuilder {
 		Jeep.GarageSpot = new Point(-2, level.Network.Start.Y);
 		Jeep.PickUpSpot = level.Network.Start - new Point(2, 0);
 		Jeep.DropOffSpot = level.Network.End - new Point(0, 2);
+		Tourist.PickupSpot = Jeep.PickUpSpot - new Point(0, 1);
 		while (current.X < level.Network.End.X) {
 			current.X++;
 			level.SetTile(current, new Road());
