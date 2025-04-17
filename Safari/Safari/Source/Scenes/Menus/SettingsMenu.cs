@@ -306,6 +306,7 @@ class SettingsMenu : MenuScene {
     }
 
     protected override void DestroyUI() {
+        panel = null;
         title = null;
         settingsPanel = null;
         fpsPanel = null;

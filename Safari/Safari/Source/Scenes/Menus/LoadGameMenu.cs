@@ -5,25 +5,25 @@ using Microsoft.Xna.Framework;
 namespace Safari.Scenes.Menus;
 
 class LoadGameMenu : MenuScene {
-    private readonly static LoadGameMenu active = new LoadGameMenu();
+    private readonly static LoadGameMenu instance = new LoadGameMenu();
     private Header title;
     private Paragraph message;
     private Button menuButton;
 
-    public static LoadGameMenu Active => active;
+    public static LoadGameMenu Instance => instance;
 
     protected override void ConstructUI() {
-        this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
+        panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
 
         title = new Header("Safari", Anchor.TopCenter);
-        this.panel.AddChild(title);
+        panel.AddChild(title);
 
         message = new Paragraph("This feature is WIP, come back another time.", Anchor.Center);
-        this.panel.AddChild(message);
+        panel.AddChild(message);
 
         menuButton = new Button("Back to Menu", ButtonSkin.Default, Anchor.BottomRight, new Vector2(250, 60));
         menuButton.OnClick = MenuButtonClicked;
-        this.panel.AddChild(menuButton);
+        panel.AddChild(menuButton);
     }
 
     private void MenuButtonClicked(Entity entity) {
@@ -31,6 +31,7 @@ class LoadGameMenu : MenuScene {
     }
 
     protected override void DestroyUI() {
+        panel = null;
         title = null;
         message = null;
         menuButton = null;
