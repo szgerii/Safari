@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Model;
+using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,8 @@ public enum JeepState {
 	WaitingForReturnRoute,
 	WaitingForEscapeRoute,
 	FollowingRoute,
-	Emptying
+	Emptying,
+	Canceling
 }
 
 public enum JeepDirection {
@@ -38,15 +40,13 @@ public class Jeep : Entity {
 	/// <summary>
 	/// The number of jeeps the player starts out with
 	/// </summary>
-	public const int STARTING_JEEPS = 2;
+	public const int STARTING_JEEPS = 1;
 	/// <summary>
 	/// Once the hours specified here have passed, a jeep can start its journey even if its not full
-	/// This also means that nighttime - MAX_WAITING_HOURS is the last time a jeep can start gathering tourists
 	/// </summary>
-	public const int MAX_WAITING_HOURS = 3;
+	public const double MAX_WAITING_HOURS = 4;
 
-	// TODO tourist list later
-	private int occupants = 0;
+	private List<Tourist> occupants = new List<Tourist>();
 	private static Queue<Jeep> garage = new Queue<Jeep>();
 	private static bool jeepEntering = false;
 
@@ -58,6 +58,8 @@ public class Jeep : Entity {
 	private JeepDirection dir = JeepDirection.Right;
 	private bool needEscape = false;
 	private Point escapeStart;
+	private DateTime lastDrop;
+	private DateTime waitStart;
 
 	private const int TEXTURE_COUNT = 4;
 	private static string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
@@ -109,25 +111,21 @@ public class Jeep : Entity {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-jeep", () => RequestNextJeep()));
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("fill-jeep", () => {
-			for (int i = 0; i < CAPACITY; i++) {
-				if (WaitingJeep != null) {
-					WaitingJeep.AddTourist();
-				}
-			}
+			DebugFill();
 		}));
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("add-jeep", () => {
 			Jeep.SpawnJeep();
 		}));
 
+		DebugMode.AddFeature(new ExecutedDebugFeature("add-to-jeep", () => {
+			DebugAdd();
+		}));
+
 		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-jeep-autofill", () => {
 			debugAutoFill = !debugAutoFill;
 			if (debugAutoFill) {
-				for (int i = 0; i < CAPACITY; i++) {
-					if (WaitingJeep != null) {
-						WaitingJeep.AddTourist();
-					}
-				}
+				DebugFill();
 			}
 		}));
 
@@ -169,11 +167,19 @@ public class Jeep : Entity {
 
 	private static void DebugReadyToFill(object sender, EventArgs e) {
 		if (debugAutoFill) {
-			for (int i = 0; i < CAPACITY; i++) {
-				if (WaitingJeep != null) {
-					WaitingJeep.AddTourist();
-				}
-			}
+			DebugFill();
+		}
+	}
+
+	private static void DebugFill() {
+		for (int i = 0; i < CAPACITY; i++) {
+			DebugAdd();
+		}
+	}
+
+	private static void DebugAdd() {
+		if (WaitingJeep != null) {
+			WaitingJeep.AddTourist(new Tourist(new(40, 40)));
 		}
 	}
 
@@ -182,10 +188,11 @@ public class Jeep : Entity {
 		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 3);
 		Attach(lightCmp);
 		Sprite = new SpriteCmp(textures[color]);
-		Sprite.LayerDepth = 0.4f;
+		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
 		Sprite.YSortEnabled = true;
 		UpdateSrcRec();
 		Sprite.Origin = new Vector2(32, 42); // just by the 'vibes'
+		SightDistance = 6;
 		NavCmp.AccountForBounds = false;
 		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
@@ -206,13 +213,12 @@ public class Jeep : Entity {
 	/// Request a jeep
 	/// </summary>
 	public static void RequestNextJeep() {
-		// TODO obvi two way events with the tourist queue
 		// Pop the queue and transition it to Entering
-		if (!jeepEntering && WaitingJeep == null && garage.Count > 0) {
+		if (!jeepEntering && WaitingJeep == null && garage.Count > 0 && GameScene.Active.Model.IsDaytime) {
 			Jeep next = garage.Dequeue();
 			next.StateMachine.Transition(JeepState.Entering);
 			SomeoneWaitingForJeep = false;
-		} else {
+		} else if (!jeepEntering && GameScene.Active.Model.IsDaytime) {
 			SomeoneWaitingForJeep = true;
 		}
 	}
@@ -233,11 +239,10 @@ public class Jeep : Entity {
 	/// <summary>
 	/// Add a tourist to this jeep
 	/// </summary>
-	public void AddTourist() {
-		// TODO rewrite with real tourists 
-		if (StateMachine.CurrentState == JeepState.WaitingForTourists) {
-			occupants++;
-			if (occupants >= CAPACITY) {
+	public bool AddTourist(Tourist t) {
+		if (StateMachine.CurrentState == JeepState.WaitingForTourists && occupants.Count < CAPACITY) {
+			occupants.Add(t);
+			if (occupants.Count >= CAPACITY) {
 				// jeep is full here
 				StateMachine.Transition(JeepState.WaitingForNormalRoute);
 				goal = CurrentLevel.Network.End;
@@ -247,26 +252,25 @@ public class Jeep : Entity {
 					RequestNextJeep();
 				}
 			}
+			return true;
 		}
+		return false;
 	}
 
-	private void RemoveTourist() {
-		// TODO rewrite with real tourists
-		if (StateMachine.CurrentState == JeepState.Emptying) {
-			occupants--;
-			if (occupants <= 0) {
-				StateMachine.Transition(JeepState.WaitingForReturnRoute);
-				goal = CurrentLevel.Network.Start;
-				postGoal = GarageSpot;
-				postState = JeepState.Parking;
-			}
+	private Tourist RemoveFirstTourist() {
+		Tourist result = null;
+		if (occupants.Count > 0) {
+			result = occupants[occupants.Count - 1];
+			occupants.RemoveAt(occupants.Count - 1);
 		}
+		return result;
 	}
 
 	private void Kill() {
-		// TODO obvi rewrite to real tourists
 		for (int i = 0; i < 4; i++) {
-			RemoveTourist();
+			Tourist t = RemoveFirstTourist();
+			t.TourFailed();
+			t.Die();
 		}
 		NavCmp.Moving = false;
 		if (StateMachine.CurrentState == JeepState.FollowingRoute) {
@@ -279,8 +283,13 @@ public class Jeep : Entity {
 	[StateBegin(JeepState.Parking)]
 	public void BeginParking() {
 		if (SomeoneWaitingForJeep) {
-			StateMachine.Transition(JeepState.Entering);
-			SomeoneWaitingForJeep = false;
+			if (GameScene.Active.Model.IsDaytime) {
+				StateMachine.Transition(JeepState.Entering);
+				SomeoneWaitingForJeep = false;
+			} else {
+				SomeoneWaitingForJeep = false;
+				garage.Enqueue(this);
+			}
 		} else {
 			garage.Enqueue(this);
 		}
@@ -312,6 +321,33 @@ public class Jeep : Entity {
 	public void BeginWaitingForTourists() {
 		WaitingJeep = this;
 		JeepReadyToFill?.Invoke(this, EventArgs.Empty);
+		waitStart = GameScene.Active.Model.IngameDate;
+	}
+
+	[StateUpdate(JeepState.WaitingForTourists)]
+	public void WaitingForTouristsUpdate(GameTime gameTime) {
+		DateTime now = GameScene.Active.Model.IngameDate;
+		if (!GameScene.Active.Model.IsDaytime) {
+			StateMachine.Transition(JeepState.Canceling);
+	
+			return;
+		}
+		if (now > waitStart + TimeSpan.FromHours(MAX_WAITING_HOURS) && occupants.Count > 0) {
+			StateMachine.Transition(JeepState.WaitingForNormalRoute);
+			goal = CurrentLevel.Network.End;
+			postGoal = DropOffSpot;
+			postState = JeepState.Emptying;
+			if (debugAutoRequest) {
+				RequestNextJeep();
+			}
+		}
+	}
+
+	[StateUpdate(JeepState.WaitingForNormalRoute)]
+	public void WaitingForNormalRouteUpdate(GameTime gameTime) {
+		if (!GameScene.Active.Model.IsDaytime) {
+			StateMachine.Transition(JeepState.Canceling);
+		}
 	}
 
 	[StateBegin(JeepState.WaitingForNormalRoute)]
@@ -363,6 +399,9 @@ public class Jeep : Entity {
 			WaitingJeep = null;
 			// jeep gets going
 			StateMachine.Transition(JeepState.FollowingRoute);
+			foreach (Tourist t in occupants) {
+				t.Pay();
+			}
 			if (SomeoneWaitingForJeep) {
 				RequestNextJeep();
 			}
@@ -387,8 +426,13 @@ public class Jeep : Entity {
 	public void BeginFollowingRoute() {
 		needEscape = false;
 		routeIndex = 0;
-		NavCmp.ReachedTarget += CheckPointReached;
-		NavCmp.TargetPosition = CurrentLevel.GetTileCenter(route[0]);
+		if (route.Count > 0) {
+			NavCmp.ReachedTarget += CheckPointReached;
+			NavCmp.TargetPosition = CurrentLevel.GetTileCenter(route[0]);
+		} else {
+			NavCmp.ReachedTarget += PostGoalReached;
+			NavCmp.TargetPosition = CurrentLevel.GetTileCenter(postGoal);
+		}
 		NavCmp.StopOnTargetReach = false;
 		NavCmp.Moving = true;
 	}
@@ -442,9 +486,58 @@ public class Jeep : Entity {
 
 	[StateBegin(JeepState.Emptying)]
 	public void BeginEmptying() {
-		// TODO this is debug lolol
-		while (occupants > 0) {
-			RemoveTourist();
+		lastDrop = GameScene.Active.Model.IngameDate;
+	}
+
+	[StateUpdate(JeepState.Emptying)]
+	public void EmptyingUpdate(GameTime gameTime) {
+		DateTime now = GameScene.Active.Model.IngameDate;
+		if (now > lastDrop + TimeSpan.FromMinutes(2)) {
+			Tourist t = RemoveFirstTourist();
+			lastDrop = now;
+			t.TourFinished();
+			t.LeaveJeep();
+			if (occupants.Count <= 0) {
+				StateMachine.Transition(JeepState.WaitingForReturnRoute);
+				goal = CurrentLevel.Network.Start;
+				postGoal = GarageSpot;
+				postState = JeepState.Parking;
+			}
+		}
+	}
+
+	public void BeginCanceling(GameTime gameTime) {
+		if (occupants.Count <= 0) {
+			route = new();
+			routeIndex = 0;
+			postGoal = GarageSpot;
+			postState = JeepState.Parking;
+			WaitingJeep = null;
+			StateMachine.Transition(JeepState.FollowingRoute);
+			if (SomeoneWaitingForJeep) {
+				RequestNextJeep();
+			}
+		}
+	}
+
+	[StateUpdate(JeepState.Canceling)]
+	public void CancelingUpdate(GameTime gameTime) {
+		DateTime now = GameScene.Active.Model.IngameDate;
+		if (now > lastDrop + TimeSpan.FromMinutes(2)) {
+			Tourist t = RemoveFirstTourist();
+			lastDrop = now;
+			t.LeaveJeep();
+			if (occupants.Count <= 0) {
+				route = new();
+				routeIndex = 0;
+				postGoal = GarageSpot;
+				postState = JeepState.Parking;
+				WaitingJeep = null;
+				StateMachine.Transition(JeepState.FollowingRoute);
+				if (SomeoneWaitingForJeep) {
+					RequestNextJeep();
+				}
+			}
 		}
 	}
 

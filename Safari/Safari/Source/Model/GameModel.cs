@@ -347,7 +347,8 @@ public class GameModel {
 		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
-		Jeep.Init(250);
+		Jeep.Init(400);
+		Tourist.Init();
 
 		Game.AddObject(Level);
 
@@ -357,6 +358,15 @@ public class GameModel {
 			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
 		};
 		Game.AddObject(poacherSpawner);
+
+		Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+			EntityLimit = 30,
+			EntityCount = () => Tourist.Queue.Count,
+			SpawnArea = new Rectangle(-64, 512, 32, 320),
+			ExtraCondition = () => IsDaytime
+		};
+		Game.AddObject(Tourist.Spawner);
+		Tourist.UpdateSpawner();
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
@@ -409,9 +419,13 @@ public class GameModel {
 		DebugInfoManager.AddInfo("Carnivores", $"{model.CarnivoreCount} / {model.WinCriteriaCarn}", DebugInfoPosition.BottomLeft);
 
 		// network debug stuff
-		Level level = model.Level;
-		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
+		//Level level = model.Level;
+		//DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
+		//DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
+
+		// Tourist debug stuff
+		DebugInfoManager.AddInfo("Average rating", Tourist.AvgRating + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Tourists spawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {

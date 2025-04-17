@@ -33,7 +33,7 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 	/// <summary>
 	/// In-game hours between spawn attempts
 	/// </summary>
-	public int Frequency { get; set; }
+	public double Frequency { get; set; }
 	/// <summary>
 	/// The starting chance for actually spawning an entity on an attempt
 	/// </summary>
@@ -69,15 +69,20 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 		return count;
 	};
 
+	/// <summary>
+	/// Add any extra spawning conditions here
+	/// </summary>
+	public Func<bool> ExtraCondition { get; set; } = () => true;
+
 	/// <param name="frequency">The number of in-game hours between attempts</param>
-	public EntitySpawner(int frequency) : base(Vector2.Zero) {
+	public EntitySpawner(double frequency) : base(Vector2.Zero) {
 		Frequency = frequency;
 	}
 
 	/// <param name="frequency">The number of in-game hours between attempts</param>
 	/// <param name="baseChance">The base chance for spawning an entity after <see cref="Frequency"/> in-game hours</param>
 	/// <param name="chanceIncrease">The chance that base chance is increased by after every failed attempt</param>
-	public EntitySpawner(int frequency, float baseChance, float chanceIncrease) : base(Vector2.Zero) {
+	public EntitySpawner(double frequency, float baseChance, float chanceIncrease) : base(Vector2.Zero) {
 		Frequency = frequency;
 		BaseChance = baseChance;
 		ChanceIncrease = chanceIncrease;
@@ -98,6 +103,10 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 		LastSpawnAttempt = GameScene.Active.Model.IngameDate;
 		
 		if (EntityLimit != -1 && EntityCount() >= EntityLimit) {
+			return;
+		}
+
+		if (!ExtraCondition()) {
 			return;
 		}
 
