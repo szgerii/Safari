@@ -11,7 +11,7 @@
 texture PrevStep;
 texture LightMap;
 float Time;
-// Day steps const (TODO uniforms ofc)
+// Day steps const
 float sunrise_start;
 float sunrise_end;
 float sunset_start;
