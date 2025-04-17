@@ -53,7 +53,12 @@ public abstract class Entity : GameObject {
 			Rectangle result;
 
 			if (boundsBaseOverride != null) {
-				result = boundsBaseOverride.Value;
+				result = new Rectangle(
+					(int)Position.X + boundsBaseOverride.Value.X,
+					(int)Position.Y + boundsBaseOverride.Value.Y,
+					boundsBaseOverride.Value.Width,
+					boundsBaseOverride.Value.Height
+				);
 			} else if (Sprite is AnimatedSpriteCmp animSprite) {
 				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
 			} else {

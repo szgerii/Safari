@@ -298,10 +298,13 @@ public class Level : GameObject {
 			}
 		} else {
 			UpdateBrush();
-			if (mouseMode == MouseMode.Build) {
-				UpdateDebugBuild();
-			} else {
-				UpdateInspect();
+			Vector2 mouseTilePos = GetMouseTilePos();
+			if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize) && !InMaskedArea(InputManager.Mouse.Location)) {
+				if (mouseMode == MouseMode.Build) {
+					UpdateDebugBuild(mouseTilePos);
+				} else {
+					UpdateInspect();
+				}
 			}
 		}
 
@@ -318,10 +321,8 @@ public class Level : GameObject {
 		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
 	}
 
-	private void UpdateDebugBuild() {
-		Vector2 mouseTilePos = GetMouseTilePos();
-
-		if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize)) {
+	private void UpdateDebugBuild(Vector2 mouseTilePos) {
+		if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize) && !InMaskedArea(InputManager.Mouse.Location)) {
 			Tile targetTile = GetTile((mouseTilePos / TileSize).ToPoint());
 
 			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];
@@ -344,11 +345,21 @@ public class Level : GameObject {
 		}
 	}
 
+	public List<Rectangle> maskedAreas { get; private set; } = new List<Rectangle>();
+	private bool InMaskedArea(Point position) {
+		foreach (Rectangle area in maskedAreas) {
+			if (area.Contains(position)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void UpdateInspect() {
 		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
 			Entity entity = GetMouseEntity();
 			if (entity != null && entity is Ranger ranger) {
-				EntityControllerMenu controller = new EntityControllerMenu(ranger);
+				EntityControllerMenu controller = new RangerControllerMenu(ranger);
 				controller.Show();
 			} else if (entity != null && entity is Animal animal) {
 				EntityControllerMenu controller = new AnimalControllerMenu(animal);
@@ -404,16 +415,17 @@ public class Level : GameObject {
 
 	// Prefers rangers, then animals, could be null
 	private Entity GetMouseEntity() {
-		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
-		Rectangle catchRectangle = new Rectangle((int)mouseTilePos.X - 48, (int)mouseTilePos.Y - 48, 96, 96);
-		var entities = Entity.GetEntitiesInArea(catchRectangle);
+		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
 		Entity result = null;
-		foreach (Entity entity in entities) {
-			if (entity is Ranger && entity.Visible) {
-				result = entity;
-				return result;
-			} else if (entity is Animal && result is not Ranger && entity.Visible) {
-				result = entity;
+
+		foreach (Entity e in Entity.ActiveEntities) {
+			if (!e.IsDead && e.Bounds.Contains(mouseWorldPos) && e.Visible) {
+				if (e is Ranger) {
+					result = e;
+					return result;
+				} else if (e is Animal) {
+					result = e;
+				}
 			}
 		}
 		return result;

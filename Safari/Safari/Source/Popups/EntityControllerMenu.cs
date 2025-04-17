@@ -1,6 +1,8 @@
 ﻿using Engine.Components;
+using Engine.Input;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Safari.Scenes;
 using System;
 
 namespace Safari.Popups;
@@ -10,7 +12,7 @@ public class EntityControllerMenu : PopupMenu {
 	private Button closeButton;
 	private Image image;
 	private Header header;
-	private bool visible = false;
+	private Rectangle maskArea;
 	protected Safari.Objects.Entities.Entity controlledEntity;
 
 	public EntityControllerMenu(Safari.Objects.Entities.Entity entity) {
@@ -18,18 +20,13 @@ public class EntityControllerMenu : PopupMenu {
 
 		header.Text = entity.DisplayName;
 		controlledEntity = entity;
-		controlledEntity.Died += (object sender, EventArgs e) => {
-			Hide();
-		};
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
 			image = new Image(anim.Texture, new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
 			image.Offset = new Vector2(0, 0.3f);
 			panel.AddChild(image);
 		}
 	}
-	// TODO UI bug: click through panel
-	// TODO UI bug: multiple hides possible, lifecycle, events????, updates???
-	// TODO mouse bug: click target is really messed
+
 	private void PrepareUI() {
 		background = null;
 		panel = new Panel(new Vector2(0.3f, 0.8f), PanelSkin.Default, Anchor.TopRight, new Vector2(16, 16));
@@ -37,9 +34,6 @@ public class EntityControllerMenu : PopupMenu {
 		panel.Padding = new Vector2(20, 20);
 
 		closeButton = new Button("Close", ButtonSkin.Default, Anchor.BottomCenter);
-		closeButton.OnClick = (e) => {
-			Hide();
-		};
 		closeButton.Size = new Vector2(0.6f, 0.1f);
 		closeButton.Offset = new Vector2(0.1f, 0.1f);
 		closeButton.Padding = new Vector2(0);
@@ -53,23 +47,34 @@ public class EntityControllerMenu : PopupMenu {
 		panel.AddChild(header);
 	}
 
+	private void OnCloseClick(Entity e) {
+		Hide();
+	}
+
+	private void OnEntityDied(object sender, EventArgs e) {
+		Hide();
+	}
+
 	public override void Show() {
-		if (!visible) {
-			if (Active != null) {
-				Active.Hide();
-			}
-			Active = this;
-			base.Show();
-			visible = true;
+		if (Active != null) {
+			Active.Hide();
 		}
+		Active = this;
+		closeButton.OnClick += OnCloseClick;
+		controlledEntity.Died += OnEntityDied;
+		base.Show();
+		maskArea = this.panel.CalcDestRect();
+		GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+		
 	}
 
 	public override void Hide() {
-		if (visible) {
-			base.Hide();
-			Active = null;
-			visible = false;
-		}
+		closeButton.OnClick -= OnCloseClick;
+		controlledEntity.Died -= OnEntityDied;
+		base.Hide();
+		Active = null;
+		
+		GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
 	}
 
 	public override void Update(GameTime gameTime) {
