@@ -123,7 +123,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The current selling price of the animal
 	/// </summary>
-	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
+	public int Price => Utils.Round(Species.GetPrice() * 0.5f + (Species.GetPrice() * 0.5f * ((float)Age / MAX_AGE)));
 
 	private bool hasChip;
 	/// <summary>

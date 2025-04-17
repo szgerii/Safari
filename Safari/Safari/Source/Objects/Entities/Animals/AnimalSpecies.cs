@@ -62,4 +62,16 @@ public static class AnimalSpeciesExtensions {
 			_ => 0,
 		};
 	}
+
+	/// <summary>
+	/// Returns the display name for the specified AnimalSpecies value
+	/// </summary>
+	/// <param name="species">The species to return the display name for</param>
+	/// <returns>The display name of the species</returns>
+	public static string GetDisplayName(this AnimalSpecies species) {
+		return species switch {
+			AnimalSpecies.TigerWhite => "White Tiger",
+			_ => species.ToString()
+		};
+	}
 }
