@@ -48,6 +48,9 @@ public class GameScene : Scene {
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		PostProcessPasses.Remove(model.Level.LightManager);
+
+		EntityControllerMenu.Active?.Hide();
+
 		Game.ContentManager.Unload();
 	}
 
@@ -101,13 +104,14 @@ public class GameScene : Scene {
 			}
 		}
 
-		for (int i = 0; i < model.SpeedMultiplier - 1; i++) {
-			model.Advance(gameTime);
+		for (int i = 0; i < model.RealExtraFrames; i++) {
+			GameTime customTime = new GameTime(gameTime.TotalGameTime, gameTime.ElapsedGameTime * model.FakeFrameMul);
+			model.Advance(customTime);
 
 			foreach (GameObject actor in simulationActors) {
 				if (actor is Entity e && e.IsDead) continue;
 
-				actor.Update(gameTime);
+				actor.Update(customTime);
 			}
 		}
 

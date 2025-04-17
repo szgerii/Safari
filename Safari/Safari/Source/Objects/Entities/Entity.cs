@@ -53,7 +53,12 @@ public abstract class Entity : GameObject {
 			Rectangle result;
 
 			if (boundsBaseOverride != null) {
-				result = boundsBaseOverride.Value;
+				result = new Rectangle(
+					(int)Position.X + boundsBaseOverride.Value.X,
+					(int)Position.Y + boundsBaseOverride.Value.Y,
+					boundsBaseOverride.Value.Width,
+					boundsBaseOverride.Value.Height
+				);
 			} else if (Sprite is AnimatedSpriteCmp animSprite) {
 				result = new Rectangle(Position.ToPoint(), new Point(animSprite.FrameWidth, animSprite.FrameHeight));
 			} else {
@@ -145,6 +150,11 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	public SpriteCmp Sprite { get; protected set; }
 
+	/// <summary>
+	/// Whether the entity is currently being inspected through the entity controller
+	/// </summary>
+	public bool IsBeingInspected { get; set; }
+
 	private DateTime lastHourUpdate;
 	private DateTime lastDayUpdate;
 	private DateTime lastWeekUpdate;
@@ -218,9 +228,18 @@ public abstract class Entity : GameObject {
 	}
 
 	public override void Draw(GameTime gameTime) {
-		if (Visible) {
-			base.Draw(gameTime);
+		if (!Visible) {
+			return;
 		}
+
+		if (IsBeingInspected) {
+			float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
+			Sprite.Tint = Color.White * (0.5f + fadeFactor);
+		} else {
+			Sprite.Tint = Color.White;
+		}
+
+		base.Draw(gameTime);
 	}
 
 	private Texture2D sightAreaTex = null, reachAreaTex = null;
@@ -229,19 +248,19 @@ public abstract class Entity : GameObject {
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
 	public void DrawInteractBounds(GameTime gameTime) {
-		if (SightArea.Width == 0 || SightArea.Height == 0 || ReachArea.Width == 0 || ReachArea.Height == 0) {
-			return;
-		}
-		if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
-			sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
-		}
-
-		if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size) {
-			reachAreaTex = Utils.GenerateTexture(ReachArea.Width, ReachArea.Height, Color.White, true);
+		if (SightArea.Width != 0 && SightArea.Height != 0) {
+			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size) {
+				sightAreaTex = Utils.GenerateTexture(SightArea.Width, SightArea.Height, Color.White, true);
+			}
+			Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
-		Game.SpriteBatch.Draw(sightAreaTex, SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
-		Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+		if (ReachArea.Width != 0 && ReachArea.Height != 0) {
+			if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size) {
+				reachAreaTex = Utils.GenerateTexture(ReachArea.Width, ReachArea.Height, Color.White, true);
+			}
+			Game.SpriteBatch.Draw(reachAreaTex, ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+		}
 	}
 
 	/// <summary>

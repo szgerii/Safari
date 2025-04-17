@@ -33,18 +33,18 @@ public enum LoseReason {
 public class GameModel {
 	// constants for money requirements for winning
 	public const int WIN_FUNDS_EASY = 30000;
-	public const int WIN_FUNDS_NORMAL = 50000;
-	public const int WIN_FUNDS_HARD = 80000;
+	public const int WIN_FUNDS_NORMAL = 80000;
+	public const int WIN_FUNDS_HARD = 150000;
 
 	// constants for herbivore count requirements for winning
 	public const int WIN_HERB_EASY = 5;
 	public const int WIN_HERB_NORMAL = 40;
-	public const int WIN_HERB_HARD = 50;
+	public const int WIN_HERB_HARD = 80;
 
 	// constants for carnivore count requirements for winning
 	public const int WIN_CARN_EASY = 5;
 	public const int WIN_CARN_NORMAL = 40;
-	public const int WIN_CARN_HARD = 50;
+	public const int WIN_CARN_HARD = 80;
 
 	// constants storing how long the player has to keep the winning conditions
 	public const int WIN_DAYS_EASY = 3;
@@ -54,17 +54,30 @@ public class GameModel {
 	/// <summary>
 	/// How much faster 'medium' speed is compared to 'slow'
 	/// </summary>
-	private const int MEDIUM_MULTIPLIER = 4;
+	private const int MEDIUM_FRAMES = 8;
 	/// <summary>
-	/// How much faster 'fast' speed is compared to 'medium'
+	/// The component of medium speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int FAST_MULTIPLIER = 7;
+	private const int MEDIUM_FAKE = 2;
+	/// <summary>
+	/// How much faster 'fast' speed is compared to 'slow'
+	/// </summary>
+	private const int FAST_FRAMES = 36;
+	/// <summary>
+	/// The component of fast speed which is faked, sacrificing sim accuracy for speed
+	/// </summary>
+	private const int FAST_FAKE = 4;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double DAY_LENGTH = 60.0;
-	
+	private const double DAY_LENGTH = 210.0;
+
+	public const double SUNRISE_START = 0.98;
+	public const double SUNRISE_END = 0.02;
+	public const double SUNSET_START = 0.62;
+	public const double SUNSET_END = 0.66;
+
 	private GameSpeed prevSpeed;
 	private DateTime startDate;
 
@@ -100,11 +113,15 @@ public class GameModel {
 	/// <summary>
 	/// How fast the simulation should be updated at the current speed setting
 	/// </summary>
-	public int SpeedMultiplier => GameSpeed switch {
-		GameSpeed.Paused => 0,
-		GameSpeed.Slow => 1,
-		GameSpeed.Medium => MEDIUM_MULTIPLIER,
-		_ => FAST_MULTIPLIER * MEDIUM_MULTIPLIER
+	public int RealExtraFrames => GameSpeed switch {
+		GameSpeed.Medium => MEDIUM_FRAMES / MEDIUM_FAKE,
+		GameSpeed.Fast => FAST_FRAMES / MEDIUM_FAKE,
+		_ => 0
+	};
+	public double FakeFrameMul => GameSpeed switch {
+		GameSpeed.Medium => MEDIUM_FAKE,
+		GameSpeed.Fast => FAST_FAKE,
+		_ => 0
 	};
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
@@ -120,9 +137,8 @@ public class GameModel {
 
 	/// <summary>
 	/// Indicates whether it is currently day time in-game
-	/// (TimeOfDay < 0.54) ~ .5 plus extra time for sunset
 	/// </summary>
-	public bool IsDaytime => TimeOfDay < 0.54f || TimeOfDay > .96;
+	public bool IsDaytime => TimeOfDay < SUNSET_END || TimeOfDay > SUNRISE_START;
 
 	/// <summary>
 	/// Time passed (in in-game days) since the start of the game
@@ -331,16 +347,26 @@ public class GameModel {
 		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
-		Jeep.Init(250);
+		Jeep.Init(400);
+		Tourist.Init();
 
 		Game.AddObject(Level);
 
 		// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
-		EntitySpawner<Poacher> poacherSpawner = new(6, 0.5f, 0.05f) {
+		EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
 			EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
 			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
 		};
 		Game.AddObject(poacherSpawner);
+
+		Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+			EntityLimit = 30,
+			EntityCount = () => Tourist.Queue.Count,
+			SpawnArea = new Rectangle(-64, 512, 32, 320),
+			ExtraCondition = () => IsDaytime
+		};
+		Game.AddObject(Tourist.Spawner);
+		Tourist.UpdateSpawner();
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
@@ -393,9 +419,13 @@ public class GameModel {
 		DebugInfoManager.AddInfo("Carnivores", $"{model.CarnivoreCount} / {model.WinCriteriaCarn}", DebugInfoPosition.BottomLeft);
 
 		// network debug stuff
-		Level level = model.Level;
-		DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
+		//Level level = model.Level;
+		//DebugInfoManager.AddInfo("Route count", level.Network.Routes.Count + "", DebugInfoPosition.BottomRight);
+		//DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
+
+		// Tourist debug stuff
+		DebugInfoManager.AddInfo("Average rating", Tourist.AvgRating + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Tourists spawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {

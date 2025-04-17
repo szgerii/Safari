@@ -44,6 +44,8 @@ public class Mouse {
 	public MouseState PrevMS { get; set; }
 	public MouseState CurrentMS { get; set; }
 
+	public bool ScrollLock { get; set; }
+
 	private Dictionary<MouseButtons, DateTime> downTimeouts = new Dictionary<MouseButtons, DateTime>();
 
 	public delegate void PressedCallback();
@@ -77,11 +79,11 @@ public class Mouse {
 			movedCallback(new MouseMovedEventArgs(PrevMS.Position.ToVector2(), CurrentMS.Position.ToVector2(), Movement));
 		}
 
-		if (ScrollChanged && scrollWheelChangedCallback != null) {
+		if (ScrollChanged && scrollWheelChangedCallback != null && !ScrollLock) {
 			scrollWheelChangedCallback(new MouseScrollWheelChangedEventArgs(PrevMS.ScrollWheelValue, CurrentMS.ScrollWheelValue, ScrollMovement));
 		}
 
-		if (HScrollChanged && hScrollWheelChangedCallback != null) {
+		if (HScrollChanged && hScrollWheelChangedCallback != null && !ScrollLock) {
 			hScrollWheelChangedCallback(new MouseScrollWheelChangedEventArgs(PrevMS.HorizontalScrollWheelValue, CurrentMS.HorizontalScrollWheelValue, HScrollMovement));
 		}
 	}
@@ -202,7 +204,7 @@ public class Mouse {
 	/// <summary>
 	/// Returns how much the scroll wheel has moved since the previous frame
 	/// </summary>
-	public int ScrollMovement => !InputManager.IsGameFocused ? 0 : CurrentMS.ScrollWheelValue - PrevMS.ScrollWheelValue;
+	public int ScrollMovement => (!InputManager.IsGameFocused || ScrollLock) ? 0 : CurrentMS.ScrollWheelValue - PrevMS.ScrollWheelValue;
 
 	/// <summary>
 	/// Returns the current value of the horizontal mouse scroll wheel

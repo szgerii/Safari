@@ -86,6 +86,9 @@ public class Game : Engine.Game {
 		DebugConsole.Instance?.Update(gameTime);
 		AlertMenu.Adjust();
         PauseMenu.Instance?.Update(gameTime);
+		MainMenu.Instance.Update(gameTime);
+		NewGameMenu.Instance.Update(gameTime);
+		EntityControllerMenu.Active?.Update(gameTime);
 
         DateTime start = DateTime.Now;
 

@@ -30,7 +30,7 @@ public enum AnimalGroupState {
 /// </summary>
 [SimulationActor]
 public class AnimalGroup : GameObject {
-	private const int MAX_SIZE = 10;
+	public const int MAX_SIZE = 10;
 	private const float BASE_FORMATION_SPREAD = 30f;
 	private const float FORMATION_SPREAD_STEP = 13f;
 

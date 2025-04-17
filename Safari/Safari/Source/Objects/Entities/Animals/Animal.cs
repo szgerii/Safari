@@ -39,11 +39,11 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
-	private const int MATING_COOLDOWN_DAYS = 10;
+	private const int MATING_COOLDOWN_DAYS = 6;
 	/// <summary>
 	/// The number of days an animal can live
 	/// </summary>
-	private const int MAX_AGE = 100;
+	private const int MAX_AGE = 50;
 
 	private const float FEEDING_SPEED = 10f;
 	private const float DRINKING_SPEED = 10f;
@@ -114,7 +114,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Whether the animal is old enough to mate
 	/// </summary>
-	public bool IsMature => Age >= 15;
+	public bool IsMature => Age >= 12;
 	/// <summary>
 	/// Whether the animal is capable of mating currently
 	/// </summary>
@@ -123,7 +123,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The current selling price of the animal
 	/// </summary>
-	public int Price => Utils.Round(Species.GetPrice() * ((float)Age / MAX_AGE));
+	public int Price => Utils.Round(Species.GetPrice() * 0.5f + (Species.GetPrice() * 0.5f * ((float)Age / MAX_AGE)));
 
 	private bool hasChip;
 	/// <summary>
