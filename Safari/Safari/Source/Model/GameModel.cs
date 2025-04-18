@@ -234,6 +234,10 @@ public class GameModel {
 
 	private bool winTimerRunning = false;
 	/// <summary>
+	/// Whether the win criteria is met therefore the win countdown is running
+	/// </summary>
+	public bool WinTimerRunning => winTimerRunning;
+	/// <summary>
 	/// How many days are left until winning
 	/// </summary>
 	public double WinTimerDays { get; private set; } = 0.0;

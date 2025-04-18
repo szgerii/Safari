@@ -158,9 +158,6 @@ class Statusbar : PopupMenu, IUpdatable {
 
         SettingsMenu.ScaleChanged += scaleText;
 
-        DebugConsole.Instance.Write(GameScene.Active.Model.WinTimerTime.ToString());
-        DebugConsole.Instance.Write(GameScene.Active.Model.WinCriteriaDays.ToString());
-
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
     }
@@ -251,7 +248,8 @@ class Statusbar : PopupMenu, IUpdatable {
         herbivoreCurr = GameScene.Active.Model.HerbivoreCount;
         herbivoreText.Text = "Herbivores: " + herbivoreCurr + "/" + GameScene.Active.Model.WinCriteriaHerb;
 
-        winDaysText.Text = GameScene.Active.Model.WinTimerDays == 0 ? "Winning in: -" :
-            "Winning in:\n" + GameScene.Active.Model.WinTimerDays.ToString("0.00") + "/" + GameScene.Active.Model.WinCriteriaDays + " days";
+        winDaysText.Text = GameScene.Active.Model.WinTimerRunning ?
+            "Winning in:\n" + GameScene.Active.Model.WinTimerDays.ToString("0.00") + "/" + GameScene.Active.Model.WinCriteriaDays + " days"
+            : "Winning in: -";
     }
 }
