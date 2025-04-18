@@ -172,7 +172,7 @@ public class Level : GameObject {
 		}
 
 		if (tile is AutoTile auto) {
-			auto.UpdateTexture();
+			auto.NeedsUpdate = true;
 		}
 
 		UpdateAutoTilesAround(new Point(x, y));

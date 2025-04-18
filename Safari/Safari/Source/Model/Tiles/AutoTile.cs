@@ -45,7 +45,7 @@ public partial class AutoTile : Tile {
 	/// <summary>
 	/// Updates the source rectangle to match the current neighbor state
 	/// </summary>
-	public void UpdateTexture() {
+	private void UpdateTexture() {
 		NeedsUpdate = false;
 
 		if (TileSize == -1) {

@@ -134,7 +134,7 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("left", new InputAction(keys: [Keys.A, Keys.Left]));
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
 
-		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.NumPad0, Keys.D0]));
+		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.F9]));
 		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.O]));
 		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.I]));
 

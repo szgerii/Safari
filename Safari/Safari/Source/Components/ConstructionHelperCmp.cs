@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Microsoft.Xna.Framework;
+using Safari.Debug;
 using Safari.Model;
 using Safari.Model.Tiles;
 using System;
@@ -73,7 +74,7 @@ public class PaletteItem {
 	}
 }
 
-public class ConstructionHelperCmp : Component {
+public class ConstructionHelperCmp : Component, IUpdatable {
 	private int width;
 	private int height;
 	private bool[,] mapStatus;
@@ -115,6 +116,25 @@ public class ConstructionHelperCmp : Component {
 		unbreakable.Add(Level.Network.Start);
 		unbreakable.Add(Level.Network.End);
 		base.Load();
+	}
+
+	/// <summary>
+	/// Prints the current brush to the debug info panel
+	/// </summary>
+	private int lastIndex = -1;
+	private string currentBrushStr = "";
+	public void Update(GameTime gameTime) {
+		if (SelectedIndex != lastIndex) {
+			foreach (var field in typeof(ConstructionHelperCmp).GetFields()) {
+				if ((int)field.GetValue(null) == SelectedIndex) {
+					currentBrushStr = field.Name;
+				}
+			}
+
+			lastIndex = SelectedIndex;
+		}
+
+		DebugInfoManager.AddInfo("Current brush", currentBrushStr, DebugInfoPosition.BottomRight);
 	}
 
 	/// <summary>
