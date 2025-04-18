@@ -1,5 +1,4 @@
 ﻿using Engine;
-using Engine.Graphics;
 using Engine.Scenes;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
@@ -7,6 +6,8 @@ using Microsoft.Xna.Framework;
 using Safari.Model;
 using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
+using Safari.Scenes.Menus;
+using System;
 
 namespace Safari.Popups;
 
@@ -30,23 +31,22 @@ class Statusbar : PopupMenu, IUpdatable {
 
     private Panel moneyPanel;
     private Label moneyText;
-    private int moneyPrev;
-    private int moneyCurr;
+    private double moneyCurr;
 
     private Panel ratingPanel;
     private Label ratingText;
-    private float ratingPrev;
-    private float ratingCurr;
+    private double ratingCurr;
 
     private Panel carnivorePanel;
     private Label carnivoreText;
-    private int carnivorePrev;
     private int carnivoreCurr;
 
     private Panel herbivorePanel;
     private Label herbivoreText;
-    private int herbivorePrev;
     private int herbivoreCurr;
+
+    private Panel winDaysPanel;
+    private Label winDaysText;
 
     private Button entityManagerButton;
 
@@ -116,29 +116,47 @@ class Statusbar : PopupMenu, IUpdatable {
         indicatorPanel = new Panel(new Vector2(0, 0.5f), PanelSkin.None, Anchor.BottomLeft);
         indicatorPanel.Padding = new Vector2(0);
 
-        Vector2 panelsize = new Vector2(0.25f,0);
+        Vector2 panelSize = new Vector2(0.2f, 0);
+        Vector2 paddingSize = new Vector2(0, 20);
 
         #region INDICATORS
-        moneyPanel = new Panel(panelsize, PanelSkin.Default, Anchor.CenterLeft);
-        ratingPanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
-        carnivorePanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
-        herbivorePanel = new Panel(panelsize, PanelSkin.Default, Anchor.AutoInline);
+
+        moneyPanel = new Panel(new Vector2(0.25f, 0), PanelSkin.Default, Anchor.CenterLeft);
+        moneyPanel.Padding = paddingSize;
+        ratingPanel = new Panel(new Vector2(0.15f, 0), PanelSkin.Default, Anchor.AutoInline);
+        ratingPanel.Padding = paddingSize;
+        carnivorePanel = new Panel(panelSize, PanelSkin.Default, Anchor.AutoInline);
+        carnivorePanel.Padding = paddingSize;
+        herbivorePanel = new Panel(panelSize, PanelSkin.Default, Anchor.AutoInline);
+        herbivorePanel.Padding = paddingSize;
+        winDaysPanel = new Panel(panelSize, PanelSkin.Default, Anchor.AutoInline);
+        winDaysPanel.Padding = paddingSize;
 
         moneyText = new Label("Money:", Anchor.CenterLeft);
+        moneyText.Offset = new Vector2(15,0);
         ratingText = new Label("Rating:", Anchor.CenterLeft);
+        ratingText.Offset = new Vector2(15,0);
         carnivoreText = new Label("Carnivores:", Anchor.CenterLeft);
+        carnivoreText.Offset = new Vector2(15,0);
         herbivoreText = new Label("Herbivores:", Anchor.CenterLeft);
+        herbivoreText.Offset = new Vector2(15, 0);
+        winDaysText = new Label("Winning:", Anchor.CenterLeft);
+        winDaysText.Offset = new Vector2(15, 0);
 
         moneyPanel.AddChild(moneyText);
         ratingPanel.AddChild(ratingText);
         carnivorePanel.AddChild(carnivoreText);
         herbivorePanel.AddChild(herbivoreText);
+        winDaysPanel.AddChild(winDaysText);
 
         indicatorPanel.AddChild(moneyPanel);
         indicatorPanel.AddChild(ratingPanel);
         indicatorPanel.AddChild(carnivorePanel);
         indicatorPanel.AddChild(herbivorePanel);
+        indicatorPanel.AddChild(winDaysPanel);
         #endregion
+
+        SettingsMenu.ScaleChanged += scaleText;
 
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
@@ -177,6 +195,7 @@ class Statusbar : PopupMenu, IUpdatable {
     public void Load() {
         UserInterface.Active.AddEntity(panel);
         adjustSpeedButtons();
+        scaleText(null, EventArgs.Empty);
     }
 
     private void adjustSpeedButtons() {
@@ -207,21 +226,30 @@ class Statusbar : PopupMenu, IUpdatable {
         UserInterface.Active.RemoveEntity(panel);
     }
 
+    private void scaleText(object sender, EventArgs e) {
+        moneyText.Scale = SettingsMenu.Scale;
+        ratingText.Scale = SettingsMenu.Scale;
+        carnivoreText.Scale = SettingsMenu.Scale;
+        herbivoreText.Scale = SettingsMenu.Scale;
+    }
+
     public override void Update(GameTime gameTime) {
-        moneyPrev = moneyCurr;
         moneyCurr = GameScene.Active.Model.Funds;
-        moneyText.Text = "Money: " + moneyCurr;
+        moneyText.Text = "Money: " +
+            (moneyCurr >= 10000 ? (moneyCurr / 1000d) + "K" : moneyCurr.ToString()) + "/" +
+            (GameScene.Active.Model.WinCriteriaFunds >= 10000 ? (GameScene.Active.Model.WinCriteriaFunds / 1000d) + "K" : GameScene.Active.Model.WinCriteriaFunds.ToString());
 
-        ratingPrev = ratingCurr;
-        ratingCurr = (float)Tourist.AvgRating;
-        ratingText.Text = "Rating: " + ratingCurr.ToString("0.00");
+        ratingCurr = Tourist.AvgRating;
+        ratingText.Text = "Rating: " + ratingCurr;
 
-        carnivorePrev = carnivoreCurr;
         carnivoreCurr = GameScene.Active.Model.CarnivoreCount;
-        carnivoreText.Text = "Carnivores: " + carnivoreCurr;
+        carnivoreText.Text = "Carnivores: " + carnivoreCurr + "/" + GameScene.Active.Model.WinCriteriaCarn;
 
-        herbivorePrev = herbivoreCurr;
         herbivoreCurr = GameScene.Active.Model.HerbivoreCount;
-        herbivoreText.Text = "Herbivores: " + herbivoreCurr;
+        herbivoreText.Text = "Herbivores: " + herbivoreCurr + "/" + GameScene.Active.Model.WinCriteriaHerb;
+
+        winDaysText.Text = GameScene.Active.Model.WinTimerRunning ?
+            "Winning in:\n" + GameScene.Active.Model.WinTimerDays.ToString("0.00") + "/" + GameScene.Active.Model.WinCriteriaDays + " days"
+            : "Winning in: -";
     }
 }

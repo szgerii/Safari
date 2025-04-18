@@ -4,6 +4,7 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
+using Safari.Popups;
 using System;
 using System.Collections.Generic;
 
@@ -48,19 +49,19 @@ class SettingsMenu : MenuScene {
     private Button saveChangesButton;
     private Button menuAndDiscardButton;
 
-    private float scale;
-    public static event EventHandler<float> ScaleChanged;
+    private static float scale = ((float)DisplayManager.Height / 1080f) * 1.2f;
+    public static event EventHandler ScaleChanged;
 
     /// <summary>
     /// Get the scaling for text that matches the resolution.
     /// </summary>
-    public float Scale {
+    public static float Scale {
         get {
-            return scale;
+            return scale == 0 ? 1f : scale;
         }
         private set {
             scale = value;
-            ScaleChanged?.Invoke(this, value);
+            ScaleChanged?.Invoke(null, EventArgs.Empty);
         }
     }
 
@@ -226,7 +227,6 @@ class SettingsMenu : MenuScene {
         resolutionChangePanel = new Panel(new Vector2(0.5f, 0), PanelSkin.None, Anchor.CenterRight);
         currentResolution = resolutions.FindIndex(x => x == (DisplayManager.Width, DisplayManager.Height));
         selectedResolution = resolutions[currentResolution];
-
         resolutionsDisplay = new Label(resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2, Anchor.Center, new Vector2(0.5f, 0));
 
         prevResolution = new Button("-", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.25f, 0));
@@ -293,7 +293,7 @@ class SettingsMenu : MenuScene {
     }
 
     private void scaleText() {
-        Scale = ((float)selectedResolution.Item2 / 1080f) * 1.25f;
+        Scale = ((float)selectedResolution.Item2 / 1080f) * 1.2f;
         fpsText.Scale = Scale;
         vsyncText.Scale = Scale;
         screenTypeText.Scale = Scale;
