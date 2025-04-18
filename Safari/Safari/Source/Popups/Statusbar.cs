@@ -108,7 +108,7 @@ class Statusbar : PopupMenu, IUpdatable {
         entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.3f, 0.3f), new Vector2(20));
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
-            new AlertMenu("clicked", entityManagerButton.GetActualDestRect().Width.ToString()).Show();
+            EntityManager.Instance.Toggle();
         };
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
@@ -213,8 +213,8 @@ class Statusbar : PopupMenu, IUpdatable {
         moneyText.Text = "Money: " + moneyCurr;
 
         ratingPrev = ratingCurr;
-        ratingCurr = Tourist.AvgRating;
-        ratingText.Text = "Rating: " + ratingCurr;
+        ratingCurr = (float)Tourist.AvgRating;
+        ratingText.Text = "Rating: " + ratingCurr.ToString("0.00");
 
         carnivorePrev = carnivoreCurr;
         carnivoreCurr = GameScene.Active.Model.CarnivoreCount;
