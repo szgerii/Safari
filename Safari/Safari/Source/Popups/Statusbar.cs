@@ -50,6 +50,7 @@ class Statusbar : PopupMenu, IUpdatable {
 
     private Button entityManagerButton;
 
+    private Rectangle maskArea;
     public static Statusbar Instance => instance;
 
     public static int Height => Instance.panel.GetActualDestRect().Height;
@@ -60,6 +61,7 @@ class Statusbar : PopupMenu, IUpdatable {
         panel = new Panel(new Vector2(0, 0.25f), PanelSkin.Default, Anchor.BottomCenter);
         panel.Padding = new Vector2(0);
         panel.Tag = "PassiveFocus";
+        panel.MaxSize = new Vector2(0, 200);
 
         #region SPEED_BUTTONS
         speedButtonPanel = new Panel(new Vector2(0.25f, 0.5f), PanelSkin.None, Anchor.TopLeft);
@@ -196,6 +198,14 @@ class Statusbar : PopupMenu, IUpdatable {
         UserInterface.Active.AddEntity(panel);
         adjustSpeedButtons();
         scaleText(null, EventArgs.Empty);
+
+        maskArea = panel.CalcDestRect();
+        GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+    }
+
+    public void Unload() {
+        UserInterface.Active.RemoveEntity(panel);
+        GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
     }
 
     private void adjustSpeedButtons() {
@@ -222,25 +232,23 @@ class Statusbar : PopupMenu, IUpdatable {
         }
     }
 
-    public void UnLoad() {
-        UserInterface.Active.RemoveEntity(panel);
-    }
-
     private void scaleText(object sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;
         herbivoreText.Scale = SettingsMenu.Scale;
+        winDaysText.Scale = SettingsMenu.Scale;
     }
 
     public override void Update(GameTime gameTime) {
+
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +
             (moneyCurr >= 10000 ? (moneyCurr / 1000d) + "K" : moneyCurr.ToString()) + "/" +
             (GameScene.Active.Model.WinCriteriaFunds >= 10000 ? (GameScene.Active.Model.WinCriteriaFunds / 1000d) + "K" : GameScene.Active.Model.WinCriteriaFunds.ToString());
 
         ratingCurr = Tourist.AvgRating;
-        ratingText.Text = "Rating: " + ratingCurr;
+        ratingText.Text = "Rating: " + ratingCurr.ToString("0.00");
 
         carnivoreCurr = GameScene.Active.Model.CarnivoreCount;
         carnivoreText.Text = "Carnivores: " + carnivoreCurr + "/" + GameScene.Active.Model.WinCriteriaCarn;

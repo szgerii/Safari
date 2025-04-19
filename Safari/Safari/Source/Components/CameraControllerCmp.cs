@@ -139,4 +139,9 @@ public class CameraControllerCmp : Component, IUpdatable {
 
 		return scaleDelta;
 	}
+
+	public void CenterOnPosition(Vector2 position) {
+		// TODO
+		Owner.Position = position;
+	}
 }
