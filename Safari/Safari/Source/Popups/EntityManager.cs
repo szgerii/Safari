@@ -9,6 +9,8 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Safari.Popups;
 
@@ -42,6 +44,7 @@ class EntityManager : PopupMenu {
 
     private Panel animalPanel;
     private Button animalTabBtn;
+    private Panel animalListPanel;
 
     private Panel otherPanel;
     private Button otherTabBtn;
@@ -63,34 +66,33 @@ class EntityManager : PopupMenu {
         title = new Header("Entity Manager", Anchor.TopCenter, new Vector2(0, 15));
         title.Size = new Vector2(0, 0.1f);
 
+        #region BUTTON_PANEL
         buttonPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         buttonPanel.Padding = new Vector2(15);
 
         Vector2 maxSize = new Vector2(0.3f, 80);
 
         rangerTabBtn = new Button("Rangers", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0));
-        rangerTabBtn.OnClick = switchToRangerTab;
         rangerTabBtn.Padding = new Vector2(0);
         rangerTabBtn.MaxSize = maxSize;
 
         animalTabBtn = new Button("Animals", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, 0));
-        animalTabBtn.OnClick = switchToAnimalTab;
         animalTabBtn.Padding = new Vector2(0);
         animalTabBtn.MaxSize = maxSize;
 
         otherTabBtn = new Button("Others", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0));
-        otherTabBtn.OnClick = switchToOtherTab;
         otherTabBtn.Padding = new Vector2(0);
         otherTabBtn.MaxSize = maxSize;
 
         buttonPanel.AddChild(rangerTabBtn);
         buttonPanel.AddChild(animalTabBtn);
         buttonPanel.AddChild(otherTabBtn);
+        #endregion
 
         Vector2 tabPanelSize = new Vector2(0, 0.7f);
 
         #region RANGER_TAB
-        rangerPanel = new Panel(tabPanelSize, PanelSkin.Default, Anchor.BottomLeft, new Vector2(0));
+        rangerPanel = new Panel(tabPanelSize, PanelSkin.None, Anchor.BottomLeft, new Vector2(0));
         rangerPanel.Padding = new Vector2(15);
 
         rangerTopPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.TopLeft);
@@ -122,7 +124,7 @@ class EntityManager : PopupMenu {
         rangerHirePlus.Padding = new Vector2(0);
         rangerHirePlus.MaxSize = new Vector2(100, 100);
 
-        rangerListPanel = new Panel(new Vector2(0, 0.8f), PanelSkin.Default, Anchor.BottomLeft);
+        rangerListPanel = new Panel(new Vector2(0, 0.8f), PanelSkin.None, Anchor.BottomLeft);
         rangerListPanel.Padding = new Vector2(15);
         rangerListPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
 
@@ -139,6 +141,13 @@ class EntityManager : PopupMenu {
         #endregion
 
         #region ANIMAL_TAB
+
+        animalPanel = new Panel(tabPanelSize, PanelSkin.None, Anchor.BottomLeft, new Vector2(0)); ;
+        animalListPanel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.BottomLeft);
+        animalListPanel.Padding = new Vector2(15);
+        animalListPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
+
+        animalPanel.AddChild(animalListPanel);
         #endregion
 
         #region OTHER_TAB
@@ -147,9 +156,9 @@ class EntityManager : PopupMenu {
         panel.AddChild(title);
         panel.AddChild(buttonPanel);
 
-        updateCurrentTab();
+        UpdateCurrentTab();
 
-        SettingsMenu.ScaleChanged += scaleText;
+        SettingsMenu.ScaleChanged += ScaleText;
     }
 
     public void Toggle() {
@@ -162,7 +171,7 @@ class EntityManager : PopupMenu {
         }
     }
 
-    private void removeCurrentTab() {
+    private void RemoveCurrentTab() {
         if (currentPanel == EntityManagerTab.RangerTab) {
             panel.RemoveChild(rangerPanel);
         } else if (currentPanel == EntityManagerTab.AnimalTab) {
@@ -172,51 +181,57 @@ class EntityManager : PopupMenu {
         }
     }
 
-    private void switchToRangerTab(GeonBit.UI.Entities.Entity entity) {
-        if (currentPanel != EntityManagerTab.RangerTab) {
-            removeCurrentTab();
-            currentPanel = EntityManagerTab.RangerTab;
+    private void LoadTab(EntityManagerTab tab) {
+        if (tab == EntityManagerTab.RangerTab) {
             panel.AddChild(rangerPanel);
-        }
-        updateCurrentTab();
-    }
-
-    private void switchToAnimalTab(GeonBit.UI.Entities.Entity entity) {
-        if (currentPanel != EntityManagerTab.AnimalTab) {
-            removeCurrentTab();
-            currentPanel = EntityManagerTab.AnimalTab;
+            currentPanel = EntityManagerTab.RangerTab;
+        } else if (tab == EntityManagerTab.AnimalTab) {
             panel.AddChild(animalPanel);
+            currentPanel = EntityManagerTab.AnimalTab;
+        } else if (tab == EntityManagerTab.OtherTab) {
+            panel.AddChild(otherPanel);
+            currentPanel = EntityManagerTab.OtherTab;
         }
-        updateAnimalList();
     }
 
-    private void switchToOtherTab(GeonBit.UI.Entities.Entity entity) {
-        if (currentPanel != EntityManagerTab.OtherTab) {
-            removeCurrentTab();
-            currentPanel = EntityManagerTab.OtherTab;
-            panel.AddChild(otherPanel);
+    private void SwitchToTab(EntityManagerTab tab) {
+        if (currentPanel == tab) {
+            return;
         }
+        RemoveCurrentTab();
+        LoadTab(tab);
+        UpdateCurrentTab();
     }
 
     public override void Show() {
-        rangerHireMinus.OnClick += rangerMinusBtn;
-        rangerHirePlus.OnClick += rangerPlusBtn;
-        updateCurrentTab();
+        rangerHireMinus.OnClick += RangerMinusBtn;
+        rangerHirePlus.OnClick += RangerPlusBtn;
+
+        rangerTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.RangerTab);
+        animalTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.AnimalTab);
+        otherTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.OtherTab);
+
+        UpdateCurrentTab();
         base.Show();
         maskArea = this.panel.CalcDestRect();
         GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
     }
 
     public override void Hide() {
-        rangerHireMinus.OnClick -= rangerMinusBtn;
-        rangerHirePlus.OnClick -= rangerPlusBtn;
-        base.Hide();
-		GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        rangerHireMinus.OnClick -= RangerMinusBtn;
+        rangerHirePlus.OnClick -= RangerPlusBtn;
+
+        rangerTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.RangerTab);
+        animalTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.AnimalTab);
+        otherTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.OtherTab);
+
+        UserInterface.Active.RemoveEntity(panel);
+        GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
     }
 
     public void Unload() {
         visible = false;
-        removeCurrentTab();
+        RemoveCurrentTab();
         currentPanel = EntityManagerTab.None;
         if (defaultSelector.Visible) {
             defaultSelector.Hide();
@@ -235,28 +250,28 @@ class EntityManager : PopupMenu {
         rangerDefaultTargetButton.ButtonParagraph.Text = animal.GetDisplayName() ?? "Default Target";
     }
 
-    private void scaleText(object sender, EventArgs e) {
+    private void ScaleText(object sender, EventArgs e) {
         rangerHireLabel.Scale = SettingsMenu.Scale;
         rangerHireMinus.ButtonParagraph.Scale = SettingsMenu.Scale;
         rangerHirePlus.ButtonParagraph.Scale = SettingsMenu.Scale;
     }
 
-    private void rangerMinusBtn(GeonBit.UI.Entities.Entity entity) {
+    private void RangerMinusBtn(GeonBit.UI.Entities.Entity entity) {
         if (GameScene.Active.Model.RangerCount == 0) {
             new AlertMenu("Ranger count", "You don't have any more rangers to fire").Show();
             return;
         }
         foreach (Objects.Entities.Entity ent in Ranger.ActiveEntities) {
-            if (ent is Ranger) {
-                ((Ranger)ent).Fire();
+            if (ent is Ranger ranger) {
+                (ranger).Fire();
                 break;
             }
         }
         update = true;
-        updateCurrentTab();
+        UpdateCurrentTab();
     }
 
-    private void rangerPlusBtn(GeonBit.UI.Entities.Entity entity) {
+    private void RangerPlusBtn(GeonBit.UI.Entities.Entity entity) {
         Ranger temp = new Ranger(new Vector2((GameScene.Active.Model.Level.MapWidth / 2) * GameScene.Active.Model.Level.TileSize, (GameScene.Active.Model.Level.MapHeight / 2) * GameScene.Active.Model.Level.TileSize)) {
             TargetSpecies = null
         };
@@ -264,29 +279,155 @@ class EntityManager : PopupMenu {
         Game.AddObject(temp);
         rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
         update = true;
-        updateCurrentTab();
-        DebugConsole.Instance.Write("asd");
+        UpdateCurrentTab();
     }
 
-    private void updateCurrentTab() {
+    private void UpdateCurrentTab() {
         if (currentPanel == EntityManagerTab.RangerTab) {
-            updateRangerList();
+            rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
+            UpdateRangerList();
         } else if (currentPanel == EntityManagerTab.AnimalTab) {
-            updateAnimalList();
+            UpdateAnimalList();
         } else if (currentPanel == EntityManagerTab.OtherTab) {
-            updateOtherList();
+            UpdateOtherList();
         }
     }
 
-    private void updateOtherList() {
+    private void ListAnimal(List<Animal> animals) {
+        if (animals.Count < 1) {
+            return;
+        }
+        int count = 0;
+        AnimalSpecies currenSpecies = animals[0].Species;
+        StyleProperty hover = new StyleProperty(Color.LightGray);
+        StyleProperty click = new StyleProperty(Color.LightSlateGray);
+
+        StyleProperty deleteBase = new StyleProperty(Color.Red);
+        StyleProperty deleteHover = new StyleProperty(Color.DarkRed);
+        StyleProperty deleteClick = new StyleProperty(Color.IndianRed);
+
+        StyleProperty chipBase = new StyleProperty(Color.Green);
+        StyleProperty chipHover = new StyleProperty(Color.DarkGreen);
+        StyleProperty chipClick = new StyleProperty(Color.DarkOliveGreen);
+        StyleProperty chipDisabled = new StyleProperty(Color.Gray);
+
+        Label tempAnimalLabel = new Label("", Anchor.AutoCenter, new Vector2(0, 0.25f));
+        tempAnimalLabel.Scale = SettingsMenu.Scale;
+        tempAnimalLabel.Text = currenSpecies.GetDisplayName() + " (" + animals.Count + ")";
+        animalListPanel.AddChild(tempAnimalLabel);
+        foreach (var item in animals) {
+            Panel tempPanel = new Panel(new Vector2(0, 0.25f), PanelSkin.None, Anchor.Auto);
+            Panel tempControllerPanel = new Panel(new Vector2(0.4f, 0), PanelSkin.Simple, Anchor.CenterLeft);
+
+            tempPanel.Padding = new Vector2(0);
+            tempPanel.MaxSize = new Vector2(0, 80);
+            tempControllerPanel.Padding = new Vector2(0);
+            tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
+                new AnimalControllerMenu(item).Show();
+                Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.Position);
+                Toggle();
+            };
+
+            Label tempLabel = new Label(currenSpecies.GetDisplayName() + "#" + (++count).ToString(), Anchor.CenterLeft, new Vector2(0), new Vector2(15, 0));
+            tempLabel.ClickThrough = true;
+            tempLabel.Scale = SettingsMenu.Scale;
+
+            Button tempButtonSell = new Button("Sell", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.3f, 0));
+            Button tempButtonChip = new Button("Chip\n(250)", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.3f, 0));
+
+            tempButtonSell.Padding = new Vector2(0);
+            tempButtonSell.OnClick = (GeonBit.UI.Entities.Entity entity) => {
+                item.Sell();
+                UpdateCurrentTab();
+                update = true;
+            };
+            tempButtonSell.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
+            tempButtonSell.SetStyleProperty("FillColor", deleteHover, EntityState.MouseHover);
+            tempButtonSell.SetStyleProperty("FillColor", deleteClick, EntityState.MouseDown);
+
+            if (item.HasChip) {
+                tempButtonChip.ButtonParagraph.Text = "Chipped";
+                tempButtonChip.Locked = true;
+                tempButtonChip.SetStyleProperty("FillColor", chipDisabled, EntityState.Default);
+                tempButtonChip.SetStyleProperty("FillColor", chipDisabled, EntityState.MouseHover);
+                tempButtonChip.SetStyleProperty("FillColor", chipDisabled, EntityState.MouseDown);
+            } else {
+                tempButtonChip.SetStyleProperty("FillColor", chipBase, EntityState.Default);
+                tempButtonChip.SetStyleProperty("FillColor", chipHover, EntityState.MouseHover);
+                tempButtonChip.SetStyleProperty("FillColor", chipClick, EntityState.MouseDown);
+            }
+                tempButtonChip.Padding = new Vector2(0);
+            tempButtonChip.OnClick = (GeonBit.UI.Entities.Entity entity) => {
+                if (GameScene.Active.Model.Funds <= 250) {
+                    var alert = new AlertMenu("Can't buy chip", "You can't afford this.");
+                    alert.Show();
+                    return;
+                }
+                GameScene.Active.Model.Funds -= 250;
+                item.HasChip = true;
+                if(entity is Button button) {
+                    button.ButtonParagraph.Text = "Chipped";
+                }
+                entity.Locked = true;
+
+                entity.SetStyleProperty("FillColor", chipDisabled, EntityState.Default);
+                entity.SetStyleProperty("FillColor", chipDisabled, EntityState.MouseHover);
+                entity.SetStyleProperty("FillColor", chipDisabled, EntityState.MouseDown);
+            };
+
+
+            tempControllerPanel.SetStyleProperty("FillColor", hover, EntityState.MouseHover);
+            tempControllerPanel.SetStyleProperty("FillColor", click, EntityState.MouseDown);
+
+            tempControllerPanel.AddChild(tempLabel);
+            tempPanel.AddChild(tempControllerPanel);
+            tempPanel.AddChild(tempButtonChip);
+            tempPanel.AddChild(tempButtonSell);
+            animalListPanel.AddChild(tempPanel);
+        }
+    }
+
+    private void UpdateAnimalList() {
+        animalListPanel.ClearChildren();
+
+        List<Objects.Entities.Entity> tempList = Animal.ActiveEntities.Where(x => x is Animal).OrderBy(x => ((Animal)x).DisplayName).ToList();
+
+        List<Animal> listZebra = new List<Animal>();
+        List<Animal> listElephant = new List<Animal>();
+        List<Animal> listGiraffe = new List<Animal>();
+        List<Animal> listLion = new List<Animal>();
+        List<Animal> listTiger = new List<Animal>();
+        List<Animal> listTigerWhite = new List<Animal>();
+
+        foreach (var item in Animal.ActiveEntities) {
+            if (item is Zebra zebra) {
+                listZebra.Add(zebra);
+            } else if (item is Elephant elephant) {
+                listElephant.Add(elephant);
+            } else if (item is Giraffe giraffe) {
+                listGiraffe.Add(giraffe);
+            } else if (item is Lion lion) {
+                listLion.Add(lion);
+            } else if (item is Tiger tiger) {
+                listTiger.Add(tiger);
+            } else if (item is TigerWhite tigerWhite) {
+                listTigerWhite.Add(tigerWhite);
+            }
+        }
+
+        ListAnimal(listElephant);
+        ListAnimal(listGiraffe);
+        ListAnimal(listZebra);
+        ListAnimal(listLion);
+        ListAnimal(listTiger);
+        ListAnimal(listTigerWhite);
+    }
+
+    private void UpdateOtherList() {
         //throw new NotImplementedException();
     }
 
-    private void updateAnimalList() {
-        //throw new NotImplementedException();
-    }
-
-    private void updateRangerList() {
+    private void UpdateRangerList() {
         int count = 0;
         rangerListPanel.ClearChildren();
         StyleProperty hover = new StyleProperty(Color.LightGray);
@@ -297,15 +438,15 @@ class EntityManager : PopupMenu {
         StyleProperty deleteClick = new StyleProperty(Color.IndianRed);
 
         foreach (Objects.Entities.Entity ent in Ranger.ActiveEntities) {
-            if (ent is Ranger) {
+            if (ent is Ranger ranger) {
                 Panel tempPanel = new Panel(new Vector2(0, 0.25f), PanelSkin.None, Anchor.Auto);
                 Panel tempControllerPanel = new Panel(new Vector2(0.7f, 0), PanelSkin.Simple, Anchor.CenterLeft);
 
                 tempPanel.Padding = new Vector2(0);
                 tempControllerPanel.Padding = new Vector2(0);
                 tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
-                    new RangerControllerMenu((Ranger)ent).Show();
-                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(ent.Position);
+                    new RangerControllerMenu(ranger).Show();
+                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(ranger.Position);
                     Toggle();
                 };
 
@@ -316,8 +457,8 @@ class EntityManager : PopupMenu {
                 Button tempButtonFire = new Button("Fire", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0));
                 tempButtonFire.Padding = new Vector2(0);
                 tempButtonFire.OnClick = (GeonBit.UI.Entities.Entity entity) => {
-                    ((Ranger)ent).Fire();
-                    updateCurrentTab();
+                    (ranger).Fire();
+                    UpdateCurrentTab();
                     update = true;
                 };
                 tempButtonFire.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
@@ -339,15 +480,12 @@ class EntityManager : PopupMenu {
         if (!visible) {
             return;
         }
-        if (currentPanel == EntityManagerTab.RangerTab) {
-            rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
-        }
         if (update) {
             update = false;
-            updateCurrentTab();
+            UpdateCurrentTab();
         }
-        if(prevRangerCount != GameScene.Active.Model.RangerCount) {
-            updateRangerList();
+        if (prevRangerCount != GameScene.Active.Model.RangerCount) {
+            update = true;
         }
         prevRangerCount = GameScene.Active.Model.RangerCount;
     }

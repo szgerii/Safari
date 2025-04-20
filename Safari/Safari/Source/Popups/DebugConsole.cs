@@ -164,7 +164,7 @@ class DebugConsole : PopupMenu {
     /// </summary>
     /// <param name="text">Error message text</param>
     public void Error(string text) {
-        builder.Append("{{RED}}").Append(text).Append("{{DEFAULT}}").Append("\n");
+        builder.Append("{{RED}}").Append(text).Append("{{DEFAULT}}").Append('\n');
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }
@@ -174,7 +174,7 @@ class DebugConsole : PopupMenu {
     /// </summary>
     /// <param name="text">Confirmation text</param>
     public void Confirm(string text) {
-        builder.Append("{{L_GREEN}}").Append(text).Append("{{DEFAULT}}").Append("\n");
+        builder.Append("{{L_GREEN}}").Append(text).Append("{{DEFAULT}}").Append('\n');
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }
@@ -184,7 +184,7 @@ class DebugConsole : PopupMenu {
     /// </summary>
     /// <param name="text">Info message text</param>
     public void Info(string text) {
-        builder.Append("{{L_BLUE}}").Append(text).Append("{{DEFAULT}}").Append("\n");
+        builder.Append("{{L_BLUE}}").Append(text).Append("{{DEFAULT}}").Append('\n');
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }
@@ -261,7 +261,7 @@ class DebugConsole : PopupMenu {
 
     //skips a line in the console, without the > char
     private void SkipLine() {
-        builder.Append("\n");
+        builder.Append('\n');
         consoleTextLog.Text = builder.ToString();
         ScrollConsoleDown();
     }

@@ -96,10 +96,10 @@ class Statusbar : PopupMenu, IUpdatable {
         mediumButton.Tag = "medium-button";
         fastButton.Tag = "fast-button";
 
-        pauseButton.OnClick = adjustSpeedSettings;
-        slowButton.OnClick = adjustSpeedSettings;
-        mediumButton.OnClick = adjustSpeedSettings;
-        fastButton.OnClick = adjustSpeedSettings;
+        pauseButton.OnClick = AdjustSpeedSettings;
+        slowButton.OnClick = AdjustSpeedSettings;
+        mediumButton.OnClick = AdjustSpeedSettings;
+        fastButton.OnClick = AdjustSpeedSettings;
 
         speedButtonPanel.AddChild(pauseButton);
         speedButtonPanel.AddChild(slowButton);
@@ -158,13 +158,13 @@ class Statusbar : PopupMenu, IUpdatable {
         indicatorPanel.AddChild(winDaysPanel);
         #endregion
 
-        SettingsMenu.ScaleChanged += scaleText;
+        SettingsMenu.ScaleChanged += ScaleText;
 
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
     }
 
-    private void adjustSpeedSettings(Entity entity) {
+    private void AdjustSpeedSettings(Entity entity) {
         switch (entity.Tag) {
             case "pause-button":
                 if (SceneManager.Active is GameScene) {
@@ -191,13 +191,13 @@ class Statusbar : PopupMenu, IUpdatable {
                 }
                 break;
         }
-        adjustSpeedButtons();
+        AdjustSpeedButtons();
     }
 
     public void Load() {
         UserInterface.Active.AddEntity(panel);
-        adjustSpeedButtons();
-        scaleText(null, EventArgs.Empty);
+        AdjustSpeedButtons();
+        ScaleText(null, EventArgs.Empty);
 
         maskArea = panel.CalcDestRect();
         GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
@@ -208,7 +208,7 @@ class Statusbar : PopupMenu, IUpdatable {
         GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
     }
 
-    private void adjustSpeedButtons() {
+    private void AdjustSpeedButtons() {
         if (GameScene.Active.Model.GameSpeed == GameSpeed.Paused) {
             pauseButton.Checked = true;
             slowButton.Checked = false;
@@ -232,7 +232,7 @@ class Statusbar : PopupMenu, IUpdatable {
         }
     }
 
-    private void scaleText(object sender, EventArgs e) {
+    private void ScaleText(object sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;
