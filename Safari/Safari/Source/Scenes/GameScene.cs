@@ -44,7 +44,7 @@ public class GameScene : Scene {
 		Jeep.Cleanup();
 
         Statusbar.Instance.Unload();
-		//EntityManager.Instance.Unload();
+		EntityManager.Instance.Unload();
 
         base.Unload();
 

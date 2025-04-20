@@ -1,11 +1,11 @@
 ﻿using Engine.Objects;
-using GeonBit.UI;
 using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Components;
 using Safari.Objects.Entities;
 using Safari.Objects.Entities.Animals;
+using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 using System;
@@ -30,9 +30,7 @@ class EntityManager : PopupMenu {
 
     private Panel rangerPanel;
     private Button rangerTabBtn;
-
     private Button rangerDefaultTargetButton;
-
     private Panel rangerTopPanel;
     private Label rangerHireLabel;
     private Button rangerHirePlus;
@@ -48,10 +46,16 @@ class EntityManager : PopupMenu {
 
     private Panel otherPanel;
     private Button otherTabBtn;
+    private Panel jeepRentFeePanel;
+    private Label jeepRentFeeLabel;
+    private Label jeepRentFeeDisplayLabel;
+    private Panel jeepRentFeeDisplayPanel;
+    private Button jeepRentFeeMinusButton;
+    private Button jeepRentFeePlusButton;
 
     private Rectangle maskArea;
 
-    private DefaultAnimalSelectorPopup defaultSelector = new DefaultAnimalSelectorPopup();
+    private DefaultAnimalSelectorPopup defaultSelector = DefaultAnimalSelectorPopup.Instance;
 
     public static EntityManager Instance => instance;
 
@@ -141,8 +145,7 @@ class EntityManager : PopupMenu {
         #endregion
 
         #region ANIMAL_TAB
-
-        animalPanel = new Panel(tabPanelSize, PanelSkin.None, Anchor.BottomLeft, new Vector2(0)); ;
+        animalPanel = new Panel(tabPanelSize, PanelSkin.None, Anchor.BottomLeft, new Vector2(0));
         animalListPanel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.BottomLeft);
         animalListPanel.Padding = new Vector2(15);
         animalListPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
@@ -151,12 +154,40 @@ class EntityManager : PopupMenu {
         #endregion
 
         #region OTHER_TAB
+        otherPanel = new Panel(tabPanelSize, PanelSkin.None, Anchor.BottomLeft, new Vector2(0));
+
+        jeepRentFeePanel = new Panel(new Vector2(0, 0.3f), PanelSkin.Simple, Anchor.TopCenter);
+        jeepRentFeePanel.Padding = new Vector2(15);
+
+        jeepRentFeeLabel = new Label("Jeep rent: ", Anchor.CenterLeft, new Vector2(0.3f, 0));
+        jeepRentFeeLabel.Padding = new Vector2(0);
+
+        jeepRentFeeDisplayLabel = new Label(Jeep.RentFee.ToString(), Anchor.Center, new Vector2(0));
+        jeepRentFeeDisplayLabel.Padding = new Vector2(0);
+        jeepRentFeeDisplayLabel.AlignToCenter = true;
+
+        jeepRentFeeDisplayPanel = new Panel(new Vector2(0.2f, 0), PanelSkin.None, Anchor.AutoInline);
+        jeepRentFeeDisplayPanel.Padding = new Vector2(0);
+
+        jeepRentFeeMinusButton = new Button("-", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.25f, 0));
+        jeepRentFeeMinusButton.Padding = new Vector2(0);
+        jeepRentFeeMinusButton.MaxSize = new Vector2(100, 100);
+
+        jeepRentFeePlusButton = new Button("+", ButtonSkin.Default, Anchor.AutoInline, new Vector2(0.25f, 0));
+        jeepRentFeePlusButton.Padding = new Vector2(0);
+        jeepRentFeePlusButton.MaxSize = new Vector2(100, 100);
+
+        jeepRentFeeDisplayPanel.AddChild(jeepRentFeeDisplayLabel);
+        jeepRentFeePanel.AddChild(jeepRentFeeLabel);
+        jeepRentFeePanel.AddChild(jeepRentFeeMinusButton);
+        jeepRentFeePanel.AddChild(jeepRentFeeDisplayPanel);
+        jeepRentFeePanel.AddChild(jeepRentFeePlusButton);
+        otherPanel.AddChild(jeepRentFeePanel);
         #endregion
 
         panel.AddChild(title);
         panel.AddChild(buttonPanel);
-
-        UpdateCurrentTab();
+        update = true;
 
         SettingsMenu.ScaleChanged += ScaleText;
     }
@@ -164,10 +195,8 @@ class EntityManager : PopupMenu {
     public void Toggle() {
         if (visible) {
             Hide();
-            visible = false;
         } else {
             Show();
-            visible = true;
         }
     }
 
@@ -200,32 +229,42 @@ class EntityManager : PopupMenu {
         }
         RemoveCurrentTab();
         LoadTab(tab);
-        UpdateCurrentTab();
+        update = true;
     }
 
     public override void Show() {
-        rangerHireMinus.OnClick += RangerMinusBtn;
-        rangerHirePlus.OnClick += RangerPlusBtn;
+        visible = true;
+        rangerHireMinus.OnClick = RangerMinusBtn;
+        rangerHirePlus.OnClick = RangerPlusBtn;
 
-        rangerTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.RangerTab);
-        animalTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.AnimalTab);
-        otherTabBtn.OnClick += (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.OtherTab);
+        jeepRentFeeMinusButton.OnClick = JeepMinusBtn;
+        jeepRentFeePlusButton.OnClick = JeepPlusBtn;
 
-        UpdateCurrentTab();
+        rangerTabBtn.OnClick = (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.RangerTab);
+        animalTabBtn.OnClick = (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.AnimalTab);
+        otherTabBtn.OnClick = (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.OtherTab);
+
+        update = true;
         base.Show();
         maskArea = this.panel.CalcDestRect();
         GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
     }
 
     public override void Hide() {
-        rangerHireMinus.OnClick -= RangerMinusBtn;
-        rangerHirePlus.OnClick -= RangerPlusBtn;
+        visible = false;
+        rangerHireMinus.OnClick = null;
+        rangerHirePlus.OnClick = null;
 
-        rangerTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.RangerTab);
-        animalTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.AnimalTab);
-        otherTabBtn.OnClick -= (GeonBit.UI.Entities.Entity entity) => SwitchToTab(EntityManagerTab.OtherTab);
+        jeepRentFeeMinusButton.OnClick = null;
+        jeepRentFeePlusButton.OnClick = null;
 
-        UserInterface.Active.RemoveEntity(panel);
+        rangerTabBtn.OnClick = null;
+        animalTabBtn.OnClick = null;
+        otherTabBtn.OnClick = null;
+
+        if (panel.Parent != null) {
+            base.Hide();
+        }
         GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
     }
 
@@ -233,7 +272,7 @@ class EntityManager : PopupMenu {
         visible = false;
         RemoveCurrentTab();
         currentPanel = EntityManagerTab.None;
-        if (defaultSelector.Visible) {
+        if (DefaultAnimalSelectorPopup.Showing) {
             defaultSelector.Hide();
         }
         Hide();
@@ -242,7 +281,25 @@ class EntityManager : PopupMenu {
     public void Load() {
         visible = false;
         Ranger.DefaultTarget = null;
+        jeepRentFeeDisplayLabel.Text = Jeep.RentFee.ToString();
         rangerDefaultTargetButton.ButtonParagraph.Text = "Default Target";
+        if (DefaultAnimalSelectorPopup.Showing) {
+            defaultSelector.Hide();
+        }
+    }
+
+    private void JeepMinusBtn(GeonBit.UI.Entities.Entity entity) {
+        if (Jeep.RentFee == 0) {
+            new AlertMenu("Jeep rent fee", "You can't set the rent fee below zero").Show();
+            return;
+        }
+        Jeep.RentFee -= 50;
+        jeepRentFeeDisplayLabel.Text = Jeep.RentFee.ToString();
+    }
+
+    private void JeepPlusBtn(GeonBit.UI.Entities.Entity entity) {
+        Jeep.RentFee += 50;
+        jeepRentFeeDisplayLabel.Text = Jeep.RentFee.ToString();
     }
 
     public void SetDefaultTarget(AnimalSpecies animal) {
@@ -254,6 +311,8 @@ class EntityManager : PopupMenu {
         rangerHireLabel.Scale = SettingsMenu.Scale;
         rangerHireMinus.ButtonParagraph.Scale = SettingsMenu.Scale;
         rangerHirePlus.ButtonParagraph.Scale = SettingsMenu.Scale;
+        jeepRentFeeDisplayLabel.Scale = SettingsMenu.Scale;
+        jeepRentFeeLabel.Scale = SettingsMenu.Scale;
     }
 
     private void RangerMinusBtn(GeonBit.UI.Entities.Entity entity) {
@@ -268,18 +327,14 @@ class EntityManager : PopupMenu {
             }
         }
         update = true;
-        UpdateCurrentTab();
     }
 
     private void RangerPlusBtn(GeonBit.UI.Entities.Entity entity) {
-        Ranger temp = new Ranger(new Vector2((GameScene.Active.Model.Level.MapWidth / 2) * GameScene.Active.Model.Level.TileSize, (GameScene.Active.Model.Level.MapHeight / 2) * GameScene.Active.Model.Level.TileSize)) {
-            TargetSpecies = null
-        };
+        Ranger temp = new Ranger(new Vector2((GameScene.Active.Model.Level.MapWidth / 2) * GameScene.Active.Model.Level.TileSize, (GameScene.Active.Model.Level.MapHeight / 2) * GameScene.Active.Model.Level.TileSize));
         rangerTargetIndex = (rangerTargetIndex + 1) % Enum.GetValues(typeof(AnimalSpecies)).Length;
         Game.AddObject(temp);
         rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
         update = true;
-        UpdateCurrentTab();
     }
 
     private void UpdateCurrentTab() {
@@ -338,8 +393,7 @@ class EntityManager : PopupMenu {
             tempButtonSell.Padding = new Vector2(0);
             tempButtonSell.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                 item.Sell();
-                UpdateCurrentTab();
-                update = true;
+                this.update = true;
             };
             tempButtonSell.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
             tempButtonSell.SetStyleProperty("FillColor", deleteHover, EntityState.MouseHover);
@@ -356,7 +410,7 @@ class EntityManager : PopupMenu {
                 tempButtonChip.SetStyleProperty("FillColor", chipHover, EntityState.MouseHover);
                 tempButtonChip.SetStyleProperty("FillColor", chipClick, EntityState.MouseDown);
             }
-                tempButtonChip.Padding = new Vector2(0);
+            tempButtonChip.Padding = new Vector2(0);
             tempButtonChip.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                 if (GameScene.Active.Model.Funds <= 250) {
                     var alert = new AlertMenu("Can't buy chip", "You can't afford this.");
@@ -365,7 +419,7 @@ class EntityManager : PopupMenu {
                 }
                 GameScene.Active.Model.Funds -= 250;
                 item.HasChip = true;
-                if(entity is Button button) {
+                if (entity is Button button) {
                     button.ButtonParagraph.Text = "Chipped";
                 }
                 entity.Locked = true;
@@ -439,6 +493,7 @@ class EntityManager : PopupMenu {
 
         foreach (Objects.Entities.Entity ent in Ranger.ActiveEntities) {
             if (ent is Ranger ranger) {
+                //DebugConsole.Instance.Write("ranger#" + (count + 1) + (ranger.ChaseTarget == null ? "null" : ranger.ChaseTarget.DisplayName) + " " + (ranger.TargetSpecies == null ? "Default" : ranger.TargetSpecies.ToString()));
                 Panel tempPanel = new Panel(new Vector2(0, 0.25f), PanelSkin.None, Anchor.Auto);
                 Panel tempControllerPanel = new Panel(new Vector2(0.7f, 0), PanelSkin.Simple, Anchor.CenterLeft);
 
@@ -457,9 +512,8 @@ class EntityManager : PopupMenu {
                 Button tempButtonFire = new Button("Fire", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0));
                 tempButtonFire.Padding = new Vector2(0);
                 tempButtonFire.OnClick = (GeonBit.UI.Entities.Entity entity) => {
-                    (ranger).Fire();
-                    UpdateCurrentTab();
-                    update = true;
+                    ranger.Fire();
+                    this.update = true;
                 };
                 tempButtonFire.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
                 tempButtonFire.SetStyleProperty("FillColor", deleteHover, EntityState.MouseHover);
@@ -474,6 +528,7 @@ class EntityManager : PopupMenu {
                 rangerListPanel.AddChild(tempPanel);
             }
         }
+        //DebugConsole.Instance.Write("--------");
     }
 
     public override void Update(GameTime gameTime) {
@@ -483,9 +538,8 @@ class EntityManager : PopupMenu {
         if (update) {
             update = false;
             UpdateCurrentTab();
-        }
-        if (prevRangerCount != GameScene.Active.Model.RangerCount) {
-            update = true;
+        } else if (prevRangerCount != GameScene.Active.Model.RangerCount) {
+            UpdateCurrentTab();
         }
         prevRangerCount = GameScene.Active.Model.RangerCount;
     }

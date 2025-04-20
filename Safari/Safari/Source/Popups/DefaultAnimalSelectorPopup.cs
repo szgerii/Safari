@@ -8,10 +8,13 @@ using System;
 namespace Safari.Popups;
 
 class DefaultAnimalSelectorPopup : PopupMenu {
+    private readonly static DefaultAnimalSelectorPopup instance = new DefaultAnimalSelectorPopup();
+    public static DefaultAnimalSelectorPopup Instance => instance;
     public bool Visible { get; private set; }
-    public DefaultAnimalSelectorPopup() {
-        background = null;
+    public static bool Showing => instance.Visible;
 
+    private DefaultAnimalSelectorPopup() {
+        Visible = false;
         panel = new Panel(new Vector2(0.4f, 0.4f), PanelSkin.Default, Anchor.Center);
         panel.Padding = new Vector2(15);
         panel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
