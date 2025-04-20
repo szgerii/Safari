@@ -378,9 +378,11 @@ class EntityManager : PopupMenu {
             tempPanel.MaxSize = new Vector2(0, 80);
             tempControllerPanel.Padding = new Vector2(0);
             tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
-                new AnimalControllerMenu(item).Show();
-                Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.Position);
-                Toggle();
+                if (GameScene.Active.Model.IsDaytime || item.HasChip) {
+                    new AnimalControllerMenu(item).Show();
+                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.Position);
+                    Toggle();
+                }
             };
 
             Label tempLabel = new Label(currenSpecies.GetDisplayName() + "#" + (++count).ToString(), Anchor.CenterLeft, new Vector2(0), new Vector2(15, 0));
