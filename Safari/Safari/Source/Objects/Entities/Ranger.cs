@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Engine.Components;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
@@ -48,6 +49,7 @@ public class Ranger : Entity {
 		}
 	}
 
+	private Entity chaseTargetBuffer = null;
 	/// <summary>
 	/// The Animal or Poacher the ranger is currently chasing
 	/// </summary>
@@ -91,7 +93,7 @@ public class Ranger : Entity {
 
 		animSprite.CurrentAnimation = "walk-right";
 
-		Bounds = new Rectangle(0, 0, 25, 64);
+		Bounds = new Vectangle(0, 0, 25, 64);
 		SightDistance = 8;
 		ReachDistance = 3;
 		NavCmp.Speed *= SPEED;
@@ -143,7 +145,7 @@ public class Ranger : Entity {
 	}
 
 	public override string ToString() {
-		return $"{DisplayName}, {State}, target: {(NavCmp.Target != null ? Utils.Format(NavCmp.Target.Value, false, false) : "none")}";
+		return $"{DisplayName}, {State}, target: {(NavCmp.Target != null ? (NavCmp.TargetObject?.ToString() + " " + Utils.Format(NavCmp.Target.Value, false, false)) : "none")}";
 	}
 
 	/// <summary>
@@ -170,13 +172,18 @@ public class Ranger : Entity {
 	[StateUpdate(RangerState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (CanHunt && ChaseTarget == null && entity is Animal animal && animal.Species == TargetSpecies) {
-				ChaseTarget = animal;
+			if (entity.IsDead || this == entity) continue;
+
+			if (entity is Poacher poacher &&
+			   (chaseTargetBuffer is not Poacher ||
+			   (Vector2.DistanceSquared(CenterPosition, entity.CenterPosition) < Vector2.DistanceSquared(CenterPosition, chaseTargetBuffer.CenterPosition))))
+			{
+				chaseTargetBuffer = poacher;
 				StateMachine.Transition(RangerState.Chasing);
 			}
 
-			if (entity is Poacher poacher) {
-				ChaseTarget = poacher;
+			if (CanHunt && chaseTargetBuffer == null && entity is Animal animal && animal.Species == TargetSpecies) {
+				chaseTargetBuffer = animal;
 				StateMachine.Transition(RangerState.Chasing);
 			}
 		}
@@ -191,7 +198,7 @@ public class Ranger : Entity {
 		NavCmp.ReachedTarget -= OnWanderingTargetReached;
 	}
 
-	private void OnWanderingTargetReached(object sender, ReachedTargetEventArgs e) {
+	private void OnWanderingTargetReached(object sender, NavigationTargetEventArgs e) {
 		NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
 		NavCmp.Moving = true;
 	}
@@ -201,22 +208,17 @@ public class Ranger : Entity {
 	/// </summary>
 	[StateBegin(RangerState.Chasing)]
 	public void StartChasing() {
-		if (ChaseTarget == null) {
+		if (chaseTargetBuffer == null) {
 			StateMachine.Transition(RangerState.Wandering);
 			return;
 		}
 
+		ChaseTarget = chaseTargetBuffer;
+		chaseTargetBuffer = null;
 		NavCmp.TargetObject = ChaseTarget;
 		NavCmp.Moving = true;
 		NavCmp.ReachedTarget += OnChaseTargetReached;
 		ChaseTarget.Died += OnChaseTargetDied;
-	}
-
-	private void OnChaseTargetDied(object sender, EventArgs e) {
-		ChaseTarget.Died -= OnChaseTargetDied;
-		ChaseTarget = null;
-		NavCmp.TargetObject = null;
-		StateMachine.Transition(RangerState.Wandering);
 	}
 
 	/// <summary>
@@ -225,12 +227,18 @@ public class Ranger : Entity {
 	/// <param name="gameTime"></param>
 	[StateUpdate(RangerState.Chasing)]
 	public void ChasingUpdate(GameTime gameTime) {
+		if (ChaseTarget is Animal animal && animal.Species != TargetSpecies) {
+			StateMachine.Transition(RangerState.Wandering);
+			return;
+		}
+
 		if (ChaseTarget is Poacher) return;
 
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (entity is Poacher) {
-				ChaseTarget.Died -= OnChaseTargetDied;
-				ChaseTarget = entity;
+			if (entity.IsDead || this == entity) continue;
+
+			if (entity is Poacher && ChaseTarget is not Animal) {
+				chaseTargetBuffer = entity;
 				StateMachine.Transition(RangerState.Chasing);
 				break;
 			}
@@ -242,17 +250,28 @@ public class Ranger : Entity {
 	/// </summary>
 	[StateEnd(RangerState.Chasing)]
 	public void EndChasing() {
-		if (ChaseTarget != null && ChaseTarget == NavCmp.TargetObject) {
+		if (ChaseTarget != null) {
 			ChaseTarget.Died -= OnChaseTargetDied;
 		}
 
+		ChaseTarget = null;
 		NavCmp.TargetObject = null;
 		NavCmp.ReachedTarget -= OnChaseTargetReached;
 	}
 
-	private void OnChaseTargetReached(object sender, ReachedTargetEventArgs e) {
+	private void OnChaseTargetDied(object sender, EventArgs e) {
+		StateMachine.Transition(RangerState.Wandering);
+	}
+
+	private void OnChaseTargetReached(object sender, NavigationTargetEventArgs e) {
 		if (ChaseTarget is Animal) {
 			LastSuccessfulHunt = GameScene.Active.Model.IngameDate;
+
+			// don't kill the target if it's the only animal left in the park
+			if (GameScene.Active.Model.AnimalCount == 1) {
+				StateMachine.Transition(RangerState.Wandering);
+				return;
+			}
 		}
 
 		if (ChaseTarget != null && !ChaseTarget.IsDead) {

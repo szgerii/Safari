@@ -1,11 +1,11 @@
 ﻿using Engine;
 using Engine.Components;
 using Engine.Debug;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Objects.Entities.Animals;
-using Safari.Popups;
 using Safari.Scenes;
 using System;
 
@@ -81,7 +81,7 @@ public class Poacher : Entity {
 		};
 		Attach(collisionCmp);*/
 
-		Bounds = new Rectangle(0, 0, 32, 64);
+		Bounds = new Vectangle(0, 0, 32, 64);
 		SightDistance = 6;
 		ReachDistance = 2;
 		NavCmp.Speed *= SPEED;
@@ -174,7 +174,9 @@ public class Poacher : Entity {
 	[StateUpdate(PoacherState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		foreach (Entity entity in GetEntitiesInSight()) {
-			if (entity is Animal a && !a.IsCaught && !a.IsDead) {
+			if (entity.IsDead || this == entity) continue;
+
+			if (entity is Animal a && !a.IsCaught) {
 				ChaseTarget = a;
 				StateMachine.Transition(PoacherState.Chasing);
 				break;
@@ -191,7 +193,7 @@ public class Poacher : Entity {
 		NavCmp.Moving = false;
 	}
 
-	private void OnWanderingTargetReached(object sender, ReachedTargetEventArgs e) {
+	private void OnWanderingTargetReached(object sender, NavigationTargetEventArgs e) {
 		if (e.TargetPosition != null) {
 			NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
 		}
@@ -252,7 +254,7 @@ public class Poacher : Entity {
 	}
 
 	private readonly Random rand = new();
-	private void OnChaseTargetReached(object sender, ReachedTargetEventArgs e) {
+	private void OnChaseTargetReached(object sender, NavigationTargetEventArgs e) {
 		if (ChaseTarget.IsCaught || ChaseTarget.IsDead) {
 			StateMachine.Transition(PoacherState.Wandering);
 			return;
@@ -307,7 +309,7 @@ public class Poacher : Entity {
 		CaughtAnimal.Release(Position);
 	}
 
-	private void OnEscapeReached(object sender, ReachedTargetEventArgs e) {
+	private void OnEscapeReached(object sender, NavigationTargetEventArgs e) {
 		CaughtAnimal.Die();
 		StateMachine.Transition(PoacherState.Wandering);
 		ReachDistance = 4;

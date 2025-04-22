@@ -1,5 +1,6 @@
 ﻿using Engine.Components;
 using Engine.Debug;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
@@ -197,7 +198,7 @@ public class Jeep : Entity {
 		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
 		ReachDistance = 0;
-		Bounds = new Rectangle(0, 0, 0, 0);
+		Bounds = Vectangle.Empty;
 		Attach(Sprite);
 		Attach(StateMachine);
 	}
@@ -306,7 +307,7 @@ public class Jeep : Entity {
 		UpdateSrcRec();
 	}
 
-	private void PickUpReached(object sender, ReachedTargetEventArgs e) {
+	private void PickUpReached(object sender, NavigationTargetEventArgs e) {
 		StateMachine.Transition(JeepState.WaitingForTourists);
 	}
 
@@ -455,7 +456,7 @@ public class Jeep : Entity {
 		}
 	}
 
-	private void CheckPointReached(object sender, ReachedTargetEventArgs e) {
+	private void CheckPointReached(object sender, NavigationTargetEventArgs e) {
 		if (needEscape) {
 			NavCmp.Moving = false;
 			NavCmp.ReachedTarget -= CheckPointReached;
@@ -478,7 +479,7 @@ public class Jeep : Entity {
 		}
 	}
 
-	private void PostGoalReached(object sender, ReachedTargetEventArgs e) {
+	private void PostGoalReached(object sender, NavigationTargetEventArgs e) {
 		NavCmp.ReachedTarget -= PostGoalReached;
 		NavCmp.StopOnTargetReach = true;
 		StateMachine.Transition(postState);

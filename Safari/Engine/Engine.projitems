@@ -12,7 +12,6 @@
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\Collider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\LimitCmpOwnerTypeAttribute.cs" />
