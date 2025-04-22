@@ -16,6 +16,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\LimitCmpOwnerTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\ISpatial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\QuadTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\Vectangle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IPostProcessPass.cs" />
     <Compile Include="..\Engine\Source\Debug\PerformanceCalculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\DisplayManager.cs" />
