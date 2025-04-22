@@ -17,7 +17,7 @@ class PauseMenu : PopupMenu {
     private Button SaveButton;
     private Button SaveAndExitButton;
     private Button ExitButton;
-    private bool visible;
+    private bool visible;       
 
     public static PauseMenu Instance => instance;
 

@@ -43,6 +43,7 @@ public class GameScene : Scene {
 
 		Jeep.Cleanup();
 
+        Statusbar.Instance.UnLoad();
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
@@ -82,6 +83,8 @@ public class GameScene : Scene {
         base.Load();
 
 		MapBuilder.BuildStartingMap(model.Level);
+
+		Statusbar.Instance.Load();
 	}
 
 	public override void Update(GameTime gameTime) {
@@ -91,7 +94,9 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 		}
 
-		foreach (GameObject obj in GameObjects) {
+        Statusbar.Instance.Update(gameTime);
+
+        foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
 				if (obj is Entity e && e.IsDead) continue;
 
