@@ -167,7 +167,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <param name="area">The area to filter for</param>
 	/// <returns>The list of entities inside the area</returns>
 	public static List<Entity> GetEntitiesInArea(Vectangle area) {
-		return EntityManager.GetEntitiesInArea(area);
+		return EntityBoundsManager.GetEntitiesInArea(area);
 	}
 
 	/// <summary>
@@ -199,7 +199,7 @@ public abstract class Entity : GameObject, ISpatial {
 		model.EntityCount++;
 		activeEntities.Add(this);
 		UpdateBounds();
-		EntityManager.AddEntity(this);
+		EntityBoundsManager.AddEntity(this);
 
 		base.Load();
 	}
@@ -207,7 +207,7 @@ public abstract class Entity : GameObject, ISpatial {
 	public override void Unload() {
 		GameScene.Active.Model.EntityCount--;
 		activeEntities.Remove(this);
-		EntityManager.RemoveEntity(this);
+		EntityBoundsManager.RemoveEntity(this);
 
 		base.Unload();
 	}

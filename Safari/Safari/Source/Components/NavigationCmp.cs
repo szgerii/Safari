@@ -139,7 +139,7 @@ public class NavigationCmp : Component, IUpdatable {
 
 		if (Moving) {
 			if (ownerEntity != null) {
-				EntityManager.RemoveEntity(ownerEntity);
+				EntityBoundsManager.RemoveEntity(ownerEntity);
 			}
 
 			Vector2 targetPos = Target.Value;
@@ -178,7 +178,7 @@ public class NavigationCmp : Component, IUpdatable {
 					ownerEntity.UpdateBounds();
 				}
 
-				EntityManager.AddEntity(ownerEntity);
+				EntityBoundsManager.AddEntity(ownerEntity);
 			}
 
 			if (TargetInSight != null && CanSee(Target.Value)) {

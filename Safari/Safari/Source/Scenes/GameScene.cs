@@ -47,7 +47,7 @@ public class GameScene : Scene {
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
-		EntityManager.CleanUp();
+		EntityBoundsManager.CleanUp();
 		CollisionManager.CleanUp();
 		PostProcessPasses.Remove(model.Level.LightManager);
 
@@ -67,7 +67,7 @@ public class GameScene : Scene {
 		int tileSize = model.Level.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
 
-		EntityManager.Init(mapBounds);
+		EntityBoundsManager.Init(mapBounds);
 		CollisionManager.Init(mapBounds);
 		PostUpdate += CollisionManager.PostUpdate;
 
