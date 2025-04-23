@@ -53,8 +53,6 @@ class Statusbar : PopupMenu, IUpdatable {
     private Rectangle maskArea;
     public static Statusbar Instance => instance;
 
-    public static int Height => Instance.panel.GetActualDestRect().Height;
-
     private Statusbar() {
         background = null;
 

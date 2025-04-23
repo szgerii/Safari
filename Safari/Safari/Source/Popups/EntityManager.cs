@@ -380,7 +380,7 @@ class EntityManager : PopupMenu {
             tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                 if (GameScene.Active.Model.IsDaytime || item.HasChip) {
                     new AnimalControllerMenu(item).Show();
-                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.Position);
+                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.CenterPosition);
                     Toggle();
                 }
             };
@@ -503,7 +503,7 @@ class EntityManager : PopupMenu {
                 tempControllerPanel.Padding = new Vector2(0);
                 tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                     new RangerControllerMenu(ranger).Show();
-                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(ranger.Position);
+                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(ranger.CenterPosition);
                     Toggle();
                 };
 
