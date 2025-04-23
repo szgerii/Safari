@@ -1,4 +1,4 @@
-﻿using Engine.Collision;
+﻿using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -12,10 +12,10 @@ public class Giraffe : Animal {
 		Sprite.Scale = 0.75f;
 		Sprite.YSortOffset = 128;
 
-		Collider baseColl = new(7, 107, 81, 20);
+		Vectangle baseColl = new(7, 107, 81, 20);
 		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
 
-		ReachDistance = 2;
+		ReachDistance = 4;
 		SightDistance = 7;
 	}
 }

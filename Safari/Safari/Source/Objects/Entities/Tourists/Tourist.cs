@@ -7,7 +7,6 @@ using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 
 namespace Safari.Objects.Entities.Tourists;
 
@@ -218,7 +217,7 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += ReachedQueueSpot;
 	}
 
-	private void ReachedQueueSpot(object sender, ReachedTargetEventArgs e) {
+	private void ReachedQueueSpot(object sender, NavigationTargetEventArgs e) {
 		reachedQueueIndex = targetQueueIndex;
 		targetQueueIndex = -1;
 		NavCmp.ReachedTarget -= ReachedQueueSpot;
@@ -345,7 +344,7 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += LeftPark;
 	}
 
-	private void LeftPark(object sender, ReachedTargetEventArgs e) {
+	private void LeftPark(object sender, NavigationTargetEventArgs e) {
 		NavCmp.ReachedTarget -= LeftPark;
 		Die();
 	}

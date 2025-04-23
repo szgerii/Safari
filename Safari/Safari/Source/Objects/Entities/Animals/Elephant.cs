@@ -1,4 +1,4 @@
-﻿using Engine.Collision;
+﻿using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -12,9 +12,7 @@ public class Elephant : Animal {
 		Sprite.YSortOffset = 96;
 		Sprite.Scale = 0.75f;
 
-		Collider baseColl = new(5, 73, 85, 24);
+		Vectangle baseColl = new(5, 73, 85, 24);
 		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
-
-		ReachDistance = 2;
 	}
 }

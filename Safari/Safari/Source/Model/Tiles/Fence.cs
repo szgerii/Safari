@@ -1,5 +1,6 @@
 ﻿using Engine.Collision;
 using Engine.Components;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -29,7 +30,7 @@ class Fence : AutoTile {
 		Layout[AutoTileBitmaskHelper.Straights] = new Point(1, 5);
 		LightRange = -1;
 
-		CollisionCmp collCmp = new CollisionCmp(new Collider(0, 0, 32, 32)) {
+		CollisionCmp collCmp = new CollisionCmp(new Vectangle(0, 0, 32, 32)) {
 			Tags = CollisionTags.World
 		};
 		Attach(collCmp);

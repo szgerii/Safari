@@ -1,4 +1,4 @@
-﻿using Engine.Collision;
+﻿using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -12,7 +12,7 @@ public class Zebra : Animal {
 		Sprite.YSortOffset = 96;
 		Sprite.Scale = 2 / 3f;
 
-		Collider baseColl = new(5, 83, 78, 15);
+		Vectangle baseColl = new(5, 83, 78, 15);
 		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
 	}
 }

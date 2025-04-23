@@ -13,6 +13,7 @@ using Safari.Objects.Entities;
 using Safari.Popups;
 using Safari.Scenes.Menus;
 using Safari.Objects.Entities.Tourists;
+using Engine.Helpers;
 
 namespace Safari.Scenes;
 
@@ -47,6 +48,8 @@ public class GameScene : Scene {
         base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
+		EntityBoundsManager.CleanUp();
+		CollisionManager.CleanUp();
 		PostProcessPasses.Remove(model.Level.LightManager);
 
 		EntityControllerMenu.Active?.Hide();
@@ -62,7 +65,11 @@ public class GameScene : Scene {
 		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate);
 		PostProcessPasses.Add(model.Level.LightManager);
 
-		CollisionManager.Init(model.Level.MapWidth, model.Level.MapHeight, model.Level.TileSize);
+		int tileSize = model.Level.TileSize;
+		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
+
+		EntityBoundsManager.Init(mapBounds);
+		CollisionManager.Init(mapBounds);
 		PostUpdate += CollisionManager.PostUpdate;
 
 		model.GameLost += OnGameLost;

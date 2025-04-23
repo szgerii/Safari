@@ -58,7 +58,7 @@ public class GameModel {
 	/// <summary>
 	/// The component of medium speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int MEDIUM_FAKE = 2;
+	private const int MEDIUM_FAKE = 4;
 	/// <summary>
 	/// How much faster 'fast' speed is compared to 'slow'
 	/// </summary>
@@ -66,7 +66,7 @@ public class GameModel {
 	/// <summary>
 	/// The component of fast speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int FAST_FAKE = 4;
+	private const int FAST_FAKE = 12;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
@@ -115,7 +115,7 @@ public class GameModel {
 	/// </summary>
 	public int RealExtraFrames => GameSpeed switch {
 		GameSpeed.Medium => MEDIUM_FRAMES / MEDIUM_FAKE,
-		GameSpeed.Fast => FAST_FRAMES / MEDIUM_FAKE,
+		GameSpeed.Fast => FAST_FRAMES / FAST_FAKE,
 		_ => 0
 	};
 	public double FakeFrameMul => GameSpeed switch {
@@ -428,8 +428,8 @@ public class GameModel {
 		//DebugInfoManager.AddInfo("Selected route length", level.Network.DebugRoute.Count + "", DebugInfoPosition.BottomRight);
 
 		// Tourist debug stuff
-		DebugInfoManager.AddInfo("Average rating", Tourist.AvgRating + "", DebugInfoPosition.BottomRight);
-		DebugInfoManager.AddInfo("Tourists spawn / hour", Tourist.SpawnRate + "", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo($"Average rating", $"{Tourist.AvgRating:0.00}", DebugInfoPosition.BottomRight);
+		DebugInfoManager.AddInfo("Tourists spawn / hour", $"{Tourist.SpawnRate:0.00}", DebugInfoPosition.BottomRight);
 	}
 
 	private void TriggerLose(LoseReason reason) {
