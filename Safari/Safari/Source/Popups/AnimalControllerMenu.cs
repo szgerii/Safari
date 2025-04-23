@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
+using Safari.Scenes.Menus;
 
 namespace Safari.Popups;
 	
@@ -63,6 +64,7 @@ public class AnimalControllerMenu : EntityControllerMenu {
 			$"Thirst: {animal.ThirstLevel:0} / 100\n" +
 			$"Group Size: {animal.Group?.Size ?? 1} / {AnimalGroup.MAX_SIZE}\n" +
 			$"Has Microchip: {(animal.HasChip ? "Yes" : "No")}";
+		dataParagraph.Scale = SettingsMenu.Scale;
 	}
 
 	private void OnChipBtnClick(Entity e) {

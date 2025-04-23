@@ -63,7 +63,7 @@ class EntityManager : PopupMenu {
         background = null;
         visible = false;
 
-        panel = new Panel(new Vector2(0.5f, 0.75f), PanelSkin.Default, Anchor.TopRight);
+        panel = new Panel(new Vector2(0.5f, 0.75f), PanelSkin.Default, Anchor.TopRight, new Vector2(16));
         panel.Tag = "PassiveFocus";
         panel.Padding = new Vector2(0);
 
@@ -305,6 +305,11 @@ class EntityManager : PopupMenu {
     public void SetDefaultTarget(AnimalSpecies animal) {
         Ranger.DefaultTarget = animal;
         rangerDefaultTargetButton.ButtonParagraph.Text = animal.GetDisplayName() ?? "Default Target";
+    }
+
+    public void SetDefaultTargetToNull() {
+        Ranger.DefaultTarget = null;
+        rangerDefaultTargetButton.ButtonParagraph.Text = "Default Target";
     }
 
     private void ScaleText(object sender, EventArgs e) {

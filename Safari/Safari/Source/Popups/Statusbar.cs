@@ -14,6 +14,8 @@ namespace Safari.Popups;
 class Statusbar : PopupMenu, IUpdatable {
     private static readonly Statusbar instance = new Statusbar();
 
+    private bool visible;
+
     private Panel speedButtonPanel;
     private Button pauseButton;
     private Button slowButton;
@@ -133,11 +135,11 @@ class Statusbar : PopupMenu, IUpdatable {
         winDaysPanel.Padding = paddingSize;
 
         moneyText = new Label("Money:", Anchor.CenterLeft);
-        moneyText.Offset = new Vector2(15,0);
+        moneyText.Offset = new Vector2(15, 0);
         ratingText = new Label("Rating:", Anchor.CenterLeft);
-        ratingText.Offset = new Vector2(15,0);
+        ratingText.Offset = new Vector2(15, 0);
         carnivoreText = new Label("Carnivores:", Anchor.CenterLeft);
-        carnivoreText.Offset = new Vector2(15,0);
+        carnivoreText.Offset = new Vector2(15, 0);
         herbivoreText = new Label("Herbivores:", Anchor.CenterLeft);
         herbivoreText.Offset = new Vector2(15, 0);
         winDaysText = new Label("Winning:", Anchor.CenterLeft);
@@ -193,6 +195,7 @@ class Statusbar : PopupMenu, IUpdatable {
     }
 
     public void Load() {
+        visible = true;
         UserInterface.Active.AddEntity(panel);
         AdjustSpeedButtons();
         ScaleText(null, EventArgs.Empty);
@@ -202,8 +205,25 @@ class Statusbar : PopupMenu, IUpdatable {
     }
 
     public void Unload() {
-        UserInterface.Active.RemoveEntity(panel);
-        GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        visible = false;
+        if (panel.Parent != null) {
+            UserInterface.Active.RemoveEntity(panel);
+            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        }
+    }
+
+    public void Toggle() {
+        if (visible) {
+            visible = false;
+            UserInterface.Active.RemoveEntity(panel);
+            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        } else {
+            visible = true;
+            UserInterface.Active.AddEntity(panel);
+            maskArea = panel.CalcDestRect();
+            GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+            panel.SendToBack();
+        }
     }
 
     private void AdjustSpeedButtons() {
@@ -230,6 +250,27 @@ class Statusbar : PopupMenu, IUpdatable {
         }
     }
 
+    public void SetSpeed(GameSpeed speed) {
+        if (SceneManager.Active is not GameScene) {
+            return;
+        }
+        GameModel model = GameScene.Active.Model;
+        if (speed == GameSpeed.Paused) {
+            if (model.GameSpeed == GameSpeed.Paused) {
+                model.Resume();
+            } else if (model.GameSpeed != GameSpeed.Paused) {
+                model.Pause();
+            }
+        } else if (speed == GameSpeed.Slow) {
+            model.GameSpeed = GameSpeed.Slow;
+        } else if (speed == GameSpeed.Medium) {
+            model.GameSpeed = GameSpeed.Medium;
+        } else if (speed == GameSpeed.Fast) {
+            model.GameSpeed = GameSpeed.Fast;
+        }
+        AdjustSpeedButtons();
+    }
+
     private void ScaleText(object sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
@@ -239,7 +280,6 @@ class Statusbar : PopupMenu, IUpdatable {
     }
 
     public override void Update(GameTime gameTime) {
-
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +
             (moneyCurr >= 10000 ? (moneyCurr / 1000d) + "K" : moneyCurr.ToString()) + "/" +

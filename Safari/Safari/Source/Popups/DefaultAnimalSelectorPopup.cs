@@ -24,10 +24,25 @@ class DefaultAnimalSelectorPopup : PopupMenu {
 
         StyleProperty hover = new StyleProperty(Color.LightGray);
         StyleProperty click = new StyleProperty(Color.LightSlateGray);
+        StyleProperty selected = new StyleProperty(Color.SlateGray);
+
+        Panel tempPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.Simple, Anchor.AutoCenter);
+        Label tempLabel = new Label("None", Anchor.Center);
+
+        tempPanel.SetStyleProperty("FillColor", hover, EntityState.MouseHover);
+        tempPanel.SetStyleProperty("FillColor", click, EntityState.MouseDown);
+
+        tempLabel.ClickThrough = true;
+        tempPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
+            EntityManager.Instance.SetDefaultTargetToNull();
+            this.Hide();
+        };
+        tempPanel.AddChild(tempLabel);
+        panel.AddChild(tempPanel);
 
         foreach (AnimalSpecies item in Enum.GetValues<AnimalSpecies>()) {
-            Panel tempPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.Simple, Anchor.AutoCenter);
-            Label tempLabel = new Label(item.GetDisplayName(), Anchor.Center);
+            tempPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.Simple, Anchor.AutoCenter);
+            tempLabel = new Label(item.GetDisplayName(), Anchor.Center);
 
             tempPanel.SetStyleProperty("FillColor", hover, EntityState.MouseHover);
             tempPanel.SetStyleProperty("FillColor", click, EntityState.MouseDown);
