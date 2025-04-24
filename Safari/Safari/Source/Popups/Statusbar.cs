@@ -201,14 +201,14 @@ class Statusbar : PopupMenu, IUpdatable {
         ScaleText(null, EventArgs.Empty);
 
         maskArea = panel.CalcDestRect();
-        GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public void Unload() {
         visible = false;
         if (panel.Parent != null) {
             UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+            GameScene.Active.MaskedAreas.Remove(maskArea);
         }
     }
 
@@ -216,12 +216,12 @@ class Statusbar : PopupMenu, IUpdatable {
         if (visible) {
             visible = false;
             UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+            GameScene.Active.MaskedAreas.Remove(maskArea);
         } else {
             visible = true;
             UserInterface.Active.AddEntity(panel);
             maskArea = panel.CalcDestRect();
-            GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+            GameScene.Active.MaskedAreas.Add(maskArea);
             panel.SendToBack();
         }
     }

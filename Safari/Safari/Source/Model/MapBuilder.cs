@@ -400,11 +400,21 @@ public static class MapBuilder {
 		Tourist.PickupSpot = Jeep.PickUpSpot - new Point(0, 1);
 		while (current.X < level.Network.End.X) {
 			current.X++;
-			level.SetTile(current, new Road());
+			Road r = new Road();
+			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			} else {
+				level.SetTile(current, r);
+			}
 		}
 		while (current.Y > level.Network.End.Y - 2) {
 			current.Y--;
-			level.SetTile(current, new Road());
+			Road r = new Road();
+			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			} else {
+				level.SetTile(current, r);
+			}
 		}
 
 		// fence placement
@@ -437,23 +447,23 @@ public static class MapBuilder {
 
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {
-			level.SetTile(p, new Water());
+			level.ConstructionHelperCmp.InstaBuild(p, new Water());
 		}
 
 		foreach (Point p in GRASS_LOC) {
-			level.SetTile(p, new Grass());
+			level.ConstructionHelperCmp.InstaBuild(p, new Grass());
 		}
 
 		foreach (Point p in BUSH_LOC) {
-			level.SetTile(p, new Bush());
+			level.ConstructionHelperCmp.InstaBuild(p, new Bush());
 		}
 
 		foreach (Point p in WBUSH_LOC) {
-			level.SetTile(p, new WideBush());
+			level.ConstructionHelperCmp.InstaBuild(p, new WideBush());
 		}
 
 		foreach ((Point p, TreeType type) in TREE_LOC) {
-			level.SetTile(p, new Tree(type));
+			level.ConstructionHelperCmp.InstaBuild(p, new Tree(type));
 		}
 
 		// animals (at random positions)

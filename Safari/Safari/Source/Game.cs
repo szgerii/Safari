@@ -27,11 +27,6 @@ public class Game : Engine.Game {
 
 		InputSetup();
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
-			SceneManager.Load(new GameScene());
-		}));
-		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
-
 		// GeonBit
 
 		// create separate content manager for geonbit, so we can unload our assets in peace
@@ -134,12 +129,20 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("left", new InputAction(keys: [Keys.A, Keys.Left]));
 		InputManager.Actions.Register("right", new InputAction(keys: [Keys.D, Keys.Right]));
 
-		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.NumPad0, Keys.D0]));
+		InputManager.Actions.Register("reset-zoom", new InputAction(keys: [Keys.F12]));
 		InputManager.Actions.Register("increase-zoom", new InputAction(keys: [Keys.O]));
 		InputManager.Actions.Register("decrease-zoom", new InputAction(keys: [Keys.I]));
 
 		InputManager.Actions.Register("fast-mod", new InputAction(keys: [Keys.LeftShift, Keys.RightShift]));
 		InputManager.Actions.Register("slow-mod", new InputAction(keys: [Keys.LeftControl, Keys.RightControl]));
+
+		// construction (debug)
+		InputManager.Actions.Register("prev-brush", new InputAction(keys: [Keys.N]));
+		InputManager.Actions.Register("next-brush", new InputAction(keys: [Keys.M]));
+		InputManager.Actions.Register("prev-brush-variant", new InputAction(keys: [Keys.V]));
+		InputManager.Actions.Register("next-brush-variant", new InputAction(keys: [Keys.B]));
+		InputManager.Actions.Register("cycle-interact-mode", new InputAction(keys: [Keys.D8]));
+		InputManager.Actions.Register("cycle-build-mode", new InputAction(keys: [Keys.D9]));
 
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
@@ -153,12 +156,7 @@ public class Game : Engine.Game {
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("draw-colliders"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
-		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));
-		InputManager.Keyboard.OnPressed(Keys.L, () => DebugMode.Execute("toggle-simulation"));
-		InputManager.Keyboard.OnPressed(Keys.G, () => DebugMode.ToggleFeature("draw-grid"));
 		InputManager.Keyboard.OnPressed(Keys.H, () => DebugMode.ToggleFeature("animal-indicators"));
 		InputManager.Keyboard.OnPressed(Keys.X, () => DebugMode.ToggleFeature("entity-interact-bounds"));
-		InputManager.Keyboard.OnPressed(Keys.Z, () => DebugMode.Execute("request-route"));
-		InputManager.Keyboard.OnPressed(Keys.U, () => DebugMode.ToggleFeature("draw-route"));
 	}
 }

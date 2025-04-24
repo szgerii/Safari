@@ -3,6 +3,7 @@ using Engine.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
+using System.Collections.Generic;
 
 namespace Safari.Model.Tiles;
 
@@ -81,6 +82,11 @@ public abstract class Tile : GameObject {
 	/// </summary>
 	public bool IsWaterSource { get; init; } = false;
 
+	/// <summary>
+	/// The offsets (in tiles) from the anchor tile that are considered "blocked" by this tile
+	/// </summary>
+	public Point[] ConstructionBlockOffsets { get; protected set; } = [];
+
 	public Tile(Texture2D texture = null) : base(new Vector2(-1)) {
 		Sprite = new SpriteCmp(texture);
 		Sprite.YSortEnabled = true;
@@ -104,5 +110,24 @@ public abstract class Tile : GameObject {
 		}
 
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, src);
+	}
+
+	public void DrawPreviewAt(Vector2 worldPos, bool canDraw) {
+		Vector2 pos = new Vector2(Utils.Round(worldPos.X), Utils.Round(worldPos.Y));
+		if (this is AutoTile auto) {
+			auto.UpdateTexture();
+		}
+		Color tint = canDraw ? Color.CornflowerBlue * 0.4f : Color.Red * 0.4f;
+		Game.SpriteBatch.Draw(
+			Sprite.Texture,
+			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level.TileSize,
+			SourceRectangle,
+			tint,
+			Sprite.Rotation,
+			Sprite.Origin,
+			Sprite.Scale,
+			Sprite.Flip,
+			0.0f
+		);
 	}
 }

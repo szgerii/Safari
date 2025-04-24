@@ -2,11 +2,14 @@
 using Engine.Components;
 using Engine.Debug;
 using Engine.Helpers;
+using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
+using Safari.Input;
 using Safari.Model;
 using Safari.Model.Tiles;
+using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -188,6 +191,23 @@ public abstract class Entity : GameObject, ISpatial {
 		result.Size *= Sprite.Scale;
 
 		calcBounds = result;
+	}
+
+	public static Entity GetEntityOnMouse() {
+		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
+		Entity result = null;
+
+		foreach (Entity e in Entity.ActiveEntities) {
+			if (!e.IsDead && e.Bounds.Contains(mouseWorldPos) && e.Visible) {
+				if (e is Ranger) {
+					result = e;
+					return result;
+				} else if (e is Animal) {
+					result = e;
+				}
+			}
+		}
+		return result;
 	}
 
 	public override void Load() {

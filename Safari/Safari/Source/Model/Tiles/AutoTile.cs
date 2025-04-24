@@ -43,7 +43,9 @@ public partial class AutoTile : Tile {
 	}
 
 	/// <summary>
-	/// Updates the source rectangle to match the current neighbor state
+	/// Updates the source rectangle to match the current neighbor state <br/>
+	/// NOTE: this should only be used if you need the new texture immediately (e.g. construction preview).
+	/// For most use cases, set the <see cref="NeedsUpdate"/> prop to true to defer updating to the next frame
 	/// </summary>
 	public void UpdateTexture() {
 		NeedsUpdate = false;

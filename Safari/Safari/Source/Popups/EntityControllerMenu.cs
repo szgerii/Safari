@@ -68,9 +68,8 @@ public class EntityControllerMenu : PopupMenu {
 		controlledEntity.IsBeingInspected = true;
 		base.Show();
 		maskArea = this.panel.CalcDestRect();
-		GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
 
-		UpdateData();
+		GameScene.Active.MaskedAreas.Add(maskArea);
 	}
 
 	public override void Hide() {
@@ -80,7 +79,7 @@ public class EntityControllerMenu : PopupMenu {
 		base.Hide();
 		Active = null;
 		
-		GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+		GameScene.Active.MaskedAreas.Remove(maskArea);
 	}
 
 	public override void Update(GameTime gameTime) {

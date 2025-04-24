@@ -1,24 +1,16 @@
 ﻿using Engine;
-using Engine.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Safari.Components;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
-using Safari.Popups;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Safari.Model;
-
-public enum MouseMode {
-	Build,
-	Inspect
-}
 
 /// <summary>
 /// Stores the static parts of the game world
@@ -55,10 +47,14 @@ public class Level : GameObject {
 	/// </summary>
 	public LightManager LightManager { get; init; }
 
+	/// <summary>
+	/// The component responsible for managing building / demolishing on the level
+	/// </summary>
+	public ConstructionHelperCmp ConstructionHelperCmp { get; init; }
+
 	private readonly Tile[,] tiles;
 
 	private readonly Texture2D debugGridTex;
-	private readonly Texture2D selectedTileTex;
 
 	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
@@ -74,15 +70,15 @@ public class Level : GameObject {
 		}
 		debugGridTex = Utils.CreateAtlas(mergeArray, MapWidth);
 
-		Texture2D outline = Utils.GenerateTexture(TileSize, TileSize, new Color(0f, 0f, 1f, 1f), true);
-		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
-		selectedTileTex = Utils.MergeTextures(fill, outline);
 		// lightmanager setup (before any tiles are placed)
 		LightManager = new LightManager(width, height, tileSize);
 		// Roadmanger setup
 		Point start = new Point(PLAY_AREA_CUTOFF_X, height - PLAY_AREA_CUTOFF_Y - 8);
 		Point end = new Point(width - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
 		Network = new RoadNetwork(width, height, start, end);
+
+		ConstructionHelperCmp = new ConstructionHelperCmp(width, height);
+		Attach(ConstructionHelperCmp);
 	}
 
 	/// <summary>
@@ -173,6 +169,10 @@ public class Level : GameObject {
 
 		if (!tile.Loaded) {
 			Game.AddObject(tile);
+		}
+
+		if (tile is AutoTile auto) {
+			auto.NeedsUpdate = true;
 		}
 
 		UpdateAutoTilesAround(new Point(x, y));
@@ -288,101 +288,16 @@ public class Level : GameObject {
 		base.Unload();
 	}
 
-	// TODO: remove this whole tile placement part once not needed
-	// TODO the mouse mode should also be moved to the ConstructionHelper
-	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree), typeof(Fence), typeof(Bush), typeof(WideBush)];
-	private int brushIndex = 0;
-	private MouseMode mouseMode = MouseMode.Inspect;
 	public override void Update(GameTime gameTime) {
 		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
 		DebugInfoManager.AddInfo("mouse pos", Utils.Format(mouseWorldPos, false, false), DebugInfoPosition.BottomRight);
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.D0)) {
-			if (mouseMode == MouseMode.Inspect) {
-				mouseMode = MouseMode.Build;
-			} else {
-				mouseMode = MouseMode.Inspect;
-			}
-		} else {
-			UpdateBrush();
-			Vector2 mouseTilePos = GetMouseTilePos();
-			if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize) && !InMaskedArea(InputManager.Mouse.Location)) {
-				if (mouseMode == MouseMode.Build) {
-					UpdateDebugBuild(mouseTilePos);
-				} else {
-					UpdateInspect();
-				}
-			}
-		}
 
 		base.Update(gameTime);
-	}
-
-	private void UpdateBrush() {
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
-			brushIndex = Math.Max(0, brushIndex - 1);
-		}
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.M)) {
-			brushIndex = Math.Min(brushes.Length - 1, brushIndex + 1);
-		}
-		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
-	}
-
-	private void UpdateDebugBuild(Vector2 mouseTilePos) {
-		if (!IsOutOfPlayArea((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize) && !InMaskedArea(InputManager.Mouse.Location)) {
-			Tile targetTile = GetTile((mouseTilePos / TileSize).ToPoint());
-
-			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];
-			if (InputManager.Mouse.IsDown(MouseButtons.LeftButton) && !alreadyPainted) {
-				Tile tile;
-
-				if (brushes[brushIndex] == typeof(Tree)) {
-					tile = (Tree)Activator.CreateInstance(brushes[brushIndex], [TreeType.Digitata]);
-				} else {
-					tile = (Tile)Activator.CreateInstance(brushes[brushIndex]);
-				}
-
-				SetTile((mouseTilePos / TileSize).ToPoint(), tile);
-			}
-
-			bool alreadyEmpty = targetTile == null;
-			if (InputManager.Mouse.IsDown(MouseButtons.RightButton) && !alreadyEmpty) {
-				ClearTile((int)mouseTilePos.X / TileSize, (int)mouseTilePos.Y / TileSize);
-			}
-		}
-	}
-
-	public List<Rectangle> maskedAreas { get; private set; } = new List<Rectangle>();
-	private bool InMaskedArea(Point position) {
-		foreach (Rectangle area in maskedAreas) {
-			if (area.Contains(position)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private void UpdateInspect() {
-		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
-			Entity entity = GetMouseEntity();
-			if (entity != null && entity is Ranger ranger) {
-				EntityControllerMenu controller = new RangerControllerMenu(ranger);
-				controller.Show();
-			} else if (entity != null && entity is Animal animal && !animal.IsCaught) {
-				EntityControllerMenu controller = new AnimalControllerMenu(animal);
-				controller.Show();
-			}
-		}
 	}
 
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
 			Game.SpriteBatch.Draw(Background, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
-		}
-
-		// TODO: remove once not needed
-		if (mouseMode == MouseMode.Build) {
-			Vector2 mousePosWorld = GetMouseTilePos();
-			Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 		}
 		base.Draw(gameTime);
 	}
@@ -409,34 +324,5 @@ public class Level : GameObject {
 				}
 			}
 		}
-	}
-
-	private Vector2 GetMouseTilePos() {
-		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
-		mouseTilePos.X -= mouseTilePos.X % TileSize;
-		mouseTilePos.Y -= mouseTilePos.Y % TileSize;
-
-		return mouseTilePos;
-	}
-
-	// Prefers rangers, then animals, could be null
-	private Entity GetMouseEntity() {
-		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
-		Entity result = null;
-
-		foreach (Entity e in Entity.ActiveEntities) {
-			Vectangle bounds = e.Bounds;
-			bounds.Inflate(TileSize / 3, TileSize / 3);
-
-			if (!e.IsDead && bounds.Contains(mouseWorldPos) && e.Visible) {
-				if (e is Ranger) {
-					result = e;
-					return result;
-				} else if (e is Animal) {
-					result = e;
-				}
-			}
-		}
-		return result;
 	}
 }

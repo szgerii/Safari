@@ -14,17 +14,33 @@ using Safari.Popups;
 using Safari.Scenes.Menus;
 using Safari.Objects.Entities.Tourists;
 using Engine.Helpers;
+using Engine.Input;
+using Safari.Objects.Entities.Animals;
+using Safari.Input;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Scenes;
+
+public enum MouseMode {
+	Build,
+	Demolish,
+	Inspect
+}
 
 public class GameScene : Scene {
 	private GameModel model;
 	public static GameScene Active => SceneManager.Active as GameScene;
 	public GameModel Model => model;
 
+	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
+	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
+
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
+
+	private Texture2D demolishHover;
+	private Texture2D buildHover;
 
 	static GameScene() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
@@ -35,6 +51,10 @@ public class GameScene : Scene {
 
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
+		}));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
+			SceneManager.Load(new GameScene());
 		}));
 	}
 
@@ -89,7 +109,13 @@ public class GameScene : Scene {
 
 		UserInterface.Active.MouseInputProvider.DoClick();
 
-        base.Load();
+		Texture2D outline = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.8f, 0.1f, 0.1f, 1f), true);
+		Texture2D fill = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.7f, 0.1f, 0.1f, 0.3f));
+		demolishHover = Utils.MergeTextures(fill, outline);
+
+		buildHover = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.1f, 0.3f, 0.7f, 1f), true);
+
+		base.Load();
 
 		MapBuilder.BuildStartingMap(model.Level);
 
@@ -99,6 +125,30 @@ public class GameScene : Scene {
 
     public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
+
+		if (InputManager.Actions.JustPressed("cycle-interact-mode")) {
+			if (MouseMode == MouseMode.Inspect) {
+				MouseMode = MouseMode.Build;
+			} else {
+				MouseMode = MouseMode.Inspect;
+			}
+		} else if (InputManager.Actions.JustPressed("cycle-build-mode")) {
+			if (MouseMode == MouseMode.Build) {
+				MouseMode = MouseMode.Demolish;
+			} else if (MouseMode == MouseMode.Demolish) {
+				MouseMode = MouseMode.Build;
+			}
+		}
+
+		UpdatePalette();
+
+		Vector2 mouseTilePos = GetMouseTilePos();
+		if (MousePlayable(mouseTilePos)) {
+			UpdateBuild();
+			if (MouseMode == MouseMode.Inspect) {
+				UpdateInspect();
+			}
+		}
 
 		if (model.GameSpeed != GameSpeed.Paused) {
 			model.Advance(gameTime);
@@ -128,6 +178,93 @@ public class GameScene : Scene {
 		}
 
 		PerformPostUpdate(gameTime);
+	}
+
+	private void UpdateInspect() {
+		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
+			Entity entity = Entity.GetEntityOnMouse();
+			if (entity != null && entity is Ranger ranger) {
+				EntityControllerMenu controller = new RangerControllerMenu(ranger);
+				controller.Show();
+			} else if (entity != null && entity is Animal animal) {
+				EntityControllerMenu controller = new AnimalControllerMenu(animal);
+				controller.Show();
+			}
+		}
+	}
+
+	private void UpdatePalette() {
+		if (MouseMode == MouseMode.Build) {
+			if (InputManager.Actions.JustPressed("next-brush")) {
+				Model.Level.ConstructionHelperCmp.SelectNext();
+			}
+			if (InputManager.Actions.JustPressed("prev-brush")) {
+				Model.Level.ConstructionHelperCmp.SelectPrev();
+			}
+			if (InputManager.Actions.JustPressed("next-brush-variant")) {
+				var cons = Model.Level.ConstructionHelperCmp;
+				if (cons.SelectedIndex >= 0) {
+					cons.Palette[cons.SelectedIndex].SelectNext();
+				}
+			}
+			if (InputManager.Actions.JustPressed("prev-brush-variant")) {
+				var cons = Model.Level.ConstructionHelperCmp;
+				if (cons.SelectedIndex >= 0) {
+					cons.Palette[cons.SelectedIndex].SelectNext();
+				}
+			}
+		}
+	}
+
+	private void UpdateBuild() {
+		if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
+			Point p = (GetMouseTilePos() / Model.Level.TileSize).ToPoint();
+			if (MouseMode == MouseMode.Build) {
+				Model.Level.ConstructionHelperCmp.BuildCurrent(p);
+			} else {
+				Model.Level.ConstructionHelperCmp.Demolish(p);
+			}
+
+		}
+	}
+
+	private bool MousePlayable(Vector2 mouseTilePos) {
+		return !Model.Level.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
+	}
+
+	private bool InMaskedArea(Point position) {
+		foreach (Rectangle area in MaskedAreas) {
+			if (area.Contains(position)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Vector2 GetMouseTilePos() {
+		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
+		mouseTilePos.X -= mouseTilePos.X % Model.Level.TileSize;
+		mouseTilePos.Y -= mouseTilePos.Y % Model.Level.TileSize;
+
+		return mouseTilePos;
+	}
+
+	public override void Draw(GameTime gameTime) {
+		if (MouseMode == MouseMode.Build) {
+			var cons = Model.Level.ConstructionHelperCmp;
+			if (cons.SelectedIndex >= 0) {
+				var ins = cons.Palette[cons.SelectedIndex].Instance;
+				Vector2 mousePos = GetMouseTilePos();
+				Point tilePos = (mousePos / Model.Level.TileSize).ToPoint();
+				ins.DrawPreviewAt(GetMouseTilePos(), cons.CanBuild(tilePos, ins));
+				Game.SpriteBatch.Draw(buildHover, mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			}
+		} else if (MouseMode == MouseMode.Demolish) {
+			Vector2 mousePosWorld = GetMouseTilePos();
+			Game.SpriteBatch.Draw(demolishHover, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+		}
+
+		base.Draw(gameTime);
 	}
 
 	public override void AddObject(GameObject obj) {
