@@ -8,6 +8,13 @@ namespace Safari.Model.Tiles;
 /// Tile for representing a tree
 /// </summary>
 public class Tree : Tile {
+
+	private static Point[] TreeOffsets = [
+		new(-1, -1), new(-1, 0), new(-1, 1),
+		new (0, -1), new(0, 1),
+		new (1, -1), new(1, 0), new(1, 1)
+	];
+
 	private TreeType type;
 	/// <summary>
 	/// The type of the tree tile
@@ -31,6 +38,7 @@ public class Tree : Tile {
 	public string DisplayName => type.GetDisplayName();
 
 	public Tree(TreeType type) : base(type.GetTexture()) {
+		ConstructionBlockOffsets = TreeOffsets;
 		IsFoodSource = true;
 		Type = type;
 		LightRange = 5;

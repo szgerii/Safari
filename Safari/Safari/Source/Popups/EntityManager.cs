@@ -247,7 +247,7 @@ class EntityManager : PopupMenu {
         update = true;
         base.Show();
         maskArea = this.panel.CalcDestRect();
-        GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public override void Hide() {
@@ -265,7 +265,7 @@ class EntityManager : PopupMenu {
         if (panel.Parent != null) {
             base.Hide();
         }
-        GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        GameScene.Active.MaskedAreas.Remove(maskArea);
     }
 
     public void Unload() {

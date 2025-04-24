@@ -23,7 +23,13 @@ public class Bush : Tile {
 }
 
 public class WideBush : Tile {
+
+	private static Point[] BushOffsets = [
+		new(1, 0)
+	];
+
 	public WideBush() : base(Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush2")) {
+		ConstructionBlockOffsets = BushOffsets;
 		IsFoodSource = true;
 		LightRange = 2;
 		Size = new Point(2, 1);
