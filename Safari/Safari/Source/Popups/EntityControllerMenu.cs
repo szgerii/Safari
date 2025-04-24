@@ -32,7 +32,7 @@ public class EntityControllerMenu : PopupMenu {
 	private Vector2? prevOffset = null;
 	private void PrepareUI() {
 		background = null;
-		panel = new Panel(new Vector2(0.3f, 0.9f), PanelSkin.Default, Anchor.TopRight, prevOffset ?? new Vector2(16, 16));
+		panel = new Panel(new Vector2(0.3f, 0.9f), PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
 		panel.Tag = "PassiveFocus";
 		panel.Padding = new Vector2(20, 20);
 

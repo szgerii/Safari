@@ -139,4 +139,16 @@ public class CameraControllerCmp : Component, IUpdatable {
 
 		return scaleDelta;
 	}
+
+	public void CenterOnPosition(Vector2 position) {
+		Vector2 camPos = position;
+
+		camPos -= Camera.ScreenSize.ToVector2() * (1f / Camera.Zoom) / 2;
+
+		if (Bounds != null) {
+			camPos = Bounds.Value.Clamp(camPos);
+		}
+
+		Owner.Position = camPos;
+	}
 }

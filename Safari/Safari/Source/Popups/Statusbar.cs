@@ -14,6 +14,8 @@ namespace Safari.Popups;
 class Statusbar : PopupMenu, IUpdatable {
     private static readonly Statusbar instance = new Statusbar();
 
+    private bool visible;
+
     private Panel speedButtonPanel;
     private Button pauseButton;
     private Button slowButton;
@@ -50,9 +52,8 @@ class Statusbar : PopupMenu, IUpdatable {
 
     private Button entityManagerButton;
 
+    private Rectangle maskArea;
     public static Statusbar Instance => instance;
-
-    public static int Height => Instance.panel.GetActualDestRect().Height;
 
     private Statusbar() {
         background = null;
@@ -60,6 +61,7 @@ class Statusbar : PopupMenu, IUpdatable {
         panel = new Panel(new Vector2(0, 0.25f), PanelSkin.Default, Anchor.BottomCenter);
         panel.Padding = new Vector2(0);
         panel.Tag = "PassiveFocus";
+        panel.MaxSize = new Vector2(0, 200);
 
         #region SPEED_BUTTONS
         speedButtonPanel = new Panel(new Vector2(0.25f, 0.5f), PanelSkin.None, Anchor.TopLeft);
@@ -94,10 +96,10 @@ class Statusbar : PopupMenu, IUpdatable {
         mediumButton.Tag = "medium-button";
         fastButton.Tag = "fast-button";
 
-        pauseButton.OnClick = adjustSpeedSettings;
-        slowButton.OnClick = adjustSpeedSettings;
-        mediumButton.OnClick = adjustSpeedSettings;
-        fastButton.OnClick = adjustSpeedSettings;
+        pauseButton.OnClick = AdjustSpeedSettings;
+        slowButton.OnClick = AdjustSpeedSettings;
+        mediumButton.OnClick = AdjustSpeedSettings;
+        fastButton.OnClick = AdjustSpeedSettings;
 
         speedButtonPanel.AddChild(pauseButton);
         speedButtonPanel.AddChild(slowButton);
@@ -108,7 +110,7 @@ class Statusbar : PopupMenu, IUpdatable {
         entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.3f, 0.3f), new Vector2(20));
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
-            new AlertMenu("Title", "Feature WIP").Show();
+            EntityManager.Instance.Toggle();
         };
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
@@ -133,11 +135,11 @@ class Statusbar : PopupMenu, IUpdatable {
         winDaysPanel.Padding = paddingSize;
 
         moneyText = new Label("Money:", Anchor.CenterLeft);
-        moneyText.Offset = new Vector2(15,0);
+        moneyText.Offset = new Vector2(15, 0);
         ratingText = new Label("Rating:", Anchor.CenterLeft);
-        ratingText.Offset = new Vector2(15,0);
+        ratingText.Offset = new Vector2(15, 0);
         carnivoreText = new Label("Carnivores:", Anchor.CenterLeft);
-        carnivoreText.Offset = new Vector2(15,0);
+        carnivoreText.Offset = new Vector2(15, 0);
         herbivoreText = new Label("Herbivores:", Anchor.CenterLeft);
         herbivoreText.Offset = new Vector2(15, 0);
         winDaysText = new Label("Winning:", Anchor.CenterLeft);
@@ -156,13 +158,13 @@ class Statusbar : PopupMenu, IUpdatable {
         indicatorPanel.AddChild(winDaysPanel);
         #endregion
 
-        SettingsMenu.ScaleChanged += scaleText;
+        SettingsMenu.ScaleChanged += ScaleText;
 
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
     }
 
-    private void adjustSpeedSettings(Entity entity) {
+    private void AdjustSpeedSettings(Entity entity) {
         switch (entity.Tag) {
             case "pause-button":
                 if (SceneManager.Active is GameScene) {
@@ -189,16 +191,42 @@ class Statusbar : PopupMenu, IUpdatable {
                 }
                 break;
         }
-        adjustSpeedButtons();
+        AdjustSpeedButtons();
     }
 
     public void Load() {
+        visible = true;
         UserInterface.Active.AddEntity(panel);
-        adjustSpeedButtons();
-        scaleText(null, EventArgs.Empty);
+        AdjustSpeedButtons();
+        ScaleText(null, EventArgs.Empty);
+
+        maskArea = panel.CalcDestRect();
+        GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
     }
 
-    private void adjustSpeedButtons() {
+    public void Unload() {
+        visible = false;
+        if (panel.Parent != null) {
+            UserInterface.Active.RemoveEntity(panel);
+            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        }
+    }
+
+    public void Toggle() {
+        if (visible) {
+            visible = false;
+            UserInterface.Active.RemoveEntity(panel);
+            GameScene.Active.Model.Level.maskedAreas.Remove(maskArea);
+        } else {
+            visible = true;
+            UserInterface.Active.AddEntity(panel);
+            maskArea = panel.CalcDestRect();
+            GameScene.Active.Model.Level.maskedAreas.Add(maskArea);
+            panel.SendToBack();
+        }
+    }
+
+    private void AdjustSpeedButtons() {
         if (GameScene.Active.Model.GameSpeed == GameSpeed.Paused) {
             pauseButton.Checked = true;
             slowButton.Checked = false;
@@ -222,15 +250,33 @@ class Statusbar : PopupMenu, IUpdatable {
         }
     }
 
-    public void UnLoad() {
-        UserInterface.Active.RemoveEntity(panel);
+    public void SetSpeed(GameSpeed speed) {
+        if (SceneManager.Active is not GameScene) {
+            return;
+        }
+        GameModel model = GameScene.Active.Model;
+        if (speed == GameSpeed.Paused) {
+            if (model.GameSpeed == GameSpeed.Paused) {
+                model.Resume();
+            } else if (model.GameSpeed != GameSpeed.Paused) {
+                model.Pause();
+            }
+        } else if (speed == GameSpeed.Slow) {
+            model.GameSpeed = GameSpeed.Slow;
+        } else if (speed == GameSpeed.Medium) {
+            model.GameSpeed = GameSpeed.Medium;
+        } else if (speed == GameSpeed.Fast) {
+            model.GameSpeed = GameSpeed.Fast;
+        }
+        AdjustSpeedButtons();
     }
 
-    private void scaleText(object sender, EventArgs e) {
+    private void ScaleText(object sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;
         herbivoreText.Scale = SettingsMenu.Scale;
+        winDaysText.Scale = SettingsMenu.Scale;
     }
 
     public override void Update(GameTime gameTime) {
@@ -240,7 +286,7 @@ class Statusbar : PopupMenu, IUpdatable {
             (GameScene.Active.Model.WinCriteriaFunds >= 10000 ? (GameScene.Active.Model.WinCriteriaFunds / 1000d) + "K" : GameScene.Active.Model.WinCriteriaFunds.ToString());
 
         ratingCurr = Tourist.AvgRating;
-        ratingText.Text = "Rating: " + ratingCurr;
+        ratingText.Text = "Rating: " + ratingCurr.ToString("0.00");
 
         carnivoreCurr = GameScene.Active.Model.CarnivoreCount;
         carnivoreText.Text = "Carnivores: " + carnivoreCurr + "/" + GameScene.Active.Model.WinCriteriaCarn;

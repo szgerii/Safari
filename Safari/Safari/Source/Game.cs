@@ -143,7 +143,13 @@ public class Game : Engine.Game {
 
         // debug
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
+        InputManager.Keyboard.OnPressed(Keys.F2, () => Statusbar.Instance.Toggle());
         InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
+        InputManager.Keyboard.OnPressed(Keys.Space, () => Statusbar.Instance.SetSpeed(GameSpeed.Paused));
+        InputManager.Keyboard.OnPressed(Keys.D1, () => Statusbar.Instance.SetSpeed(GameSpeed.Slow));
+        InputManager.Keyboard.OnPressed(Keys.D2, () => Statusbar.Instance.SetSpeed(GameSpeed.Medium));
+        InputManager.Keyboard.OnPressed(Keys.D3, () => Statusbar.Instance.SetSpeed(GameSpeed.Fast));
+        InputManager.Keyboard.OnPressed(Keys.Tab, () => EntityManager.Instance.Toggle());
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("draw-colliders"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
