@@ -115,7 +115,7 @@ public abstract class Tile : GameObject {
 	public void DrawPreviewAt(Vector2 worldPos, bool canDraw) {
 		Vector2 pos = new Vector2(Utils.Round(worldPos.X), Utils.Round(worldPos.Y));
 		if (this is AutoTile auto) {
-			auto.NeedsUpdate = true;
+			auto.UpdateTexture();
 		}
 		Color tint = canDraw ? Color.CornflowerBlue * 0.4f : Color.Red * 0.4f;
 		Game.SpriteBatch.Draw(

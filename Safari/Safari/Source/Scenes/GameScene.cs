@@ -52,6 +52,10 @@ public class GameScene : Scene {
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
 		}));
+
+		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
+			SceneManager.Load(new GameScene());
+		}));
 	}
 
 	public override void Unload() {
@@ -122,13 +126,13 @@ public class GameScene : Scene {
     public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
 
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.D0)) {
+		if (InputManager.Actions.JustPressed("cycle-interact-mode")) {
 			if (MouseMode == MouseMode.Inspect) {
 				MouseMode = MouseMode.Build;
 			} else {
 				MouseMode = MouseMode.Inspect;
 			}
-		} else if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.D1)) {
+		} else if (InputManager.Actions.JustPressed("cycle-build-mode")) {
 			if (MouseMode == MouseMode.Build) {
 				MouseMode = MouseMode.Demolish;
 			} else if (MouseMode == MouseMode.Demolish) {
@@ -191,19 +195,19 @@ public class GameScene : Scene {
 
 	private void UpdatePalette() {
 		if (MouseMode == MouseMode.Build) {
-			if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.M)) {
+			if (InputManager.Actions.JustPressed("next-brush")) {
 				Model.Level.ConstructionHelperCmp.SelectNext();
 			}
-			if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
+			if (InputManager.Actions.JustPressed("prev-brush")) {
 				Model.Level.ConstructionHelperCmp.SelectPrev();
 			}
-			if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.J)) {
+			if (InputManager.Actions.JustPressed("next-brush-variant")) {
 				var cons = Model.Level.ConstructionHelperCmp;
 				if (cons.SelectedIndex >= 0) {
 					cons.Palette[cons.SelectedIndex].SelectNext();
 				}
 			}
-			if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.H)) {
+			if (InputManager.Actions.JustPressed("prev-brush-variant")) {
 				var cons = Model.Level.ConstructionHelperCmp;
 				if (cons.SelectedIndex >= 0) {
 					cons.Palette[cons.SelectedIndex].SelectNext();
