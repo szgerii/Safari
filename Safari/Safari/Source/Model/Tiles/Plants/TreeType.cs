@@ -1,4 +1,4 @@
-﻿using Engine.Collision;
+﻿using Engine.Helpers;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Model.Tiles;
@@ -56,16 +56,16 @@ public static class TreeTypeExtensions {
 		};
 	}
 
-	public static Collider GetCollider(this TreeType type) {
+	public static Vectangle GetCollider(this TreeType type) {
 		return type switch {
-			TreeType.Digitata => new Collider(21, 100, 56, 23),
-			TreeType.Grandideri => new Collider(28, 120, 36, 25),
-			TreeType.ShortGrandideri => new Collider(28, 100, 42, 24),
-			TreeType.Gregorii => new Collider(26, 98, 46, 26),
-			TreeType.Rubrostipa => new Collider(40, 100, 37, 22),
-			TreeType.Suarazensis => new Collider(44, 69, 12, 15),
-			TreeType.Za => new Collider(38, 130, 21, 20),
-			_ => Collider.Empty
+			TreeType.Digitata => new(21, 100, 56, 23),
+			TreeType.Grandideri => new(28, 120, 36, 25),
+			TreeType.ShortGrandideri => new(28, 100, 42, 24),
+			TreeType.Gregorii => new(26, 98, 46, 26),
+			TreeType.Rubrostipa => new(40, 100, 37, 22),
+			TreeType.Suarazensis => new(44, 69, 12, 15),
+			TreeType.Za => new(38, 130, 21, 20),
+			_ => Vectangle.Empty
 		};
 	}
 }

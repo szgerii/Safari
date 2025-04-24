@@ -10,6 +10,7 @@ using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 using Safari.Popups;
+using Engine.Helpers;
 
 namespace Safari.Objects.Entities.Animals;
 
@@ -30,12 +31,12 @@ public abstract class Animal : Entity {
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD = 50;
-	private const float INITIAL_HUNGER_DECAY = 0.04f;
+	private const float INITIAL_HUNGER_DECAY = 0.15f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.08f;
+	private const float INITIAL_THIRST_DECAY = 0.3f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
@@ -167,6 +168,8 @@ public abstract class Animal : Entity {
 		Group = new AnimalGroup(this);
 		VisibleAtNight = false;
 
+		ReachDistance = 3;
+
 		birthTime = GameScene.Active.Model.IngameDate;
 
 		Died += (object sender, EventArgs e) => {
@@ -189,7 +192,7 @@ public abstract class Animal : Entity {
 		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
 
 		// collision
-		collisionCmp = new CollisionCmp(Collider.Empty) {
+		collisionCmp = new CollisionCmp(Vectangle.Empty) {
 			Tags = CollisionTags.Animal,
 			Targets = CollisionTags.World // | CollisionTags.Animal
 		};
@@ -378,6 +381,8 @@ public abstract class Animal : Entity {
 		int maxWidth = Utils.Round(Bounds.Width * 0.8f);
 		int margin = Utils.Round(Bounds.Width * 0.1f);
 
+		if (maxWidth == 0) return;
+
 		if (indicatorTex == null || indicatorOutlineTex == null) {
 			indicatorTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White);
 			indicatorOutlineTex = Utils.GenerateTexture(maxWidth, INDICATOR_HEIGHT, Color.White, true);
@@ -409,6 +414,8 @@ public abstract class Animal : Entity {
 		}
 
 		foreach (Entity entity in GetEntitiesInSight()) {
+			if (entity.IsDead || this == entity) continue;
+
 			if (entity is Poacher poacher) {
 				poacher.Reveal();
 			}

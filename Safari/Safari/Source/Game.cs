@@ -81,6 +81,7 @@ public class Game : Engine.Game {
 	}
 
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
+	private readonly PerformanceCalculator updateFPS = new(10), drawFPS = new(10);
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
 		DebugConsole.Instance?.Update(gameTime);
@@ -96,12 +97,13 @@ public class Game : Engine.Game {
 		base.Update(gameTime);
 
 		tickTime.AddValue((DateTime.Now - start).TotalMilliseconds);
+		updateFPS.AddValue(1f / gameTime.ElapsedGameTime.TotalSeconds);
 		
 		if (DisplayDebugInfos) {
 			DebugInfoManager.AddInfo("avg", $"{tickTime.Average:0.00} ms / {drawTime.Average:0.00} ms (out of {tickTime.Capacity})");
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 
-			DebugInfoManager.AddInfo("FPS (Update)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+			DebugInfoManager.AddInfo("FPS (Update)", $"{updateFPS.Average:0}", DebugInfoPosition.TopRight);
 		
 			if (SceneManager.Active is GameScene) {
 				GameScene.Active.Model.PrintModelDebugInfos();
@@ -110,7 +112,8 @@ public class Game : Engine.Game {
     }
 
     protected override void Draw(GameTime gameTime) {
-		DebugInfoManager.AddInfo("FPS (Draw)", $"{(1f / gameTime.ElapsedGameTime.TotalSeconds):0.00}", DebugInfoPosition.TopRight);
+		drawFPS.AddValue(1f / gameTime.ElapsedGameTime.TotalSeconds);
+		DebugInfoManager.AddInfo("FPS (Draw)", $"  {drawFPS.Average:0}", DebugInfoPosition.TopRight);
 
 		DebugInfoManager.PreDraw();
 
@@ -147,8 +150,7 @@ public class Game : Engine.Game {
         InputManager.Keyboard.OnPressed(Keys.D2, () => Statusbar.Instance.SetSpeed(GameSpeed.Medium));
         InputManager.Keyboard.OnPressed(Keys.D3, () => Statusbar.Instance.SetSpeed(GameSpeed.Fast));
         InputManager.Keyboard.OnPressed(Keys.Tab, () => EntityManager.Instance.Toggle());
-        InputManager.Keyboard.OnPressed(Keys.V, () => DebugMode.ToggleFeature("coll-check-areas"));
-		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("coll-draw"));
+		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("draw-colliders"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));
 		InputManager.Keyboard.OnPressed(Keys.K, () => DebugMode.Execute("advance-gamespeed"));

@@ -21,14 +21,20 @@ public abstract class Component {
 		}
 	}
 
+	public bool Loaded { get; protected set; }
+
 	/// <summary>
 	/// Called right after the component has been added to the game
 	/// (either by attaching it to an active game object or by the inactive owner object entering the game)
 	/// </summary>
-	public virtual void Load() { }
+	public virtual void Load() {
+		Loaded = true;
+	}
 	/// <summary>
 	/// Called just before the component is removed from the game
 	/// (either by detaching it from an active game object or by the active owner object leaving the game)
 	/// </summary>
-	public virtual void Unload() { }
+	public virtual void Unload() {
+		Loaded = false;
+	}
 }

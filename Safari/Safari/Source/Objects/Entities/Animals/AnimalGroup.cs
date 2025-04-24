@@ -215,7 +215,7 @@ public class AnimalGroup : GameObject {
 		}
 
 		bool validState = State == AnimalGroupState.Idle || State == AnimalGroupState.Wandering;
-		if (validState && HasHungryMember) {
+		if (validState && !Species.IsCarnivorous() && HasHungryMember) {
 			StateMachine.Transition(AnimalGroupState.SeekingFood);
 		}
 	}
@@ -233,6 +233,32 @@ public class AnimalGroup : GameObject {
 		if (validState && HasThirstyMember) {
 			StateMachine.Transition(AnimalGroupState.SeekingWater);
 		}
+	}
+
+	/// <summary>
+	/// Whether any member of the group can see the given position
+	/// </summary>
+	/// <param name="pos">The position to check</param>
+	/// <returns>Bool indicating if pos is inside any member's sight</returns>
+	public bool CanAnybodySee(Vector2 pos) {
+		foreach (Animal anim in Members) {
+			if (anim.CanSee(pos)) return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Whether every member can see a given position
+	/// </summary>
+	/// <param name="pos">The position to check</param>
+	/// <returns>Bool indicating if pos is inside every member's sight</returns>
+	public bool CanEverybodySee(Vector2 pos) {
+		foreach (Animal anim in Members) {
+			if (!anim.CanSee(pos)) return false;
+		}
+
+		return true;
 	}
 
 	/// <summary>
@@ -292,7 +318,8 @@ public class AnimalGroup : GameObject {
 	}
 
 	private void OnHungryMember(object sender, EventArgs e) {
-		if (State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) return;
+		if ((State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) || Species.IsCarnivorous())
+			return;
 
 		StateMachine.Transition(AnimalGroupState.SeekingFood);
 	}
@@ -353,7 +380,7 @@ public class AnimalGroup : GameObject {
 		NavCmp.StopOnTargetReach = false;
 	}
 
-	private void OnWanderTargetReached(object sender, ReachedTargetEventArgs e) {
+	private void OnWanderTargetReached(object sender, NavigationTargetEventArgs e) {
 		SetNewWanderingPos();
 	}
 
@@ -375,18 +402,14 @@ public class AnimalGroup : GameObject {
 	}
 
 	private bool nearDestination = false;
-	private void OnNearDestination(object sender, ReachedTargetEventArgs e) {
+	private void OnNearDestination(object sender, NavigationTargetEventArgs e) {
 		nearDestination = true;
-		NavCmp.ReachedTarget -= OnNearDestination;
+		NavCmp.TargetInSight -= OnNearDestination;
 	}
 
 	[StateBegin(AnimalGroupState.SeekingFood)]
 	public void BeginSeekingFood() {
-		if (Species.IsCarnivorous()) {
-			StateMachine.Transition(AnimalGroupState.Wandering);
-		}
-
-		if (knownFoodSpots.Count == 0) {
+		if (Species.IsCarnivorous() || knownFoodSpots.Count == 0) {
 			StateMachine.Transition(AnimalGroupState.Wandering);
 			return;
 		}
@@ -394,7 +417,7 @@ public class AnimalGroup : GameObject {
 		nearDestination = false;
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = true;
-		NavCmp.ReachedTarget += OnNearDestination;
+		NavCmp.TargetInSight += OnNearDestination;
 		NavCmp.TargetPosition = GetNearestFromList(knownFoodSpots);
 	}
 
@@ -447,7 +470,7 @@ public class AnimalGroup : GameObject {
 		nearDestination = false;
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = true;
-		NavCmp.ReachedTarget += OnNearDestination;
+		NavCmp.TargetInSight += OnNearDestination;
 		NavCmp.TargetPosition = GetNearestFromList(knownWaterSpots);
 	}
 

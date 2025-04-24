@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +11,7 @@ using Safari.Objects.Entities.Animals;
 using Safari.Popups;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Safari.Model;
 
@@ -114,8 +116,10 @@ public class Level : GameObject {
 	public List<Tile> GetTilesInArea(Rectangle tilemapArea) {
 		List<Tile> tiles = new();
 
-		for (int x = tilemapArea.X; x < tilemapArea.Right; x++) {
-			for (int y = tilemapArea.Y; y < tilemapArea.Bottom; y++) {
+		int xMax = tilemapArea.Right;
+		int yMax = tilemapArea.Bottom;
+		for (int x = tilemapArea.X; x < xMax; x++) {
+			for (int y = tilemapArea.Y; y < yMax; y++) {
 				if (IsOutOfPlayArea(x, y)) continue;
 
 				Tile tile = GetTile(x, y);
@@ -221,6 +225,7 @@ public class Level : GameObject {
 	/// <param name="x">The x coordinate of the position</param>
 	/// <param name="y">The y coordinate of the position</param>
 	/// <returns>Whether the position is considered out of bounds</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsOutOfBounds(int x, int y) {
 		return x < 0 || y < 0 || x >= MapWidth || y >= MapHeight;
 	}
@@ -231,6 +236,7 @@ public class Level : GameObject {
 	/// <param name="x">The x coordinate of the position</param>
 	/// <param name="y">The y coordinate of the position</param>
 	/// <returns>Whether the position is considered not playable</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsOutOfPlayArea(int x, int y) {
 		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
 	}
@@ -419,7 +425,7 @@ public class Level : GameObject {
 		Entity result = null;
 
 		foreach (Entity e in Entity.ActiveEntities) {
-			Rectangle bounds = e.Bounds;
+			Vectangle bounds = e.Bounds;
 			bounds.Inflate(TileSize / 3, TileSize / 3);
 
 			if (!e.IsDead && bounds.Contains(mouseWorldPos) && e.Visible) {
