@@ -22,7 +22,6 @@ public class Tourist : Entity {
 	private static int ratingCount = 0;
 	public static EntitySpawner<Tourist> Spawner { get; set; }
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
-	private static Random rand = new Random();
 
 	private HashSet<Animal> seenAnimals = new();
 	private HashSet<AnimalSpecies> seenAnimalSpecies = new();
@@ -127,7 +126,7 @@ public class Tourist : Entity {
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";
 		AnimatedSpriteCmp animSprite;
-		if (rand.Next(2) == 1) {
+		if (Game.Random.Next(2) == 1) {
 			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Man/Walk"), 10, 2, 8);
 			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
@@ -145,13 +144,13 @@ public class Tourist : Entity {
 		Sprite.YSortEnabled = true;
 		Sprite.YSortOffset = 64;
 		Sprite.Origin = new Vector2(16, 64); // just by the 'vibes'
-		SightDistance = rand.Next(4, 8);
+		SightDistance = Game.Random.Next(4, 8);
 		var values = Enum.GetValues(typeof(AnimalSpecies));
-		favSpecies = (AnimalSpecies)values.GetValue(rand.Next(values.Length));
-		moneyThreshold = rand.Next(5, 11) * 100;
+		favSpecies = (AnimalSpecies)values.GetValue(Game.Random.Next(values.Length));
+		moneyThreshold = Game.Random.Next(5, 11) * 100;
 		Attach(Sprite);
 		animSprite.CurrentAnimation = "idle-right";
-		xOffset = (float)rand.NextDouble() * 24f - 12f;
+		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
 
 		NavCmp.AccountForBounds = false;
 		NavCmp.Speed = 60f;
@@ -234,7 +233,7 @@ public class Tourist : Entity {
 
 	[StateBegin(TouristState.InQueue)]
 	public void BeginInQueue() {
-		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(rand.NextDouble() * 30 + 10.0);
+		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(Game.Random.NextDouble() * 30 + 10.0);
 	}
 
 	private void OnReadyToFill(object sender, EventArgs e) => TryEntering();
@@ -265,7 +264,7 @@ public class Tourist : Entity {
 		DateTime now = GameScene.Active.Model.IngameDate;
 		if (now >= nextSwitch) {
 			preferStandingRight = !preferStandingRight;
-			nextSwitch = now + TimeSpan.FromMinutes(rand.NextDouble() * 11 + 6);
+			nextSwitch = now + TimeSpan.FromMinutes(Game.Random.NextDouble() * 11 + 6);
 		}
 	}
 

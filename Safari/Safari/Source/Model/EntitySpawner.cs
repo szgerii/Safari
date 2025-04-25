@@ -88,7 +88,6 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 		ChanceIncrease = chanceIncrease;
 	}
 
-	private readonly Random rand = new();
 	public override void Update(GameTime gameTime) {
 		if (!Active) return;
 
@@ -114,7 +113,7 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 			CurrentChance = BaseChance;
 		}
 
-		bool randCheck = rand.NextSingle() <= CurrentChance;
+		bool randCheck = Game.Random.NextSingle() <= CurrentChance;
 
 		CurrentChance = Math.Min(CurrentChance + ChanceIncrease, 1f);
 

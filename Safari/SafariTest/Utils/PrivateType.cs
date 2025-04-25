@@ -18,4 +18,14 @@ internal class PrivateType {
 
 		return mi.Invoke(null, args);
 	}
+
+	public void SetProperty(string propName, object? value) {
+		PropertyInfo? prop = type.GetProperty(propName, BindingFlags.Static | BindingFlags.Public);
+
+		if (prop == null) {
+			throw new ArgumentException($"Unknown static property '{propName}' in class '{type}'");
+		}
+		
+		prop.SetValue(null, value);
+	}
 }

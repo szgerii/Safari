@@ -66,8 +66,6 @@ public class Jeep : Entity {
 	private static string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
 	private static Texture2D[] textures = new Texture2D[4] {null, null, null, null};
 
-	private static Random rand = new Random();
-
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 
 	public StateMachineCmp<JeepState> StateMachine { get; private set; } = new(JeepState.Parking);
@@ -209,7 +207,7 @@ public class Jeep : Entity {
 	/// Spawns a jeep in the garage with a random color
 	/// </summary>
 	public static void SpawnJeep() {
-		Game.AddObject(new Jeep(CurrentLevel.GetTileCenter(Jeep.GarageSpot), rand.Next(TEXTURE_COUNT)));
+		Game.AddObject(new Jeep(CurrentLevel.GetTileCenter(Jeep.GarageSpot), Game.Random.Next(TEXTURE_COUNT)));
 	}
 
 	/// <summary>

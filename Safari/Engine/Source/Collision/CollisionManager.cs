@@ -11,9 +11,6 @@ public static class CollisionManager {
 	private static QuadTree<CollisionCmp> quadTree;
 	private static List<CollisionCmp> collisionCmps;
 
-	// debug
-	private readonly static Texture2D gridCellTex = Utils.GenerateTexture(1, 1, new Color(Color.Blue, 0.3f));
-
 	static CollisionManager() {
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-coll-quadtree", DrawQuadTreeNodes, GameLoopStage.POST_DRAW));
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-colliders", DrawColliders, GameLoopStage.POST_DRAW));

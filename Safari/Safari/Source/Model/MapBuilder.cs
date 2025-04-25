@@ -13,8 +13,6 @@ namespace Safari.Model;
 /// Static helper class that can generate the starting map
 /// </summary>
 public static class MapBuilder {
-	private readonly static Random rand = new Random();
-
 	public readonly static int ZEBRA_COUNT = 16;
 	public readonly static int GIRAFFE_COUNT = 8;
 	public readonly static int ELEPHANT_COUNT = 6;
@@ -514,9 +512,9 @@ public static class MapBuilder {
 
 		Point p = new Point();
 		do {
-			p = new Point(rand.Next(minTX, maxTX), rand.Next(minTY, maxTY));
+			p = new Point(Game.Random.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
 		} while (level.GetTile(p) != null);
 
-		return new Vector2(p.X * level.TileSize + rand.Next(32), p.Y * level.TileSize + rand.Next(32));
+		return new Vector2(p.X * level.TileSize + Game.Random.Next(32), p.Y * level.TileSize + Game.Random.Next(32));
 	}
 }

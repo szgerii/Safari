@@ -47,7 +47,6 @@ public class RoadNetwork {
 	private List<List<Point>> cachedRoutes = new();
 	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
-	private Random rand = new Random();
 
 	public Point Start { get; init; }
 	public Point End { get; init; }
@@ -80,7 +79,7 @@ public class RoadNetwork {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : new List<Point>();
+			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random.Next(cachedRoutes.Count)] : new List<Point>();
 		}
 	}
 
@@ -391,7 +390,7 @@ public class RoadNetwork {
 	// Pick a random point from a set
 	private Point PickRandom(HashSet<Point> set) {
 		Point[] points = set.ToArray();
-		return points[rand.Next(points.Length)];
+		return points[Game.Random.Next(points.Length)];
 	}
 
 	// Remove a point, and its neighbours in a given range, from a set

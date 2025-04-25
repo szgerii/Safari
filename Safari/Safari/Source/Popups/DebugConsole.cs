@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Safari.Popups;
+
 public class DebugConsole : PopupMenu, IResettableSingleton {
 	private static DebugConsole instance;
 	public static DebugConsole Instance {

@@ -5,8 +5,6 @@ using System;
 namespace Engine;
 
 public static class Utils {
-	private static readonly Random rand = new Random();
-
 	/// <summary>
 	/// Generates a single color Texture2D
 	/// </summary>
@@ -269,8 +267,7 @@ public static class Utils {
 	/// <returns>A random value from the enum's possible values</returns>
 	public static EnumType GetRandomEnumValue<EnumType>() where EnumType : Enum {
 		Array values = Enum.GetValues(typeof(EnumType));
-		Random rand = new();
-		return (EnumType)values.GetValue(rand.Next(values.Length));
+		return (EnumType)values.GetValue(Game.Random.Next(values.Length));
 	}
 
 	/// <summary>
@@ -279,8 +276,8 @@ public static class Utils {
 	/// <param name="bounds">The bounds to pick from (inclusive)</param>
 	/// <returns>The random position</returns>
 	public static Vector2 GetRandomPosition(Rectangle bounds) {
-		int x = rand.Next(bounds.X, bounds.Right + 1);
-		int y = rand.Next(bounds.Y, bounds.Bottom + 1);
+		int x = Game.Random.Next(bounds.X, bounds.Right + 1);
+		int y = Game.Random.Next(bounds.Y, bounds.Bottom + 1);
 
 		return new Vector2(x, y);
 	}

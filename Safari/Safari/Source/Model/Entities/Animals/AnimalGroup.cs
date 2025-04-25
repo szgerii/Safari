@@ -395,7 +395,6 @@ public class AnimalGroup : GameObject {
 		NavCmp.ReachedTarget -= OnWanderTargetReached;
 	}
 
-	private readonly Random rand = new();
 	[StateUpdate(AnimalGroupState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		SyncToFormation();

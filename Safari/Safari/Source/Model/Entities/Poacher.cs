@@ -253,14 +253,13 @@ public class Poacher : Entity {
 		NavCmp.ReachedTarget -= OnChaseTargetReached;
 	}
 
-	private readonly Random rand = new();
 	private void OnChaseTargetReached(object sender, NavigationTargetEventArgs e) {
 		if (ChaseTarget.IsCaught || ChaseTarget.IsDead) {
 			StateMachine.Transition(PoacherState.Wandering);
 			return;
 		}
 
-		bool shoot = rand.NextSingle() <= SHOOT_CHANCE;
+		bool shoot = Game.Random.NextSingle() <= SHOOT_CHANCE;
 
 		if (shoot) {
 			ChaseTarget.Die();

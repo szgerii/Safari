@@ -101,7 +101,7 @@ public class Game : Engine.Game {
 		}
 
 		UserInterface.Active.Dispose();
-		
+
 		base.Dispose(disposing);
 	}
 

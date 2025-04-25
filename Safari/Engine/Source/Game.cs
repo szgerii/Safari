@@ -16,6 +16,12 @@ public class Game : Microsoft.Xna.Framework.Game {
 	public static SpriteBatch SpriteBatch { get; protected set; }
 	public static RenderTarget2D RenderTarget { get; protected set; }
 	public static ContentManager ContentManager => Instance.Content;
+	/// <summary>
+	/// The seed used for initalizing <see cref="Random"/> <br/>
+	/// NOTE: this does not reseed the random, it only takes effect if it is set before <see cref="Initialize"/> is called
+	/// </summary>
+	public static int? Seed { get; set; }
+	public static Random Random { get; protected set; }
 
 	private VertexBuffer fullScreenVbo;
 	private IndexBuffer fullScreenIbo;
@@ -65,7 +71,6 @@ public class Game : Microsoft.Xna.Framework.Game {
 		fullScreenVbo.SetData(verts);
 	}
 
-
 	protected override void Initialize() {
 		InputManager.Initialize();
 		Content.RootDirectory = "Content";
@@ -75,12 +80,20 @@ public class Game : Microsoft.Xna.Framework.Game {
 		RenderTarget = new RenderTarget2D(GraphicsDevice, 640, 360);
 		InitFullscreenBuffers();
 
+		Random ??= Seed != null ? new(Seed.Value) : new();
+
 		base.Initialize();
 	}
 
 	protected override void LoadContent() {
 		_spriteBatch = new SpriteBatch(GraphicsDevice);
 		SpriteBatch = _spriteBatch;
+	}
+
+	protected override void Dispose(bool disposing) {
+		Random = null;
+		
+		base.Dispose(disposing);
 	}
 
 	protected override void Update(GameTime gameTime) {

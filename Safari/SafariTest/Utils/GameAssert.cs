@@ -52,19 +52,23 @@ internal static class GameAssert {
 	/// <param name="n">The maximum number of frame steps to perform</param>
 	/// <returns>The number of frame steps that were performed</returns>
 	/// <exception cref="AssertFailedException"></exception>
-	public static int AreEqualInNFrames<T>(T? expected, ref T? actual, int n) {
+	public static int AreEqualInNFrames<T>(T? expected, Func<T?> actual, int n) {
 		AssertGameInstanceNotNull();
 
+		T? curr = default;
 		for (int i = 1; i <= n; i++) {
-			if (expected?.Equals(actual) ?? (actual == null)) {
+			GameInstance!.RunOneFrame();
+			curr = actual();
+
+			if (expected?.Equals(curr) ?? (curr == null)) {
 				return i;
 			}
 		}
 
 		string msg =
-			$"Actual value was never equal to the expected value in {n} frames" +
-			$"Expected: {expected}" +
-			$"Actual (after last frame): {actual}";
+			$"Actual value was never equal to the expected value in {n} frames\n" +
+			$"Expected: {expected}\n" +
+			$"Actual (after last frame): {curr}";
 
 		throw new AssertFailedException(msg);
 	}
@@ -77,19 +81,23 @@ internal static class GameAssert {
 	/// <param name="n">The maximum number of frame steps to perform</param>
 	/// <returns>The number of frame steps that were performed</returns>
 	/// <exception cref="AssertFailedException"></exception>
-	public static int AreNotEqualInNFrames<T>(T? notExpected, ref T? actual, int n) {
+	public static int AreNotEqualInNFrames<T>(T? notExpected, Func<T?> actual, int n) {
 		AssertGameInstanceNotNull();
 
+		T? curr = default;
 		for (int i = 1; i <= n; i++) {
-			if (!(notExpected?.Equals(actual) ?? (actual == null))) {
+			GameInstance!.RunOneFrame();
+			curr = actual();
+
+			if (!(notExpected?.Equals(curr) ?? (curr == null))) {
 				return i;
 			}
 		}
 
 		string msg =
-			$"Actual value was always equal to the expected value in {n} frames" +
-			$"Expected: {notExpected}" +
-			$"Actual (after last frame): {actual}";
+			$"Actual value was always equal to the expected value in {n} frames\n" +
+			$"Expected: {notExpected}\n" +
+			$"Actual (after last frame): {curr}";
 
 		throw new AssertFailedException(msg);
 	}
@@ -97,22 +105,24 @@ internal static class GameAssert {
 	/// <summary>
 	/// Tests whether a value ever becomes null during the next n frames, and throws an exception if it doesn't
 	/// </summary>
-	/// <param name="observed">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
+	/// <param name="getValue">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The maximum number of frame steps to perform</param>
 	/// <returns>The number of frame steps that were performed</returns>
 	/// <exception cref="AssertFailedException"></exception>
-	public static int IsNullInNFrames<T>(ref T? observed, int n) {
+	public static int IsNullInNFrames<T>(Func<T?> getValue, int n) {
 		AssertGameInstanceNotNull();
 
 		for (int i = 1; i <= n; i++) {
-			if (observed == null) {
+			GameInstance!.RunOneFrame();
+
+			if (getValue() == null) {
 				return i;
 			}
 		}
 
 		string msg =
-			$"Value didn't become null in {n} frames" +
-			$"Value (after last frame): {observed}";
+			$"Value didn't become null in {n} frames\n" +
+			$"Value (after last frame): {getValue}";
 
 		throw new AssertFailedException(msg);
 	}
@@ -120,15 +130,17 @@ internal static class GameAssert {
 	/// <summary>
 	/// Tests whether a value ever becomes not-null during the next n frames, and throws an exception if it doesn't
 	/// </summary>
-	/// <param name="observed">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
+	/// <param name="getValue">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The maximum number of frame steps to perform</param>
 	/// <returns>The number of frame steps that were performed</returns>
 	/// <exception cref="AssertFailedException"></exception>
-	public static int IsNotNullInNFrames<T>(ref T? observed, int n) {
+	public static int IsNotNullInNFrames<T>(Func<T?> getValue, int n) {
 		AssertGameInstanceNotNull();
 
 		for (int i = 1; i <= n; i++) {
-			if (observed != null) {
+			GameInstance!.RunOneFrame();
+
+			if (getValue() != null) {
 				return i;
 			}
 		}
@@ -180,15 +192,19 @@ internal static class GameAssert {
 	/// <param name="actual">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The number of frame steps to perform</param>
 	/// <exception cref="AssertFailedException"></exception>
-	public static void AreEqualForNFrames<T>(T? expected, ref T? actual, int n) {
+	public static void AreEqualForNFrames<T>(T? expected, Func<T?> actual, int n) {
 		AssertGameInstanceNotNull();
 
+		T? curr;
 		for (int i = 1; i <= n; i++) {
-			if (!(expected?.Equals(actual) ?? (actual == null))) {
+			GameInstance!.RunOneFrame();
+			curr = actual();
+
+			if (!(expected?.Equals(curr) ?? (curr == null))) {
 				string msg =
-					$"Actual value differed from the expected value after {i} frames (expected: {n} frames)" +
-					$"Expected: {expected}" +
-					$"Actual (after failed frame): {actual}";
+					$"Actual value differed from the expected value after {i} frames (expected: {n} frames)\n" +
+					$"Expected: {expected}\n" +
+					$"Actual (after failed frame): {curr}";
 
 				throw new AssertFailedException(msg);
 			}
@@ -202,15 +218,19 @@ internal static class GameAssert {
 	/// <param name="actual">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The number of frame steps to perform</param>
 	/// <exception cref="AssertFailedException"></exception>
-	public static void AreNotEqualForNFrames<T>(T? forbidden, ref T? actual, int n) {
+	public static void AreNotEqualForNFrames<T>(T? forbidden, Func<T?> actual, int n) {
 		AssertGameInstanceNotNull();
 
+		T? curr;
 		for (int i = 1; i <= n; i++) {
-			if (forbidden?.Equals(actual) ?? actual == null) {
+			GameInstance!.RunOneFrame();
+			curr = actual();
+			
+			if (forbidden?.Equals(curr) ?? curr == null) {
 				string msg =
-					$"Actual value was the same as the forbidden value after {i} frames (expected: {n} frames)" +
-					$"Forbidden: {forbidden}" +
-					$"Actual (after failed frame): {actual}";
+					$"Actual value was the same as the forbidden value after {i} frames (expected: {n} frames)\n" +
+					$"Forbidden: {forbidden}\n" +
+					$"Actual (after failed frame): {curr}";
 
 				throw new AssertFailedException(msg);
 			}
@@ -220,17 +240,19 @@ internal static class GameAssert {
 	/// <summary>
 	/// Tests whether a value stays null for the next n frames, and throws an exception if it doesn't
 	/// </summary>
-	/// <param name="actual">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
+	/// <param name="getValue">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The number of frame steps to perform</param>
 	/// <exception cref="AssertFailedException"></exception>
-	public static void IsNullForNFrames<T>(ref T? actual, int n) {
+	public static void IsNullForNFrames<T>(Func<T?> getValue, int n) {
 		AssertGameInstanceNotNull();
 
 		for (int i = 1; i <= n; i++) {
-			if (actual != null) {
+			GameInstance!.RunOneFrame();
+
+			if (getValue() != null) {
 				string msg = 
-					$"Actual value was not null after {i} frames (expected: {n} frames)" +
-					$"Actual (after failed frame): {actual}";
+					$"Actual value was not null after {i} frames (expected: {n} frames)\n" +
+					$"Actual (after failed frame): {getValue}";
 
 				throw new AssertFailedException(msg);
 			}
@@ -240,14 +262,16 @@ internal static class GameAssert {
 	/// <summary>
 	/// Tests whether a value stays not null for the next n frames, and throws an exception if it doesn't
 	/// </summary>
-	/// <param name="actual">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
+	/// <param name="getValue">A reference to the variable to check (pass the observed var/field/prop directly so that its state remains valid)</param>
 	/// <param name="n">The number of frame steps to perform</param>
 	/// <exception cref="AssertFailedException"></exception>
-	public static void IsNotNullForNFrames<T>(ref T? actual, int n) {
+	public static void IsNotNullForNFrames<T>(Func<T?> getValue, int n) {
 		AssertGameInstanceNotNull();
 
 		for (int i = 1; i <= n; i++) {
-			if (actual == null) {
+			GameInstance!.RunOneFrame();
+
+			if (getValue() == null) {
 				string msg = $"Actual value became null after {i} frames (expected: {n} frames)";
 				throw new AssertFailedException(msg);
 			}

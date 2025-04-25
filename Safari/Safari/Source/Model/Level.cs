@@ -241,7 +241,6 @@ public class Level : GameObject {
 		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
 	}
 
-	private Random rand = new();
 	/// <summary>
 	/// Returns a random (tile) position from the level
 	/// </summary>
@@ -262,9 +261,13 @@ public class Level : GameObject {
 		}
 
 		return new Vector2(
-			rand.Next(minX, maxX),
-			rand.Next(minY, maxY)
+			Game.Random.Next(minX, maxX),
+			Game.Random.Next(minY, maxY)
 		);
+	}
+
+	public static int TestRand() {
+		return Game.Random.Next(1, 3000);
 	}
 
 	public override void Load() {
