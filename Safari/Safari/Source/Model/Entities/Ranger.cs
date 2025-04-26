@@ -4,11 +4,11 @@ using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using System;
 
-namespace Safari.Objects.Entities;
+namespace Safari.Model.Entities;
 
 public enum RangerState {
 	Wandering,

@@ -14,9 +14,9 @@ public class EntityControllerMenu : PopupMenu {
 	private Image image;
 	private Header header;
 	private Rectangle maskArea;
-	protected Safari.Objects.Entities.Entity controlledEntity;
+	protected Safari.Model.Entities.Entity controlledEntity;
 
-	public EntityControllerMenu(Safari.Objects.Entities.Entity entity) {
+	public EntityControllerMenu(Safari.Model.Entities.Entity entity) {
 		PrepareUI();
 
 		header.Text = entity.DisplayName;

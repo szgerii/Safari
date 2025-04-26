@@ -9,7 +9,7 @@ using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
-namespace Safari.Objects.Entities.Animals;
+namespace Safari.Model.Entities.Animals;
 
 /// <summary>
 /// The possible states of an animal group

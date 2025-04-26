@@ -5,12 +5,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Model;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
-namespace Safari.Objects.Entities.Tourists;
+namespace Safari.Model.Entities.Tourists;
 
 public enum JeepState {
 	Parking,

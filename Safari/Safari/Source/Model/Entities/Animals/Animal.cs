@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using Safari.Popups;
 using Engine.Helpers;
 
-namespace Safari.Objects.Entities.Animals;
+namespace Safari.Model.Entities.Animals;
 
 public enum Gender {
 	Male,

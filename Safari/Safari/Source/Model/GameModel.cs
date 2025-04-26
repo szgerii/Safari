@@ -3,10 +3,10 @@ using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
-using Safari.Objects.Entities;
+using Safari.Model.Entities;
 using Safari.Model.Tiles;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
 

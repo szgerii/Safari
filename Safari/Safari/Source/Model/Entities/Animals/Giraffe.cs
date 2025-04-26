@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Safari.Objects.Entities.Animals;
+namespace Safari.Model.Entities.Animals;
 
 public class Giraffe : Animal {
 	public Giraffe(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Giraffe, gender) {

@@ -1,7 +1,7 @@
 #pragma warning disable CS8618
 
 using Engine.Scenes;
-using Safari.Objects.Entities;
+using Safari.Model.Entities;
 using Safari.Scenes;
 
 namespace SafariTest;

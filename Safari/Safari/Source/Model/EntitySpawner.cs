@@ -1,6 +1,6 @@
 ﻿using Engine;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities;
+using Safari.Model.Entities;
 using Safari.Scenes;
 using System;
 

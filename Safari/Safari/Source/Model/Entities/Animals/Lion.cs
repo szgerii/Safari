@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Safari.Objects.Entities.Animals;
+namespace Safari.Model.Entities.Animals;
 
 public class Lion : Animal {
 	public Lion(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Lion, gender) {

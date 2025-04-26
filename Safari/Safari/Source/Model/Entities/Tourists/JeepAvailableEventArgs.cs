@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Safari.Objects.Entities.Tourists;
+namespace Safari.Model.Entities.Tourists;
 
 public class JeepAvailableEventArgs : EventArgs {
 	private Jeep jeep;

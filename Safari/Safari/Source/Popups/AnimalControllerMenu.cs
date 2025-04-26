@@ -1,6 +1,6 @@
 ﻿using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 

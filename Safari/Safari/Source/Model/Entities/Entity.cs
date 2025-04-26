@@ -14,7 +14,7 @@ using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 
-namespace Safari.Objects.Entities;
+namespace Safari.Model.Entities;
 
 [SimulationActor]
 public abstract class Entity : GameObject, ISpatial {

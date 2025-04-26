@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using System;
 using System.Collections.Generic;
 using System.IO;

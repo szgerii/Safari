@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Safari.Objects.Entities.Animals;
+namespace Safari.Model.Entities.Animals;
 
 /// <summary>
 /// The different animal species found inside the park

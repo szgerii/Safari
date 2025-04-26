@@ -5,7 +5,7 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
 using Safari.Model;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 using System;

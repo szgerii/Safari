@@ -1,10 +1,10 @@
 ﻿using Engine.Debug;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities.Tourists;
 using System.Collections.Generic;
 
-namespace Safari.Objects.Entities;
+namespace Safari.Model.Entities;
 
 public static class EntityBoundsManager {
 	private static QuadTree<Entity> quadTree;

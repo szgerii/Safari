@@ -1,7 +1,7 @@
-﻿using Safari.Objects.Entities.Animals;
+﻿using Safari.Model.Entities.Animals;
 using System;
 
-namespace Safari.Objects.Entities.Tourists;
+namespace Safari.Model.Entities.Tourists;
 
 public class SawAnimalEventArgs : EventArgs {
 	private Animal animal;

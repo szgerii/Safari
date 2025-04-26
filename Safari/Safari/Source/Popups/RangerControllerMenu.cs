@@ -1,7 +1,7 @@
 ﻿using Engine.Input;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities.Animals;
 using System;
 
 namespace Safari.Popups;
@@ -10,10 +10,10 @@ public class RangerControllerMenu : EntityControllerMenu {
 	DropDown dropDown;
 	Button fireButton;
 	Array animalTypes = Enum.GetValues(typeof(AnimalSpecies));
-	Safari.Objects.Entities.Ranger ranger;
+	Safari.Model.Entities.Ranger ranger;
 	int nullValue = -1;
 
-	public RangerControllerMenu(Safari.Objects.Entities.Ranger ranger) : base(ranger) {
+	public RangerControllerMenu(Safari.Model.Entities.Ranger ranger) : base(ranger) {
 		this.ranger = ranger;
 		dropDown = new DropDown(new Vector2(0.9f, 0.6f), Anchor.AutoCenter, null, PanelSkin.Simple, PanelSkin.Simple);
 		dropDown.SelectList.Scale = 0.5f;
