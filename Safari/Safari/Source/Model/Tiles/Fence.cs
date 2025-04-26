@@ -2,12 +2,11 @@
 using Engine.Components;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Model.Tiles;
 
 class Fence : AutoTile {
-	public Fence() : base(Game.ContentManager.Load<Texture2D>("Assets/Fence/Fence")) {
+	public Fence() : base(Game.LoadTexture("Assets/Fence/Fence")) {
 		Layout[0] = new Point(0, 0);
 
 		Layout[AutoTileBitmask.Top | AutoTileBitmask.Bottom] = new Point(2, 1);

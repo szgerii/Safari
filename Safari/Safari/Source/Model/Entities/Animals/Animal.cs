@@ -4,13 +4,13 @@ using Engine.Collision;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Safari.Model;
 using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 using Safari.Popups;
 using Engine.Helpers;
+using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -370,7 +370,7 @@ public abstract class Animal : Entity {
 		Group = new AnimalGroup(this);
 	}
 
-	private Texture2D indicatorTex = null, indicatorOutlineTex = null;
+	private ITexture2D indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
@@ -395,11 +395,11 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		// hunger level
-		Game.SpriteBatch.Draw(indicatorTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
-		Game.SpriteBatch.Draw(indicatorOutlineTex, new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch.Draw(indicatorOutlineTex.ToTexture2D(), new Rectangle((Position + hungerOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 	}
 
 	private void CheckSurroundings() {

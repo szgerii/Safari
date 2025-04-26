@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Helpers;
-using Safari.Popups;
 using System;
 using System.Collections.Generic;
 

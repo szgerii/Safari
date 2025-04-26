@@ -2,7 +2,6 @@
 using Engine.Debug;
 using Microsoft.Xna.Framework;
 using Safari.Components;
-using Safari.Model;
 using Safari.Model.Tiles;
 using Safari.Popups;
 using Safari.Scenes;

@@ -1,9 +1,8 @@
 ﻿using Engine;
 using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -96,7 +95,7 @@ public class RoadNetwork {
 	/// The example route used for debugging / presenting
 	/// </summary>
 	public List<Point> DebugRoute { get; set; } = new List<Point>();
-	private static Texture2D debugTexture = null;
+	private static ITexture2D debugTexture = null;
 
 	/// <summary>
 	/// Use this event any time an object store a route from this network.
@@ -158,7 +157,7 @@ public class RoadNetwork {
 				size = new Point(middleA.X - middleB.X, width2 * 2);
 			}
 		}
-		Game.SpriteBatch.Draw(debugTexture, new Rectangle(loc, size), Color.White);
+		Game.SpriteBatch.Draw(debugTexture.ToTexture2D(), new Rectangle(loc, size), Color.White);
 	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {

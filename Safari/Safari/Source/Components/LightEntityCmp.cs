@@ -3,7 +3,6 @@ using Engine.Components;
 using Microsoft.Xna.Framework;
 using Safari.Model;
 using Safari.Model.Entities;
-using Safari.Scenes;
 
 namespace Safari.Components;
 

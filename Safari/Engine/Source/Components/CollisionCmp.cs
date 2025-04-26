@@ -1,7 +1,7 @@
 ﻿using Engine.Collision;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace Engine.Components;
@@ -13,7 +13,7 @@ public class CollisionCmp : Component, ISpatial {
 
 	public bool HasActiveCollisionEvents => CollisionEnter != null || CollisionStay != null || CollisionLeave != null;
 
-	public Texture2D ColliderTex { get; private set; }
+	public ITexture2D ColliderTex { get; private set; }
 	private Vectangle collider;
 	public Vectangle Collider {
 		get => collider;

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Graphics.Stubs.Texture;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	
 	private static readonly ObjectPool<Queue<QuadTree<T>>> queuePool = new(() => new(32), queue => queue.Clear(), 10);
 	private static readonly ObjectPool<Stack<QuadTree<T>>> stackPool = new(() => new(32), stack => stack.Clear(), 30);
-	private Texture2D boundsTex;
+	private ITexture2D boundsTex;
 
 	/// <param name="bounds">The bounds the quadtree (node) can store AABBs in</param>
 	public QuadTree(Vectangle bounds) {
@@ -353,6 +354,6 @@ public class QuadTree<T> where T : class, ISpatial {
 
 		Rectangle dest = (Rectangle)Bounds;
 		float filledRatio = Math.Min(1, elements.Count / (float)Threshold);
-		Game.SpriteBatch.Draw(boundsTex, dest, null, Color.Lerp(Color.White, Color.Red, filledRatio), 0, Vector2.Zero, SpriteEffects.None, 0);
+		Game.SpriteBatch.Draw(boundsTex.ToTexture2D(), dest, null, Color.Lerp(Color.White, Color.Red, filledRatio), 0, Vector2.Zero, SpriteEffects.None, 0);
 	}
 }

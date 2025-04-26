@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Popups;
 using System;
-using System.Linq;
 
 namespace Engine.Input;
 
@@ -56,16 +55,18 @@ public static class InputManager {
 
 	public static void Update(GameTime gameTime) {
 		// update focus
-        bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
-		int rootChildren = UserInterface.Active.Root.Children.Count;
-		bool allPassiveFocus = true;
-        for (int i = 0; i < rootChildren && allPassiveFocus; i++) {
-			if (UserInterface.Active.Root.Children[i].Tag != "PassiveFocus") {
-                allPassiveFocus = false;
+		if (!Game.Instance.IsHeadless) {
+			bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
+			int rootChildren = UserInterface.Active.Root.Children.Count;
+			bool allPassiveFocus = true;
+			for (int i = 0; i < rootChildren && allPassiveFocus; i++) {
+				if (UserInterface.Active.Root.Children[i].Tag != "PassiveFocus") {
+					allPassiveFocus = false;
+				}
 			}
-        }
-        WasGameFocused = IsGameFocused;
-		IsGameFocused = allPassiveFocus || (rootFocused && DebugConsole.Visible && !PauseMenu.Visible);
+			WasGameFocused = IsGameFocused;
+			IsGameFocused = allPassiveFocus || (rootFocused && DebugConsole.Visible && !PauseMenu.Visible);
+		}
 
         // Update states
         prevKS = currentKS;

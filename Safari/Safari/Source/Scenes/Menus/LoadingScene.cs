@@ -1,8 +1,6 @@
 ﻿using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
-using Safari.Popups;
-using System.Collections.Generic;
 
 namespace Safari.Scenes.Menus;
 

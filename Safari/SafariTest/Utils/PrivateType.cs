@@ -2,6 +2,9 @@
 
 namespace SafariTest.Utils;
 
+/// <summary>
+/// Provides access to the private static methods of a guess
+/// </summary>
 internal class PrivateType {
 	private readonly Type type;
 
@@ -20,7 +23,7 @@ internal class PrivateType {
 	}
 
 	public void SetProperty(string propName, object? value) {
-		PropertyInfo? prop = type.GetProperty(propName, BindingFlags.Static | BindingFlags.Public);
+		PropertyInfo? prop = type.GetProperty(propName, BindingFlags.NonPublic | BindingFlags.Static);
 
 		if (prop == null) {
 			throw new ArgumentException($"Unknown static property '{propName}' in class '{type}'");

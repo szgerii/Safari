@@ -1,9 +1,8 @@
 ﻿using Engine;
 using Engine.Components;
+using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
-using System.Collections.Generic;
 
 namespace Safari.Model.Tiles;
 
@@ -27,7 +26,7 @@ public abstract class Tile : GameObject {
 	/// <br/>
 	/// Set to null to make the tile invisible
 	/// </summary>
-	public Texture2D Texture {
+	public ITexture2D Texture {
 		get => Sprite.Texture;
 		set {
 			Sprite.Texture = value;
@@ -87,7 +86,7 @@ public abstract class Tile : GameObject {
 	/// </summary>
 	public Point[] ConstructionBlockOffsets { get; protected set; } = [];
 
-	public Tile(Texture2D texture = null) : base(new Vector2(-1)) {
+	public Tile(ITexture2D texture = null) : base(new Vector2(-1)) {
 		Sprite = new SpriteCmp(texture);
 		Sprite.YSortEnabled = true;
 		Sprite.LayerDepth = 0.5f;
@@ -119,7 +118,7 @@ public abstract class Tile : GameObject {
 		}
 		Color tint = canDraw ? Color.CornflowerBlue * 0.4f : Color.Red * 0.4f;
 		Game.SpriteBatch.Draw(
-			Sprite.Texture,
+			Sprite.Texture.ToTexture2D(),
 			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level.TileSize,
 			SourceRectangle,
 			tint,

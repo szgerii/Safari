@@ -1,8 +1,6 @@
 ﻿using Engine.Components;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
-using Safari.Model;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using System;
@@ -127,13 +125,13 @@ public class Tourist : Entity {
 		DisplayName = "Tourist";
 		AnimatedSpriteCmp animSprite;
 		if (Game.Random.Next(2) == 1) {
-			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Man/Walk"), 10, 2, 8);
+			animSprite = new(Game.LoadTexture("Assets/Tourist/Man/Walk"), 10, 2, 8);
 			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
 			animSprite.Animations["idle-right"] = new Animation(0, 1, true, 8);
 			animSprite.Animations["idle-left"] = new Animation(1, 1, true, 8);
 		} else {
-			animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Tourist/Woman/Walk"), 8, 2, 10);
+			animSprite = new(Game.LoadTexture("Assets/Tourist/Woman/Walk"), 8, 2, 10);
 			animSprite.Animations["walk-right"] = new Animation(0, 8, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 8, true);
 			animSprite.Animations["idle-right"] = new Animation(0, 1, true, 4);

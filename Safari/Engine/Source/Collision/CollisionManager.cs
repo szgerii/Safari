@@ -108,7 +108,7 @@ public static class CollisionManager {
 		if (collisionCmps == null) return;
 
 		foreach (CollisionCmp cmp in collisionCmps) {
-			Game.SpriteBatch.Draw(cmp.ColliderTex, cmp.AbsoluteCollider.Location, cmp.ColliderTex.Bounds, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0f);
+			Game.SpriteBatch.Draw(cmp.ColliderTex.ToTexture2D(), cmp.AbsoluteCollider.Location, cmp.ColliderTex.Bounds, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0f);
 		}
 	}
 }

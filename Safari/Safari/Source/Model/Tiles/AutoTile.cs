@@ -1,6 +1,6 @@
 ﻿using Engine;
+using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ public partial class AutoTile : Tile {
 	/// </summary>
 	public bool NeedsUpdate = true;
 
-	public AutoTile(Texture2D atlasTex) : base() {
+	public AutoTile(ITexture2D atlasTex) : base() {
 		Texture = atlasTex;
 	}
 

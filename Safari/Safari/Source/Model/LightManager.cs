@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Interfaces;
 using Engine.Objects;
 using Microsoft.Xna.Framework;
@@ -14,17 +15,17 @@ namespace Safari.Model;
 /// to the screen at night and handling the day-night cycle post processing.
 /// </summary>
 public class LightManager : IPostProcessPass {
-	private RenderTarget2D _output = null;
-	private RenderTarget2D _lightTexture = null;
-	private Effect dayNightPass = Game.ContentManager.Load<Effect>("Fx/dayNightPass");
+	private IRenderTarget2D _output = null;
+	private IRenderTarget2D _lightTexture = null;
+	private Effect dayNightPass = Game.Instance.IsHeadless ? null : Game.ContentManager.Load<Effect>("Fx/dayNightPass");
 	private int width;
 	private int height;
 	private int tileSize;
 	private int[,] lightMap;
 
-	RenderTarget2D IPostProcessPass.Output => _output;
+	IRenderTarget2D IPostProcessPass.Output => _output;
 	Effect IPostProcessPass.Shader => dayNightPass;
-	Texture2D red = Utils.GenerateTexture(1, 1, Color.Red);
+	ITexture2D red = Utils.GenerateTexture(1, 1, Color.Red);
 
 	public LightManager(int width, int height, int tileSize) {
 		this.width = width;
@@ -36,7 +37,7 @@ public class LightManager : IPostProcessPass {
 	public void PreDraw(GameTime gameTime) {
 		EnsureCorrectRT();
 		GraphicsDevice device = Game.Graphics.GraphicsDevice;
-		device.SetRenderTarget(_lightTexture);
+		device.SetRenderTarget(_lightTexture.ToRenderTarget2D());
 		device.Clear(Color.Black);
 		Matrix trMatrix = Camera.Active.TransformMatrix;
 		Game.SpriteBatch.Begin(
@@ -48,19 +49,21 @@ public class LightManager : IPostProcessPass {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				if (CheckLight(x, y)) {
-					Game.SpriteBatch.Draw(red, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
+					Game.SpriteBatch.Draw(red.ToTexture2D(), new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
 				}
 			}
 		}
 
 		Game.SpriteBatch.End();
 
-		dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
-		dayNightPass.Parameters["sunrise_start"].SetValue((float)GameModel.SUNRISE_START);
-		dayNightPass.Parameters["sunrise_end"].SetValue((float)GameModel.SUNRISE_END);
-		dayNightPass.Parameters["sunset_start"].SetValue((float)GameModel.SUNSET_START);
-		dayNightPass.Parameters["sunset_end"].SetValue((float)GameModel.SUNSET_END);
-		dayNightPass.Parameters["LightMap"].SetValue(_lightTexture);
+		if (!Game.Instance.IsHeadless) {
+			dayNightPass.Parameters["Time"].SetValue((float)GameScene.Active.Model.TimeOfDay);
+			dayNightPass.Parameters["sunrise_start"].SetValue((float)GameModel.SUNRISE_START);
+			dayNightPass.Parameters["sunrise_end"].SetValue((float)GameModel.SUNRISE_END);
+			dayNightPass.Parameters["sunset_start"].SetValue((float)GameModel.SUNSET_START);
+			dayNightPass.Parameters["sunset_end"].SetValue((float)GameModel.SUNSET_END);
+			dayNightPass.Parameters["LightMap"].SetValue(_lightTexture.ToRenderTarget2D());
+		}
 	}
 
 	private void EnsureCorrectRT() {
@@ -68,9 +71,13 @@ public class LightManager : IPostProcessPass {
 		CorrectSizeRT(ref _lightTexture);
 	}
 
-	private void CorrectSizeRT(ref RenderTarget2D rt) {
+	private void CorrectSizeRT(ref IRenderTarget2D rt) {
 		if (rt == null || Game.RenderTarget.Width != rt.Width || Game.RenderTarget.Height != rt.Height) {
-			rt = new RenderTarget2D(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height);
+			if (Game.Instance.IsHeadless) {
+				rt = new NoopRenderTarget2D(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height);
+			} else {
+				rt = new RenderTarget2DAdapter(new(Game.Graphics.GraphicsDevice, Game.RenderTarget.Width, Game.RenderTarget.Height));
+			}
 		}
 	}
 	/// <summary>

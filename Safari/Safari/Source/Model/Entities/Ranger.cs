@@ -2,7 +2,6 @@
 using Engine.Components;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
@@ -82,7 +81,7 @@ public class Ranger : Entity {
 	public Ranger(Vector2 pos) : base(pos) {
 		DisplayName = "Ranger";
 
-		AnimatedSpriteCmp animSprite = new(Game.ContentManager.Load<Texture2D>("Assets/Ranger/Walk"), 8, 2, 10);
+		AnimatedSpriteCmp animSprite = new(Game.LoadTexture("Assets/Ranger/Walk"), 8, 2, 10);
 		animSprite.Animations["walk-right"] = new Animation(0, 8, true);
 		animSprite.Animations["walk-left"] = new Animation(1, 8, true);
 		Sprite = animSprite;

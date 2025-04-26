@@ -1,9 +1,9 @@
 ﻿using Engine;
 using Engine.Components;
 using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
@@ -61,7 +61,7 @@ public class Poacher : Entity {
 		DisplayName = "Poacher";
 		VisibleAtNight = false;
 
-		Texture2D walkSheet = Game.ContentManager.Load<Texture2D>("Assets/Poacher/Walk");
+		ITexture2D walkSheet = Game.LoadTexture("Assets/Poacher/Walk");
 
 		AnimatedSpriteCmp animSprite = new(walkSheet, 7, 2, 10);
 		animSprite.Animations["walk-right"] = new Animation(0, 7, true);

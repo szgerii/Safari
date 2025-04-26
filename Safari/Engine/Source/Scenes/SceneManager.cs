@@ -30,7 +30,7 @@ public static class SceneManager {
 	}
 
 	public static void UnloadActive() {
-		Active.Unload();
+		Active?.Unload();
 		Active = null;
 	}
 

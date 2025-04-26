@@ -7,6 +7,10 @@ stages:
   - build
   - test
 
+.testbase:
+  stage: test
+  before_script: SDL_VIDEODRIVER=dummy
+
 default:
   image: mcr.microsoft.com/dotnet/sdk:8.0
 
@@ -35,7 +39,7 @@ build:release:
     expire_in: 1 hour
 
 test:debug:
-  stage: test
+  extends: .testbase
   needs:
     - job: build:debug
       artifacts: true
@@ -43,7 +47,7 @@ test:debug:
     - 'dotnet test --no-build -c Debug "Safari\Safari.sln"'
 
 test:release:
-  stage: test
+  extends: .testbase
   needs:
     - job: build:release
       artifacts: true

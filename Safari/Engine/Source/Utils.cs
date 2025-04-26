@@ -1,20 +1,26 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Engine.Graphics.Stubs.Texture;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace Engine;
 
 public static class Utils {
 	/// <summary>
-	/// Generates a single color Texture2D
+	/// Generates a single color ITexture2D
 	/// </summary>
 	/// <param name="width">The width of the texture</param>
 	/// <param name="height">The height of the texture</param>
 	/// <param name="color">The color of the texture (purple by default)</param>
 	/// <param name="outlineOnly">Whether the rectangle should have no filling</param>
 	/// <returns>The generated texture</returns>
-	public static Texture2D GenerateTexture(int width, int height, Color? color = null, bool outlineOnly = false) {
-		Texture2D texture = new Texture2D(Game.Graphics.GraphicsDevice, width, height);
+	public static ITexture2D GenerateTexture(int width, int height, Color? color = null, bool outlineOnly = false) {
+		ITexture2D texture;
+		
+		if (!Game.Instance.IsHeadless) {
+			texture = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, width, height));
+		} else {
+			texture = new NoopTexture2D(null, width, height);
+		}
 
 		Color[] data = new Color[width * height];
 		for (int pixel = 0; pixel < data.Length; pixel++) {
@@ -35,9 +41,11 @@ public static class Utils {
 	/// <param name="textures">The textures to place in the atlas</param>
 	/// <param name="rowLength">The number of cells inside a single atlas row</param>
 	/// <returns>The texture of the atlas</returns>
-	public static Texture2D CreateAtlas(Texture2D[] textures, int rowLength) {
+	public static ITexture2D CreateAtlas(ITexture2D[] textures, int rowLength) {
 		if (textures.Length == 0) {
-			throw new ArgumentException("textures cannot be an empty array", nameof(textures));
+			return Game.Instance.IsHeadless ?
+				NoopTexture2D.Empty :
+				throw new ArgumentException("textures cannot be an empty array", nameof(textures));
 		}
 
 		if (rowLength <= 0) {
@@ -49,7 +57,7 @@ public static class Utils {
 		}
 
 		int unitWidth = -1, unitHeight = -1;
-		foreach (Texture2D tex in textures) {
+		foreach (ITexture2D tex in textures) {
 			if (tex.Width > unitWidth) {
 				unitWidth = tex.Width;
 			}
@@ -62,7 +70,12 @@ public static class Utils {
 		int colCount = rowLength;
 		int rowCount = (int)Math.Ceiling(textures.Length / (float)colCount);
 
-		Texture2D atlasTex = new Texture2D(Game.Graphics.GraphicsDevice, unitWidth * colCount, unitHeight * rowCount);
+		ITexture2D atlasTex;
+		if (!Game.Instance.IsHeadless) {
+			atlasTex = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, unitWidth * colCount, unitHeight * rowCount));
+		} else {
+			atlasTex = new NoopTexture2D(null, unitWidth * colCount, unitHeight * rowCount);
+		}
 		Color[] atlasData = new Color[atlasTex.Width * atlasTex.Height];
 
 		for (int row = 0; row < rowCount; row++) {
@@ -75,7 +88,7 @@ public static class Utils {
 					break;
 				}
 
-				Texture2D tex = textures[texIndex];
+				ITexture2D tex = textures[texIndex];
 				Color[] texData = new Color[tex.Width * tex.Height];
 				tex.GetData(texData);
 
@@ -90,11 +103,11 @@ public static class Utils {
 	}
 
 	/// <summary>
-	/// Shorthand for creating a single row texture atlas with <see cref="CreateAtlas(Texture2D[], int)"/>
+	/// Shorthand for creating a single row texture atlas with <see cref="CreateAtlas(ITexture2D[], int)"/>
 	/// </summary>
 	/// <param name="textures">The textures to place in the atlas</param>
 	/// <returns>The texture of the created atlas</returns>
-	public static Texture2D CreateAtlas(Texture2D[] textures) {
+	public static ITexture2D CreateAtlas(ITexture2D[] textures) {
 		return CreateAtlas(textures, textures.Length);
 	}
 
@@ -105,7 +118,7 @@ public static class Utils {
 	/// <param name="tex2">The texture to overlay onto the base texture</param>
 	/// <returns>The merged texture</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public static Texture2D MergeTextures(Texture2D tex1, Texture2D tex2) {
+	public static ITexture2D MergeTextures(ITexture2D tex1, ITexture2D tex2) {
 		if (tex1.Bounds != tex2.Bounds) {
 			throw new ArgumentException("Cannot merge textures of different sizes");
 		}
@@ -115,7 +128,13 @@ public static class Utils {
 		Color[] tex2Data = new Color[tex2.Width * tex2.Height];
 		tex2.GetData(tex2Data);
 
-		Texture2D result = new Texture2D(Game.Graphics.GraphicsDevice, tex1.Width, tex1.Height);
+		ITexture2D result;
+		if (!Game.Instance.IsHeadless) {
+			result = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, tex1.Width, tex1.Height));
+		} else {
+			result = new NoopTexture2D(null, tex1.Width, tex1.Height);
+		}
+
 		Color[] resultData = new Color[result.Width * result.Height];
 
 		for (int i = 0; i < tex1Data.Length; i++) {
@@ -132,7 +151,9 @@ public static class Utils {
 	/// <param name="texture">The texture to analyze</param>
 	/// <param name="sourceRect">The source rectangle of the displayed area</param>
 	/// <returns>The ideal offset from the bottom of the texture area</returns>
-	public static int GetYSortOffset(Texture2D texture, Rectangle? sourceRect = null) {
+	public static int GetYSortOffset(ITexture2D texture, Rectangle? sourceRect = null) {
+		if (texture is NoopTexture2D) return 0;
+		
 		Rectangle src = sourceRect ?? texture.Bounds;
 
 		Color[] texData = new Color[texture.Width * texture.Height];

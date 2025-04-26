@@ -1,6 +1,4 @@
 ﻿using Engine.Components;
-using Engine.Input;
-using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Scenes;
@@ -22,7 +20,7 @@ public class EntityControllerMenu : PopupMenu {
 		header.Text = entity.DisplayName;
 		controlledEntity = entity;
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
-			image = new Image(anim.Texture, new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
+			image = new Image(anim.Texture.ToTexture2D(), new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
 			image.Offset = new Vector2(0, 0.3f);
 			UpdateSourceRectangle();
 			panel.AddChild(image);

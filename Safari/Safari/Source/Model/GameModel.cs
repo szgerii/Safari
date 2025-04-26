@@ -1,14 +1,12 @@
 using Engine.Debug;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
 using Safari.Model.Entities;
-using Safari.Model.Tiles;
-using Safari.Model.Entities.Animals;
 using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
+using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
@@ -348,7 +346,7 @@ public class GameModel {
 		Difficulty = difficulty;
 		this.startDate = startDate;
 
-		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
+		ITexture2D staticBG = !Game.Instance.IsHeadless ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(Game.Instance.GraphicsDevice, 3584, 2048);
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
 		Jeep.Init(400);

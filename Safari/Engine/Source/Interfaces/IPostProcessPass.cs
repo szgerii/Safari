@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Engine.Graphics.Stubs.Texture;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Engine.Interfaces;
@@ -13,7 +14,7 @@ public interface IPostProcessPass {
 	/// The output texture that gets sent to the next step in post-processing, 
 	/// or to the final draw to the screen (if this is the last step)
 	/// </summary>
-	public RenderTarget2D Output { get; }
+	public IRenderTarget2D Output { get; }
 
 	/// <summary>
 	/// The shader that the pass uses (this is where the output of the previous step is uploaded to)

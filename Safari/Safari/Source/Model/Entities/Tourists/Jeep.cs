@@ -1,10 +1,9 @@
 ﻿using Engine.Components;
 using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
-using Safari.Model;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using System;
@@ -64,7 +63,7 @@ public class Jeep : Entity {
 
 	private const int TEXTURE_COUNT = 4;
 	private static string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
-	private static Texture2D[] textures = new Texture2D[4] {null, null, null, null};
+	private static ITexture2D[] textures = new ITexture2D[4] {null, null, null, null};
 
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 
@@ -147,7 +146,7 @@ public class Jeep : Entity {
 		RentFee = baseRentFee;
 		for (int i = 0; i < TEXTURE_COUNT; i++) {
 			if (textures[i] == null) {
-				textures[i] = Game.ContentManager.Load<Texture2D>("Assets/Jeep/Jeep" + textureNames[i]);
+				textures[i] = Game.LoadTexture("Assets/Jeep/Jeep" + textureNames[i]);
 			}
 		}
 		JeepReadyToFill += DebugReadyToFill;

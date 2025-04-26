@@ -1,15 +1,15 @@
 ﻿using Engine;
 using Engine.Components;
 using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
 using Safari.Input;
-using Safari.Model;
+using Safari.Model.Entities.Animals;
 using Safari.Model.Tiles;
-using Safari.Objects.Entities.Animals;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -264,7 +264,7 @@ public abstract class Entity : GameObject, ISpatial {
 		base.Draw(gameTime);
 	}
 
-	private Texture2D sightAreaTex = null, reachAreaTex = null, boundsTex = null;
+	private ITexture2D sightAreaTex = null, reachAreaTex = null, boundsTex = null;
 	/// <summary>
 	/// Draws the bounds of the entity's vision and reach to the screen (debug feature)
 	/// </summary>
@@ -274,14 +274,14 @@ public abstract class Entity : GameObject, ISpatial {
 			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size.ToPoint()) {
 				sightAreaTex = Utils.GenerateTexture((int)SightArea.Width, (int)SightArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(sightAreaTex, (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch.Draw(sightAreaTex.ToTexture2D(), (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (ReachArea.Width != 0 && ReachArea.Height != 0) {
 			if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size.ToPoint()) {
 				reachAreaTex = Utils.GenerateTexture((int)ReachArea.Width, (int)ReachArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(reachAreaTex, (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch.Draw(reachAreaTex.ToTexture2D(), (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (boundsTex?.Bounds.Size != Bounds.Size.ToPoint()) {
@@ -293,7 +293,7 @@ public abstract class Entity : GameObject, ISpatial {
 		}
 
 		if (boundsTex != null) {
-			Game.SpriteBatch.Draw(boundsTex, (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth + 0.01f);
+			Game.SpriteBatch.Draw(boundsTex.ToTexture2D(), (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth + 0.01f);
 		}
 	}
 

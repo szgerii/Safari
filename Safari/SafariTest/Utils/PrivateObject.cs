@@ -2,6 +2,9 @@
 
 namespace SafariTest.Utils;
 
+/// <summary>
+/// Provides access to an object's private methods
+/// </summary>
 internal class PrivateObject {
 	private readonly object obj;
 
