@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Safari.Popups;
 
-class CategoryMenu : PopupMenu {
+public class CategoryMenu : PopupMenu {
     private bool visible = false;
     private Header header;
     private List<string> items = new List<string>();

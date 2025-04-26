@@ -1,5 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Engine.Graphics.Stubs.Texture;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
@@ -29,9 +29,9 @@ public class Animation {
 	/// Overwrites the spritesheet of the AnimatedSpriteCmp this animation is registered to
 	/// The AnimatedSpriteCmp will use this instead for drawing
 	/// </summary>
-	public Texture2D Texture { get; set; }
+	public ITexture2D Texture { get; set; }
 
-	public Animation(int row, int length, bool loop = false, int offset = 0, Texture2D texture = null) {
+	public Animation(int row, int length, bool loop = false, int offset = 0, ITexture2D texture = null) {
 		Row = row;
 		Length = length;
 		Loop = loop;
@@ -130,17 +130,17 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 
 	protected float frameTime;
 
-	public AnimatedSpriteCmp(Texture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
+	public AnimatedSpriteCmp(ITexture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
 		ColumnCount = columnCount;
 		RowCount = rowCount;
 		FPS = fps;
 		Origin = Vector2.Zero;
 	}
 
-	private Texture2D prevTex;
+	private ITexture2D prevTex;
 	public void Update(GameTime gameTime) {
 		// TODO: handle this more efficiently
-		Texture2D inUseTex = currentAnim?.Texture ?? Texture;
+		ITexture2D inUseTex = currentAnim?.Texture ?? Texture;
 		
 		if (inUseTex != prevTex) {
 			ColumnCount = ColumnCount;
@@ -180,6 +180,6 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 
 		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		Game.SpriteBatch.Draw(currentAnim?.Texture?.ToTexture2D() ?? Texture.ToTexture2D(), Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 }

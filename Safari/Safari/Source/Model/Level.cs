@@ -9,6 +9,7 @@ using Safari.Model.Tiles;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
@@ -22,7 +23,7 @@ public class Level : GameObject {
 	/// <summary>
 	/// The image to draw as a background to the tiles
 	/// </summary>
-	public Texture2D Background { get; set; }
+	public ITexture2D Background { get; set; }
 	/// <summary>
 	/// The dimension of a single cell inside the tilemap grid
 	/// </summary>
@@ -54,17 +55,17 @@ public class Level : GameObject {
 
 	private readonly Tile[,] tiles;
 
-	private readonly Texture2D debugGridTex;
+	private readonly ITexture2D debugGridTex;
 
-	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
+	public Level(int tileSize, int width, int height, ITexture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
 		MapWidth = width;
 		MapHeight = height;
 		tiles = new Tile[width, height];
 		Background = background;
 
-		Texture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
-		Texture2D[] mergeArray = new Texture2D[MapWidth * MapHeight];
+		ITexture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
+		ITexture2D[] mergeArray = new ITexture2D[MapWidth * MapHeight];
 		for (int i = 0; i < mergeArray.Length; i++) {
 			mergeArray[i] = gridCellTex;
 		}
@@ -241,7 +242,6 @@ public class Level : GameObject {
 		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
 	}
 
-	private Random rand = new();
 	/// <summary>
 	/// Returns a random (tile) position from the level
 	/// </summary>
@@ -262,9 +262,13 @@ public class Level : GameObject {
 		}
 
 		return new Vector2(
-			rand.Next(minX, maxX),
-			rand.Next(minY, maxY)
+			Game.Random.Next(minX, maxX),
+			Game.Random.Next(minY, maxY)
 		);
+	}
+
+	public static int TestRand() {
+		return Game.Random.Next(1, 3000);
 	}
 
 	public override void Load() {
@@ -297,13 +301,13 @@ public class Level : GameObject {
 
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
-			Game.SpriteBatch.Draw(Background, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+			Game.SpriteBatch.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 		}
 		base.Draw(gameTime);
 	}
 
 	public void PostDraw(object _, GameTime gameTime) {
-		Game.SpriteBatch.Draw(debugGridTex, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+		Game.SpriteBatch.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 	}
 
 	/// <summary>

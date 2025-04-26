@@ -9,15 +9,16 @@ using Engine;
 using System.Collections.Generic;
 using GeonBit.UI;
 using Engine.Debug;
-using Safari.Objects.Entities;
+using Safari.Model.Entities;
 using Safari.Popups;
 using Safari.Scenes.Menus;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities.Tourists;
 using Engine.Helpers;
 using Engine.Input;
-using Safari.Objects.Entities.Animals;
 using Safari.Input;
 using Microsoft.Xna.Framework.Graphics;
+using Engine.Graphics.Stubs.Texture;
+using Safari.Model.Entities.Animals;
 
 namespace Safari.Scenes;
 
@@ -35,12 +36,17 @@ public class GameScene : Scene {
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
 	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
 
+	/// <summary>
+	/// Whether to skip placing the demo animals/plants/etc on the map
+	/// </summary>
+	public bool StrippedInit { get; set; } = false;
+
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
-	private Texture2D demolishHover;
-	private Texture2D buildHover;
+	private ITexture2D demolishHover;
+	private ITexture2D buildHover;
 
 	static GameScene() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
@@ -64,8 +70,10 @@ public class GameScene : Scene {
 
 		Jeep.Cleanup();
 
-        Statusbar.Instance.Unload();
-		EntityManager.Instance.Unload();
+		if (!Game.Instance.IsHeadless) {
+			Statusbar.Instance.Hide();
+			EntityControllerMenu.Active?.Hide();
+		}
 
         base.Unload();
 
@@ -73,8 +81,6 @@ public class GameScene : Scene {
 		EntityBoundsManager.CleanUp();
 		CollisionManager.CleanUp();
 		PostProcessPasses.Remove(model.Level.LightManager);
-
-		EntityControllerMenu.Active?.Hide();
 
 		Game.ContentManager.Unload();
 	}
@@ -84,8 +90,10 @@ public class GameScene : Scene {
 		// The start of the game is always <date of creation> 6 am
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
-		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate);
-		PostProcessPasses.Add(model.Level.LightManager);
+		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
+		if (!Game.Instance.IsHeadless) {
+			PostProcessPasses.Add(model.Level.LightManager);
+		}
 
 		int tileSize = model.Level.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
@@ -107,21 +115,25 @@ public class GameScene : Scene {
 			)
 		);
 
-		UserInterface.Active.MouseInputProvider.DoClick();
+		if (!Game.Instance.IsHeadless) {
+			UserInterface.Active.MouseInputProvider.DoClick();
+		}
 
-		Texture2D outline = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.8f, 0.1f, 0.1f, 1f), true);
-		Texture2D fill = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.7f, 0.1f, 0.1f, 0.3f));
+		ITexture2D outline = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.8f, 0.1f, 0.1f, 1f), true);
+		ITexture2D fill = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.7f, 0.1f, 0.1f, 0.3f));
 		demolishHover = Utils.MergeTextures(fill, outline);
 
 		buildHover = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.1f, 0.3f, 0.7f, 1f), true);
 
 		base.Load();
 
-		MapBuilder.BuildStartingMap(model.Level);
+		MapBuilder.BuildStartingMap(model.Level, StrippedInit);
 
-		Statusbar.Instance.Load();
-		EntityManager.Instance.Load();
-    }
+		if (!Game.Instance.IsHeadless) {
+			Statusbar.Instance.Load();
+			EntityManager.Instance.Load();
+		}
+	}
 
     public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
@@ -154,9 +166,10 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 		}
 
-        Statusbar.Instance.Update(gameTime);
-
-		EntityManager.Instance.Update(gameTime);
+		if (!Game.Instance.IsHeadless) {
+			Statusbar.Instance.Update(gameTime);
+			EntityManager.Instance.Update(gameTime);
+		}
 
         foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
@@ -257,11 +270,11 @@ public class GameScene : Scene {
 				Vector2 mousePos = GetMouseTilePos();
 				Point tilePos = (mousePos / Model.Level.TileSize).ToPoint();
 				ins.DrawPreviewAt(GetMouseTilePos(), cons.CanBuild(tilePos, ins));
-				Game.SpriteBatch.Draw(buildHover, mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+				Game.SpriteBatch.Draw(buildHover.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			}
 		} else if (MouseMode == MouseMode.Demolish) {
 			Vector2 mousePosWorld = GetMouseTilePos();
-			Game.SpriteBatch.Draw(demolishHover, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			Game.SpriteBatch.Draw(demolishHover.ToTexture2D(), mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 		}
 
 		base.Draw(gameTime);

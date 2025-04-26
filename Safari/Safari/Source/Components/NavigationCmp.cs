@@ -1,8 +1,8 @@
 ﻿using Engine;
 using Engine.Components;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
 using System;
 
 namespace Safari.Components;

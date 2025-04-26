@@ -4,15 +4,26 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Safari.Components;
-using Safari.Popups;
+using Safari.Helpers;
 using System;
 using System.Collections.Generic;
 
 namespace Safari.Scenes.Menus;
 
-class SettingsMenu : MenuScene {
-    private readonly static SettingsMenu instance = new SettingsMenu();
-    private Header title;
+public class SettingsMenu : MenuScene, IResettableSingleton {
+	private static SettingsMenu instance;
+	public static SettingsMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Unload();
+        instance = null;
+	}
+
+	private Header title;
     private Panel settingsPanel;
 
     private Panel fpsPanel;
@@ -64,8 +75,6 @@ class SettingsMenu : MenuScene {
             ScaleChanged?.Invoke(null, EventArgs.Empty);
         }
     }
-
-    public static SettingsMenu Instance => instance;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.TopLeft);

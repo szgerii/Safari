@@ -12,6 +12,8 @@ public static class DebugInfoManager {
 	private static Dictionary<DebugInfoPosition, Paragraph> infoParagraphs = new();
 
 	static DebugInfoManager() {
+		if (Game.Instance.IsHeadless) return;
+
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			Paragraph p = new Paragraph();
 			p.ClickThrough = true;

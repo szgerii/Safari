@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
-using System;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using System.Collections.Generic;
 using System.IO;
 
@@ -13,8 +12,6 @@ namespace Safari.Model;
 /// Static helper class that can generate the starting map
 /// </summary>
 public static class MapBuilder {
-	private readonly static Random rand = new Random();
-
 	public readonly static int ZEBRA_COUNT = 16;
 	public readonly static int GIRAFFE_COUNT = 8;
 	public readonly static int ELEPHANT_COUNT = 6;
@@ -389,7 +386,8 @@ public static class MapBuilder {
 	/// <summary>
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
-	public static void BuildStartingMap(Level level) {
+	/// <param name="strippedInit">Whether to skip placing down animals/plants/jeeps/etc</param>
+	public static void BuildStartingMap(Level level, bool strippedInit = false) {
 		// road placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
@@ -444,6 +442,8 @@ public static class MapBuilder {
 			}
 			y--;
 		}
+
+		if (strippedInit) return;
 
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {
@@ -511,9 +511,9 @@ public static class MapBuilder {
 
 		Point p = new Point();
 		do {
-			p = new Point(rand.Next(minTX, maxTX), rand.Next(minTY, maxTY));
+			p = new Point(Game.Random.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
 		} while (level.GetTile(p) != null);
 
-		return new Vector2(p.X * level.TileSize + rand.Next(32), p.Y * level.TileSize + rand.Next(32));
+		return new Vector2(p.X * level.TileSize + Game.Random.Next(32), p.Y * level.TileSize + Game.Random.Next(32));
 	}
 }

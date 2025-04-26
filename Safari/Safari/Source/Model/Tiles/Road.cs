@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Safari.Model.Tiles;
 
@@ -7,7 +6,7 @@ namespace Safari.Model.Tiles;
 /// Tile for representing a single road cell
 /// </summary>
 public class Road : AutoTile {
-	public Road() : base(Game.ContentManager.Load<Texture2D>("Assets/Road/Road")) {
+	public Road() : base(Game.LoadTexture("Assets/Road/Road")) {
 		// set up custom bitmask to offset layout
 		Layout[0] = new Point(5, 0);
 

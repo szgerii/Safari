@@ -2,8 +2,7 @@
 using Engine.Components;
 using Microsoft.Xna.Framework;
 using Safari.Model;
-using Safari.Objects.Entities;
-using Safari.Scenes;
+using Safari.Model.Entities;
 
 namespace Safari.Components;
 

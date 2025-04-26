@@ -2,11 +2,23 @@
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Engine;
+using Safari.Helpers;
 
 namespace Safari.Scenes.Menus;
-class MainMenu : MenuScene, IUpdatable {
-    private readonly static MainMenu instance = new MainMenu();
-    private Header title;
+public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
+	private static MainMenu instance;
+	public static MainMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Unload();
+		instance = null;
+	}
+
+	private Header title;
     private Panel buttonPanel;
     private Button newGameButton;
     private Button continueGameButton;
@@ -14,8 +26,6 @@ class MainMenu : MenuScene, IUpdatable {
     private Button settingsButton;
     private Button exitButton;
     private bool loadGame = false;
-
-    public static MainMenu Instance => instance;
 
     protected override void ConstructUI() {
         this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);

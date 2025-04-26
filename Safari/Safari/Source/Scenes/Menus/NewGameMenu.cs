@@ -3,12 +3,24 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Popups;
 using Engine;
+using Safari.Helpers;
 
 namespace Safari.Scenes.Menus;
 
-class NewGameMenu : MenuScene, IUpdatable {
-    private readonly static NewGameMenu instance = new NewGameMenu();
-    private Header title;
+public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
+	private static NewGameMenu instance;
+	public static NewGameMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Unload();
+		instance = null;
+	}
+
+	private Header title;
     private Panel itemPanel;
     private TextInput input;
     private Button startButton;
@@ -19,8 +31,6 @@ class NewGameMenu : MenuScene, IUpdatable {
     private RadioButton radioMedium;
     private RadioButton radioHard;
     private bool loadGame = false;
-
-    public static NewGameMenu Instance => instance;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);

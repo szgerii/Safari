@@ -1,14 +1,12 @@
 using Engine.Debug;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Debug;
-using Safari.Objects.Entities;
-using Safari.Model.Tiles;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
+using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
@@ -342,13 +340,13 @@ public class GameModel {
 		}));
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
 		this.startDate = startDate;
 
-		Texture2D staticBG = Game.ContentManager.Load<Texture2D>("Assets/Background/Background");
+		ITexture2D staticBG = !Game.Instance.IsHeadless ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(Game.Instance.GraphicsDevice, 3584, 2048);
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
 		Jeep.Init(400);
@@ -356,21 +354,23 @@ public class GameModel {
 
 		Game.AddObject(Level);
 
-		// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
-		EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
-			EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
-			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
-		};
-		Game.AddObject(poacherSpawner);
+		if (!strippedInit) {
+			// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
+			EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
+				EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
+				EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
+			};
+			Game.AddObject(poacherSpawner);
 
-		Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
-			EntityLimit = 30,
-			EntityCount = () => Tourist.Queue.Count,
-			SpawnArea = new Rectangle(-64, 512, 32, 320),
-			ExtraCondition = () => IsDaytime
-		};
-		Game.AddObject(Tourist.Spawner);
-		Tourist.UpdateSpawner();
+			Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+				EntityLimit = 30,
+				EntityCount = () => Tourist.Queue.Count,
+				SpawnArea = new Rectangle(-64, 512, 32, 320),
+				ExtraCondition = () => IsDaytime
+			};
+			Game.AddObject(Tourist.Spawner);
+			Tourist.UpdateSpawner();
+		}
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}

@@ -1,7 +1,6 @@
 using Engine.Components;
 using Engine.Collision;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Engine.Helpers;
 
 namespace Safari.Model.Tiles;
@@ -10,7 +9,7 @@ namespace Safari.Model.Tiles;
 /// Tile for representing
 /// </summary>
 public class Bush : Tile {
-	public Bush() : base(Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush1")) {
+	public Bush() : base(Game.LoadTexture("Assets/Bush/Bush1")) {
 		IsFoodSource = true;
 		LightRange = 1;
 		Sprite.LayerDepth = 0.4f;
@@ -23,12 +22,11 @@ public class Bush : Tile {
 }
 
 public class WideBush : Tile {
-
 	private static Point[] BushOffsets = [
 		new(1, 0)
 	];
 
-	public WideBush() : base(Game.ContentManager.Load<Texture2D>("Assets/Bush/Bush2")) {
+	public WideBush() : base(Game.LoadTexture("Assets/Bush/Bush2")) {
 		ConstructionBlockOffsets = BushOffsets;
 		IsFoodSource = true;
 		LightRange = 2;

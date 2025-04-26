@@ -1,8 +1,7 @@
 ﻿using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
+using Safari.Model.Entities.Animals;
 using System;
 
 namespace Safari.Popups;

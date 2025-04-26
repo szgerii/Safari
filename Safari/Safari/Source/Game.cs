@@ -13,29 +13,52 @@ using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
 using Safari.Scenes.Menus;
+using System.Reflection;
+using System.Linq;
+using Safari.Helpers;
 
 namespace Safari;
 
+public enum GameStartupMode { Default, MainMenu, DemoScene, EmptyScene }
+
 public class Game : Engine.Game {
+	/// <summary>
+	/// Whether to output the debug info collected through <see cref="DebugInfoManager"/> to the screen
+ 	/// </summary>
 	public bool DisplayDebugInfos { get; private set; } = false;
+
+	/// <summary>
+	/// The state into which the game will be initialized
+	/// </summary>
+	public GameStartupMode StartupMode { get; init; } = GameStartupMode.Default;
+
+	/// <param name="headless">Whether to start the game without any graphics (requires the SDL_VIDEODRIVER env var to be set to 'dummy' to function properly)</param>
+	public Game(bool headless = false) : base(headless) { }
 
 	protected override void Initialize() {
 		base.Initialize();
 
-		// DisplayManager.SetTargetFPS(90, false);
-		DisplayManager.SetVSync(true, true);
+		if (!IsHeadless) {
+			// DisplayManager.SetTargetFPS(90, false);
+			DisplayManager.SetVSync(true, true);
+		}
 
 		InputSetup();
 
-		// GeonBit
+		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
+			SceneManager.Load(new GameScene());
+		}));
+		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
 
-		// create separate content manager for geonbit, so we can unload our assets in peace
-		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
-
-		UserInterface.Initialize(uiContentManager, BuiltinThemes.hd);
-		UserInterface.Active.ShowCursor = false;
-		UserInterface.Active.GlobalScale = 1.25f;
-        UserInterface.Active.UseRenderTarget = true;
+		if (!IsHeadless) {
+			// GeonBit
+			// create separate content manager for geonbit, so we can unload our assets in peace
+			ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
+			UserInterface.Initialize(uiContentManager, BuiltinThemes.hd);
+			UserInterface.Active.ShowCursor = false;
+			UserInterface.Active.GlobalScale = 1.25f;
+			UserInterface.Active.UseRenderTarget = true;
+		}
 
 		// debug stuff
 
@@ -68,27 +91,64 @@ public class Game : Engine.Game {
 		}));
 
         DebugMode.Enable();
-        SceneManager.Load(MainMenu.Instance);
+
+		// startup
+
+		GameStartupMode finalStartupMode = StartupMode;
+		if (StartupMode == GameStartupMode.Default) {
+			finalStartupMode = IsHeadless ? GameStartupMode.EmptyScene : GameStartupMode.MainMenu;
+		}
+
+		switch (finalStartupMode) {
+			case GameStartupMode.MainMenu:
+				SceneManager.Load(MainMenu.Instance);
+				break;
+			case GameStartupMode.DemoScene:
+				SceneManager.Load(new GameScene());
+				break;
+			case GameStartupMode.EmptyScene:
+				SceneManager.Load(new GameScene() { StrippedInit = true });
+				break;
+			default:
+				throw new InvalidOperationException("Invalid game startup mode");
+		}
     }
 
     protected override void LoadContent() {
 		base.LoadContent();
 	}
 
+	protected override void Dispose(bool disposing) {
+		base.Dispose(disposing);
+
+		// reset singletons
+		var singletons = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterfaces().Contains(typeof(IResettableSingleton)));
+		foreach (var singleton in singletons) {
+			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+		}
+
+		if (!IsHeadless) {
+			UserInterface.Active.Dispose();
+		}
+	}
+
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
 	private readonly PerformanceCalculator updateFPS = new(10), drawFPS = new(10);
 	protected override void Update(GameTime gameTime) {
-		DebugInfoManager.PreUpdate();
-		DebugConsole.Instance?.Update(gameTime);
-		AlertMenu.Adjust();
-        PauseMenu.Instance?.Update(gameTime);
-		MainMenu.Instance.Update(gameTime);
-		NewGameMenu.Instance.Update(gameTime);
-		EntityControllerMenu.Active?.Update(gameTime);
-
         DateTime start = DateTime.Now;
 
-		UserInterface.Active.Update(gameTime);
+		if (!IsHeadless) {
+			DebugInfoManager.PreUpdate();
+			DebugConsole.Instance.Update(gameTime);
+			AlertMenu.Adjust();
+			PauseMenu.Instance.Update(gameTime);
+			MainMenu.Instance.Update(gameTime);
+			NewGameMenu.Instance.Update(gameTime);
+			EntityControllerMenu.Active?.Update(gameTime);
+
+			UserInterface.Active.Update(gameTime);
+		}
+
 		base.Update(gameTime);
 
 		tickTime.AddValue((DateTime.Now - start).TotalMilliseconds);
@@ -107,6 +167,9 @@ public class Game : Engine.Game {
     }
 
     protected override void Draw(GameTime gameTime) {
+		// this is a safeguard, SuppressDraw should still be used instead for faster Draw skipping in headless environments
+		if (IsHeadless) return;
+
 		drawFPS.AddValue(1f / gameTime.ElapsedGameTime.TotalSeconds);
 		DebugInfoManager.AddInfo("FPS (Draw)", $"  {drawFPS.Average:0}", DebugInfoPosition.TopRight);
 

@@ -3,9 +3,9 @@ using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Components;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
-using Safari.Objects.Entities.Tourists;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 using System;
@@ -325,7 +325,7 @@ class EntityManager : PopupMenu {
             new AlertMenu("Ranger count", "You don't have any more rangers to fire").Show();
             return;
         }
-        foreach (Objects.Entities.Entity ent in Ranger.ActiveEntities) {
+        foreach (Model.Entities.Entity ent in Ranger.ActiveEntities) {
             if (ent is Ranger ranger) {
                 (ranger).Fire();
                 break;
@@ -451,7 +451,7 @@ class EntityManager : PopupMenu {
     private void UpdateAnimalList() {
         animalListPanel.ClearChildren();
 
-        List<Objects.Entities.Entity> tempList = Animal.ActiveEntities.Where(x => x is Animal).OrderBy(x => ((Animal)x).DisplayName).ToList();
+        List<Model.Entities.Entity> tempList = Animal.ActiveEntities.Where(x => x is Animal).OrderBy(x => ((Animal)x).DisplayName).ToList();
 
         List<Animal> listZebra = new List<Animal>();
         List<Animal> listElephant = new List<Animal>();
@@ -498,7 +498,7 @@ class EntityManager : PopupMenu {
         StyleProperty deleteHover = new StyleProperty(Color.DarkRed);
         StyleProperty deleteClick = new StyleProperty(Color.IndianRed);
 
-        foreach (Objects.Entities.Entity ent in Ranger.ActiveEntities) {
+        foreach (Model.Entities.Entity ent in Ranger.ActiveEntities) {
             if (ent is Ranger ranger) {
                 //DebugConsole.Instance.Write("ranger#" + (count + 1) + (ranger.ChaseTarget == null ? "null" : ranger.ChaseTarget.DisplayName) + " " + (ranger.TargetSpecies == null ? "Default" : ranger.TargetSpecies.ToString()));
                 Panel tempPanel = new Panel(new Vector2(0, 0.25f), PanelSkin.None, Anchor.Auto);
