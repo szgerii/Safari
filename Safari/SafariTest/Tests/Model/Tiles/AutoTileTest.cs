@@ -1,4 +1,4 @@
-﻿namespace SafariTest.ModelTests.Tiles;
+﻿namespace SafariTest.Tests.Model.Tiles;
 
 [TestClass]
 public class AutoTileTest { }

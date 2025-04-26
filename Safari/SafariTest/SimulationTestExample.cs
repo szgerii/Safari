@@ -19,12 +19,12 @@ public class SimulationTestExample : SimulationTest {
 		
 		// act
 		Safari.Game.AddObject(ranger); // use Safari.Game for Add/RemoveObject
-		Game.RunOneFrame();
+		RunOneFrame();
 		
 		// assert
 		Assert.AreEqual(1, GameScene.Active.Model.EntityCount); // (*) while others only happen one frame later (during the object's actual load)
 		Assert.IsTrue(cash > GameScene.Active.Model.Funds);
-		
+
 
 		Poacher poacher = new Poacher(new Microsoft.Xna.Framework.Vector2(450, 300));
 		Safari.Game.AddObject(poacher);
@@ -33,5 +33,9 @@ public class SimulationTestExample : SimulationTest {
 		// NOTE: this is more integration testing than unit testing
 		GameAssert.AreEqualInNFrames(RangerState.Chasing, () => ranger.State, 2);
 		Assert.AreEqual(poacher, ranger.ChaseTarget);
+
+		DateTime start = GameScene.Active.Model.IngameDate;
+		RunNFrames(600);
+		Assert.IsTrue(start + TimeSpan.FromHours(1) < GameScene.Active.Model.IngameDate);
 	}
 }

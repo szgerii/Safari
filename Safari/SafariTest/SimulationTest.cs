@@ -1,20 +1,22 @@
 #pragma warning disable CS8618
 
+using Safari.Model;
+using Safari.Scenes;
 using SafariTest.Utils;
 
 namespace SafariTest;
 
 [TestClass]
 public abstract class SimulationTest {
-	public Safari.Game Game { get; set; }
+	protected Safari.Game Game { get; set; }
+	protected GameModel Model => GameScene.Active.Model;
 
 	[TestInitialize]
 	public void StartGame() {
 		Game = new(true) { StartupMode = Safari.GameStartupMode.EmptyScene };
 		GameAssert.GameInstance = Game;
 
-		Game.SuppressDraw();
-		Game.RunOneFrame();
+		RunOneFrame();
 	}
 
 	[TestCleanup]
@@ -23,5 +25,20 @@ public abstract class SimulationTest {
 			Game.Dispose();
 			Game.Exit();
 		}
+	}
+
+	/// <summary>
+	/// Advances the game instance of the test by one frame
+	/// </summary>
+	protected virtual void RunOneFrame() {
+		Game.RunOneFrameNoDraw();
+	}
+
+	/// <summary>
+	/// Advances the game instance of the test by N frames
+	/// </summary>
+	/// <param name="n">The number of frames to advance the game by</param>
+	protected void RunNFrames(int n) {
+		Game.RunNFrameNoDraw(n);
 	}
 }

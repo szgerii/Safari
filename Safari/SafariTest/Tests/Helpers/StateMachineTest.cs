@@ -1,4 +1,4 @@
-﻿namespace SafariTest.ModelTests.Helpers;
+﻿namespace SafariTest.Tests.Helpers;
 
 [TestClass]
 public class StateMachineTest { }
