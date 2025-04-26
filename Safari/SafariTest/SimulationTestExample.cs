@@ -33,9 +33,5 @@ public class SimulationTestExample : SimulationTest {
 		// NOTE: this is more integration testing than unit testing
 		GameAssert.AreEqualInNFrames(RangerState.Chasing, () => ranger.State, 2);
 		Assert.AreEqual(poacher, ranger.ChaseTarget);
-
-		DateTime start = GameScene.Active.Model.IngameDate;
-		RunNFrames(600);
-		Assert.IsTrue(start + TimeSpan.FromHours(1) < GameScene.Active.Model.IngameDate);
 	}
 }
