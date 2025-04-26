@@ -248,17 +248,6 @@ public class RoadNetwork {
 		);
 	}
 
-	// Reset all used roads to regular Road
-	private void NetworkCleanup() {
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				if (network[i, j] != RoadState.Empty) {
-					network[i, j] = RoadState.Road;
-				}
-			}
-		}
-	}
-
 	// Must be called every time a road tile changes
 	private void UpdateNetwork() {
 		cachedRoutes = new();

@@ -25,7 +25,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 	/// NOTE: this does not reseed the random, it only takes effect if it is set before <see cref="Initialize"/> is called
 	/// </summary>
 	public static int? Seed { get; set; }
-	public static Random Random { get; protected set; }
+	public static Random Random { get; set; }
 
 	private VertexBuffer fullScreenVbo;
 	private IndexBuffer fullScreenIbo;
