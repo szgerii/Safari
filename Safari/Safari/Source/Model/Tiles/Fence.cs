@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace Safari.Model.Tiles;
 
-class Fence : AutoTile {
+public class Fence : AutoTile {
 	public Fence() : base(Game.LoadTexture("Assets/Fence/Fence")) {
 		Layout[0] = new Point(0, 0);
 

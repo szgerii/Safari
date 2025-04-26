@@ -17,8 +17,8 @@ namespace Safari.Model;
 /// Stores the static parts of the game world
 /// </summary>
 public class Level : GameObject {
-	public const int PLAY_AREA_CUTOFF_X = 8;
-	public const int PLAY_AREA_CUTOFF_Y = 8;
+	public static int PLAY_AREA_CUTOFF_X = 8;
+	public static int PLAY_AREA_CUTOFF_Y = 8;
 
 	/// <summary>
 	/// The image to draw as a background to the tiles
@@ -265,10 +265,6 @@ public class Level : GameObject {
 			Game.Random.Next(minX, maxX),
 			Game.Random.Next(minY, maxY)
 		);
-	}
-
-	public static int TestRand() {
-		return Game.Random.Next(1, 3000);
 	}
 
 	public override void Load() {
