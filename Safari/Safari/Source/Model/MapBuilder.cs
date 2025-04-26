@@ -389,7 +389,8 @@ public static class MapBuilder {
 	/// <summary>
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
-	public static void BuildStartingMap(Level level) {
+	/// <param name="strippedInit">Whether to skip placing down animals/plants/jeeps/etc</param>
+	public static void BuildStartingMap(Level level, bool strippedInit = false) {
 		// road placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
@@ -444,6 +445,8 @@ public static class MapBuilder {
 			}
 			y--;
 		}
+
+		if (strippedInit) return;
 
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {

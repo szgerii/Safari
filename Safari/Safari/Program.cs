@@ -1,3 +1,4 @@
-﻿
-using var game = new Safari.Game();
+﻿using Safari;
+
+using var game = new Game();
 game.Run();

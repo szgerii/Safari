@@ -158,6 +158,8 @@ public class Jeep : Entity {
 	}
 
 	public static void Cleanup() {
+		if (JeepReadyToFill == null) return;
+
 		foreach (Delegate d in JeepReadyToFill.GetInvocationList()) {
 			JeepReadyToFill -= (EventHandler)d;
 			for (int i = 0; i < TEXTURE_COUNT; i++) {

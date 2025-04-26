@@ -13,11 +13,17 @@ using Safari.Debug;
 using Safari.Model;
 using Safari.Popups;
 using Safari.Scenes.Menus;
+using System.Reflection;
+using System.Linq;
+using Safari.Helpers;
 
 namespace Safari;
 
+public enum GameStartupMode { Standard, DemoScene, EmptyScene }
+
 public class Game : Engine.Game {
 	public bool DisplayDebugInfos { get; private set; } = false;
+	public GameStartupMode StartupMode { get; init; } = GameStartupMode.Standard;
 
 	protected override void Initialize() {
 		base.Initialize();
@@ -31,7 +37,6 @@ public class Game : Engine.Game {
 
 		// create separate content manager for geonbit, so we can unload our assets in peace
 		ContentManager uiContentManager = new ContentManager(Services, Content.RootDirectory);
-
 		UserInterface.Initialize(uiContentManager, BuiltinThemes.hd);
 		UserInterface.Active.ShowCursor = false;
 		UserInterface.Active.GlobalScale = 1.25f;
@@ -68,20 +73,45 @@ public class Game : Engine.Game {
 		}));
 
         DebugMode.Enable();
-        SceneManager.Load(MainMenu.Instance);
+
+		switch (StartupMode) {
+			case GameStartupMode.Standard:
+				SceneManager.Load(MainMenu.Instance);
+				break;
+			case GameStartupMode.DemoScene:
+				SceneManager.Load(new GameScene());
+				break;
+			case GameStartupMode.EmptyScene:
+				SceneManager.Load(new GameScene() { StrippedInit = true });
+				break;
+			default:
+				throw new InvalidOperationException("Invalid game startup mode");
+		}
     }
 
     protected override void LoadContent() {
 		base.LoadContent();
 	}
 
+	protected override void Dispose(bool disposing) {
+		// reset singletons
+		var singletons = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterfaces().Contains(typeof(IResettableSingleton)));
+		foreach (var singleton in singletons) {
+			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+		}
+
+		UserInterface.Active.Dispose();
+		
+		base.Dispose(disposing);
+	}
+
 	private readonly PerformanceCalculator tickTime = new(50), drawTime = new(50);
 	private readonly PerformanceCalculator updateFPS = new(10), drawFPS = new(10);
 	protected override void Update(GameTime gameTime) {
 		DebugInfoManager.PreUpdate();
-		DebugConsole.Instance?.Update(gameTime);
+		DebugConsole.Instance.Update(gameTime);
 		AlertMenu.Adjust();
-        PauseMenu.Instance?.Update(gameTime);
+        PauseMenu.Instance.Update(gameTime);
 		MainMenu.Instance.Update(gameTime);
 		NewGameMenu.Instance.Update(gameTime);
 		EntityControllerMenu.Active?.Update(gameTime);

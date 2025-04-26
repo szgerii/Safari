@@ -1,16 +1,27 @@
 ﻿using Engine.Scenes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Safari.Helpers;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 
-class LoadGameMenu : MenuScene {
-    private readonly static LoadGameMenu instance = new LoadGameMenu();
-    private Header title;
+public class LoadGameMenu : MenuScene, IResettableSingleton {
+	private static LoadGameMenu instance;
+	public static LoadGameMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Unload();
+		instance = null;
+	}
+
+	private Header title;
     private Paragraph message;
     private Button menuButton;
-
-    public static LoadGameMenu Instance => instance;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);

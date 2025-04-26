@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Safari.Popups;
 
-class AlertMenu : PopupMenu {
+public class AlertMenu : PopupMenu {
     private Header header;
     private Paragraph paragraph;
     private Button button1;

@@ -3,6 +3,7 @@ using Engine.Scenes;
 using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Safari.Helpers;
 using Safari.Model;
 using Safari.Objects.Entities.Tourists;
 using Safari.Scenes;
@@ -11,8 +12,18 @@ using System;
 
 namespace Safari.Popups;
 
-class Statusbar : PopupMenu, IUpdatable {
-    private static readonly Statusbar instance = new Statusbar();
+public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
+    private static Statusbar instance;
+	public static Statusbar Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+    public static void ResetSingleton() {
+        instance?.Hide();
+        instance = null;
+    }
 
     private bool visible;
 
@@ -53,7 +64,6 @@ class Statusbar : PopupMenu, IUpdatable {
     private Button entityManagerButton;
 
     private Rectangle maskArea;
-    public static Statusbar Instance => instance;
 
     private Statusbar() {
         background = null;

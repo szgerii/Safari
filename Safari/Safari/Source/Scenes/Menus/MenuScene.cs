@@ -14,7 +14,9 @@ public abstract class MenuScene : Scene {
 
     public override void Unload() {
         base.Unload();
-        UserInterface.Active.RemoveEntity(panel);
+        if (panel != null) {
+            UserInterface.Active.RemoveEntity(panel);
+        }
         DestroyUI();
     }
 

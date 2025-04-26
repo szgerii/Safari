@@ -35,6 +35,11 @@ public class GameScene : Scene {
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
 	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
 
+	/// <summary>
+	/// Whether to skip placing the demo animals/plants/etc on the map
+	/// </summary>
+	public bool StrippedInit { get; set; } = false;
+
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
@@ -84,7 +89,7 @@ public class GameScene : Scene {
 		// The start of the game is always <date of creation> 6 am
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
-		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate);
+		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
 		PostProcessPasses.Add(model.Level.LightManager);
 
 		int tileSize = model.Level.TileSize;
@@ -117,7 +122,7 @@ public class GameScene : Scene {
 
 		base.Load();
 
-		MapBuilder.BuildStartingMap(model.Level);
+		MapBuilder.BuildStartingMap(model.Level, StrippedInit);
 
 		Statusbar.Instance.Load();
 		EntityManager.Instance.Load();

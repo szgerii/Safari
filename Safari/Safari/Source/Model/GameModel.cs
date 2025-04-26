@@ -342,7 +342,7 @@ public class GameModel {
 		}));
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
@@ -356,21 +356,23 @@ public class GameModel {
 
 		Game.AddObject(Level);
 
-		// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
-		EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
-			EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
-			EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
-		};
-		Game.AddObject(poacherSpawner);
+		if (!strippedInit) {
+			// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
+			EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
+				EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
+				EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
+			};
+			Game.AddObject(poacherSpawner);
 
-		Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
-			EntityLimit = 30,
-			EntityCount = () => Tourist.Queue.Count,
-			SpawnArea = new Rectangle(-64, 512, 32, 320),
-			ExtraCondition = () => IsDaytime
-		};
-		Game.AddObject(Tourist.Spawner);
-		Tourist.UpdateSpawner();
+			Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+				EntityLimit = 30,
+				EntityCount = () => Tourist.Queue.Count,
+				SpawnArea = new Rectangle(-64, 512, 32, 320),
+				ExtraCondition = () => IsDaytime
+			};
+			Game.AddObject(Tourist.Spawner);
+			Tourist.UpdateSpawner();
+		}
 
 		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}

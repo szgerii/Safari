@@ -4,13 +4,25 @@ using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Safari.Helpers;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Safari.Popups;
-class DebugConsole : PopupMenu {
-    private readonly static DebugConsole instance = new DebugConsole();
-    private Panel consoleTextPanel;
+public class DebugConsole : PopupMenu, IResettableSingleton {
+	private static DebugConsole instance;
+	public static DebugConsole Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Hide();
+        instance = null;
+	}
+
+	private Panel consoleTextPanel;
     private RichParagraph consoleTextLog;
     private TextInput input;
     private bool visible;
@@ -20,11 +32,6 @@ class DebugConsole : PopupMenu {
     private Vector2? mousePosStorage = null;
     private LinkedList<string> commandHistory = new();
     private LinkedListNode<string> currentHistoryNode = null;
-
-    /// <summary>
-    /// This provides accessibility to the debug console and its methods.
-    /// </summary>
-    public static DebugConsole Instance => instance;
 
     public static bool Visible => Instance.visible;
 
