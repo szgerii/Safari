@@ -47,8 +47,8 @@ public class RoadNetwork {
 	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 
-	public Point Start { get; init; }
-	public Point End { get; init; }
+	public Point Start { get; set; }
+	public Point End { get; set; }
 
 	/// <summary>
 	/// Retrieve all routes in the network <br />

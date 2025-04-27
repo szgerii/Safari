@@ -19,6 +19,7 @@ using Safari.Input;
 using Microsoft.Xna.Framework.Graphics;
 using Engine.Graphics.Stubs.Texture;
 using Safari.Model.Entities.Animals;
+using Safari.Model.Tiles;
 
 namespace Safari.Scenes;
 
@@ -156,8 +157,9 @@ public class GameScene : Scene {
 
 		Vector2 mouseTilePos = GetMouseTilePos();
 		if (MousePlayable(mouseTilePos)) {
-			UpdateBuild();
-			if (MouseMode == MouseMode.Inspect) {
+			if (MouseMode == MouseMode.Build || MouseMode == MouseMode.Demolish) {
+				UpdateBuild();
+			} else if (MouseMode == MouseMode.Inspect) {
 				UpdateInspect();
 			}
 		}
@@ -216,14 +218,14 @@ public class GameScene : Scene {
 			}
 			if (InputManager.Actions.JustPressed("next-brush-variant")) {
 				var cons = Model.Level.ConstructionHelperCmp;
-				if (cons.SelectedIndex >= 0) {
-					cons.Palette[cons.SelectedIndex].SelectNext();
+				if (cons.SelectedItem != null) {
+					cons.SelectedItem.SelectNext();
 				}
 			}
 			if (InputManager.Actions.JustPressed("prev-brush-variant")) {
 				var cons = Model.Level.ConstructionHelperCmp;
-				if (cons.SelectedIndex >= 0) {
-					cons.Palette[cons.SelectedIndex].SelectNext();
+				if (cons.SelectedItem != null) {
+					cons.SelectedItem.SelectNext();
 				}
 			}
 		}
@@ -234,10 +236,9 @@ public class GameScene : Scene {
 			Point p = (GetMouseTilePos() / Model.Level.TileSize).ToPoint();
 			if (MouseMode == MouseMode.Build) {
 				Model.Level.ConstructionHelperCmp.BuildCurrent(p);
-			} else {
+			} else if (MouseMode == MouseMode.Demolish) {
 				Model.Level.ConstructionHelperCmp.Demolish(p);
 			}
-
 		}
 	}
 
@@ -265,11 +266,11 @@ public class GameScene : Scene {
 	public override void Draw(GameTime gameTime) {
 		if (MouseMode == MouseMode.Build) {
 			var cons = Model.Level.ConstructionHelperCmp;
-			if (cons.SelectedIndex >= 0) {
-				var ins = cons.Palette[cons.SelectedIndex].Instance;
+			if (cons.SelectedInstance != null) {
+				Tile t = cons.SelectedInstance;
 				Vector2 mousePos = GetMouseTilePos();
 				Point tilePos = (mousePos / Model.Level.TileSize).ToPoint();
-				ins.DrawPreviewAt(GetMouseTilePos(), cons.CanBuild(tilePos, ins));
+				t.DrawPreviewAt(GetMouseTilePos(), cons.CanBuildCurrent(tilePos));
 				Game.SpriteBatch.Draw(buildHover.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			}
 		} else if (MouseMode == MouseMode.Demolish) {
