@@ -72,7 +72,7 @@ public class Jeep : Entity {
 	/// <summary>
 	/// The jeep that is currently being filled with tourists (or null)
 	/// </summary>
-	public static Jeep WaitingJeep { get; private set; } = null;
+	public static Jeep WaitingJeep { get; set; } = null;
 
 	/// <summary>
 	/// The spot where the jeeps park (offscreen)
