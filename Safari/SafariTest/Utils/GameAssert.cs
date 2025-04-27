@@ -321,7 +321,7 @@ internal static class GameAssert {
 	public static int FalseBefore(Func<bool> condition, DateTime endDate, int? maxFrames = null) {
 		AssertGameInstanceNotNull();
 
-		int result = RunInstanceUntil(endDate, (int idx) => condition() ? idx : null, maxFrames ?? DefaultFrameLimit);
+		int result = RunInstanceUntil(endDate, (int idx) => condition() ? null : idx, maxFrames ?? DefaultFrameLimit);
 
 		return result != -1 ? result : throw new AssertFailedException($"Condition stayed true until {endDate}");
 	}
