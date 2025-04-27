@@ -18,39 +18,22 @@ build:debug:
   stage: build
   script:
     - 'dotnet build -p:Configuration=Debug -p:StrippedBuild=true "Safari\Safari.sln"'
-  artifacts:
-    paths:
-      - Safari/Safari/bin/Debug/
-      - Safari/SafariTest/bin/Debug/
-    when: on_success
-    access: none
-    expire_in: 1 hour
 
 build:release:
   stage: build
   script:
     - 'dotnet build -p:Configuration=Release -p:StrippedBuild=true "Safari\Safari.sln"'
-  artifacts:
-    paths:
-      - Safari/Safari/bin/Release/
-      - Safari/SafariTest/bin/Release/
-    when: on_success
-    access: none
-    expire_in: 1 hour
 
 test:debug:
   extends: .testbase
   needs:
     - job: build:debug
-      artifacts: true
   script:
-    - 'dotnet test --no-build -c Debug "Safari\Safari.sln"'
+    - 'dotnet test -c Debug -p:StrippedBuild=true "Safari\Safari.sln"'
 
 test:release:
   extends: .testbase
   needs:
     - job: build:release
-      artifacts: true
   script:
-    - 'dotnet test --no-build -c Release "Safari\Safari.sln"'
-
+    - 'dotnet test -c Release -p:StrippedBuild=true "Safari\Safari.sln"'
