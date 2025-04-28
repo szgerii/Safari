@@ -27,6 +27,8 @@ public class Game : Microsoft.Xna.Framework.Game {
 	public static int? Seed { get; set; }
 	public static Random Random { get; set; }
 
+	public Point BaseResolution { get; protected set; }
+
 	private VertexBuffer fullScreenVbo;
 	private IndexBuffer fullScreenIbo;
 
@@ -103,10 +105,10 @@ public class Game : Microsoft.Xna.Framework.Game {
 		if (!IsHeadless) {
 			DisplayManager.Init();
 			DisplayManager.SetResolution(1280, 720);
-			RenderTarget = new RenderTarget2DAdapter(new(GraphicsDevice, 640, 360));
+			RenderTarget = new RenderTarget2DAdapter(new(GraphicsDevice, BaseResolution.X, BaseResolution.Y));
 			InitFullscreenBuffers();
 		} else {
-			RenderTarget = new NoopRenderTarget2D(GraphicsDevice, 640, 360);
+			RenderTarget = new NoopRenderTarget2D(GraphicsDevice, BaseResolution.X, BaseResolution.Y);
 		}
 
 		Random ??= Seed != null ? new(Seed.Value) : new();

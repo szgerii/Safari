@@ -9,12 +9,13 @@ namespace Safari.Components;
 
 public class CameraControllerCmp : Component, IUpdatable {
 	public static float DefaultScrollSpeed = 100f;
+	public static float DefaultZoom = 2;
 
     public float ScrollSpeed { get; set; } = 100f;
 
 	public float ZoomSpeed { get; set; } = 0.05f;
-	public float MinZoom { get; set; } = 0.5f;
-	public float MaxZoom { get; set; } = 2f;
+	public float MinZoom { get; set; } = 0.55f;
+	public float MaxZoom { get; set; } = 4f;
 
 	public float FastModifier { get; set; } = 1.8f;
 	public float SlowModifier { get; set; } = 0.5f;
@@ -32,6 +33,12 @@ public class CameraControllerCmp : Component, IUpdatable {
 		ScrollSpeed = CameraControllerCmp.DefaultScrollSpeed;
 	}
 
+	public override void Load() {
+		Camera.Zoom = DefaultZoom;
+
+		base.Load();
+	}
+
 	public void Update(GameTime gameTime) {
 		Vector2 prevPos = Owner.Position;
 
@@ -46,7 +53,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 		Camera.Zoom = Math.Clamp(Camera.Zoom, MinZoom, MaxZoom);
 
 		if (InputManager.Actions.JustPressed("reset-zoom")) {
-			Camera.Zoom = 1f;
+			Camera.Zoom = DefaultZoom;
 		}
 
 		// clamp pos
