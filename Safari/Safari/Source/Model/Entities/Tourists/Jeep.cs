@@ -72,7 +72,7 @@ public class Jeep : Entity {
 	/// <summary>
 	/// The jeep that is currently being filled with tourists (or null)
 	/// </summary>
-	public static Jeep WaitingJeep { get; private set; } = null;
+	public static Jeep WaitingJeep { get; set; } = null;
 
 	/// <summary>
 	/// The spot where the jeeps park (offscreen)
@@ -100,7 +100,7 @@ public class Jeep : Entity {
 	/// </summary>
 	public static event EventHandler JeepReadyToFill;
 
-	private static bool SomeoneWaitingForJeep = false;
+	private static bool someoneWaitingForJeep = false;
 
 	private static bool debugAutoFill = false;
 	private static bool debugAutoRequest = false;
@@ -139,7 +139,7 @@ public class Jeep : Entity {
 	/// Initializes the static state of the jeeps
 	/// </summary>
 	public static void Init(int baseRentFee) {
-		SomeoneWaitingForJeep = false;
+		someoneWaitingForJeep = false;
 		debugAutoFill = false;
 		debugAutoRequest = false;
 		WaitingJeep = null;
@@ -217,9 +217,9 @@ public class Jeep : Entity {
 		if (!jeepEntering && WaitingJeep == null && garage.Count > 0 && GameScene.Active.Model.IsDaytime) {
 			Jeep next = garage.Dequeue();
 			next.StateMachine.Transition(JeepState.Entering);
-			SomeoneWaitingForJeep = false;
+			someoneWaitingForJeep = false;
 		} else if (!jeepEntering && GameScene.Active.Model.IsDaytime) {
-			SomeoneWaitingForJeep = true;
+			someoneWaitingForJeep = true;
 		}
 	}
 
@@ -282,12 +282,12 @@ public class Jeep : Entity {
 
 	[StateBegin(JeepState.Parking)]
 	public void BeginParking() {
-		if (SomeoneWaitingForJeep) {
+		if (someoneWaitingForJeep) {
 			if (GameScene.Active.Model.IsDaytime) {
 				StateMachine.Transition(JeepState.Entering);
-				SomeoneWaitingForJeep = false;
+				someoneWaitingForJeep = false;
 			} else {
-				SomeoneWaitingForJeep = false;
+				someoneWaitingForJeep = false;
 				garage.Enqueue(this);
 			}
 		} else {
@@ -402,7 +402,7 @@ public class Jeep : Entity {
 			foreach (Tourist t in occupants) {
 				t.Pay();
 			}
-			if (SomeoneWaitingForJeep) {
+			if (someoneWaitingForJeep) {
 				RequestNextJeep();
 			}
 		}
@@ -506,7 +506,8 @@ public class Jeep : Entity {
 		}
 	}
 
-	public void BeginCanceling(GameTime gameTime) {
+	[StateBegin(JeepState.Canceling)]
+	public void BeginCanceling() {
 		if (occupants.Count <= 0) {
 			route = new();
 			routeIndex = 0;
@@ -514,7 +515,7 @@ public class Jeep : Entity {
 			postState = JeepState.Parking;
 			WaitingJeep = null;
 			StateMachine.Transition(JeepState.FollowingRoute);
-			if (SomeoneWaitingForJeep) {
+			if (someoneWaitingForJeep) {
 				RequestNextJeep();
 			}
 		}
@@ -534,7 +535,7 @@ public class Jeep : Entity {
 				postState = JeepState.Parking;
 				WaitingJeep = null;
 				StateMachine.Transition(JeepState.FollowingRoute);
-				if (SomeoneWaitingForJeep) {
+				if (someoneWaitingForJeep) {
 					RequestNextJeep();
 				}
 			}

@@ -16,7 +16,8 @@ public enum TouristState {
 };
 
 public class Tourist : Entity {
-	private static double[] recentRatings = new double[360];
+	public const int RATING_MEMORY = 80;
+	private static double[] recentRatings = new double[RATING_MEMORY];
 	private static int ratingCount = 0;
 	public static EntitySpawner<Tourist> Spawner { get; set; }
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
@@ -94,7 +95,7 @@ public class Tourist : Entity {
 
 	public static void Init() {
 		Queue = new List<Tourist>();
-		recentRatings = new double[30];
+		recentRatings = new double[RATING_MEMORY];
 		ratingCount = 0;
 	}
 
