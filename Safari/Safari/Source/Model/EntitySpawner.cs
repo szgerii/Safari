@@ -34,10 +34,17 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 	/// In-game hours between spawn attempts
 	/// </summary>
 	public double Frequency { get; set; }
+	private float baseChance = 1f;
 	/// <summary>
 	/// The starting chance for actually spawning an entity on an attempt
 	/// </summary>
-	public float BaseChance { get; set; } = 1f;
+	public float BaseChance {
+		get => baseChance;
+		set {
+			baseChance = value;
+			CurrentChance = Math.Max(baseChance, CurrentChance);
+		}
+	}
 	/// <summary>
 	/// The amount with which <see cref="CurrentChance"/> is increased by after every failed spawn attempt
 	/// </summary>
@@ -86,6 +93,7 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 		Frequency = frequency;
 		BaseChance = baseChance;
 		ChanceIncrease = chanceIncrease;
+		CurrentChance = BaseChance;
 	}
 
 	public override void Update(GameTime gameTime) {
@@ -123,7 +131,7 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 
 		Vector2 pos = Utils.GetRandomPosition(SpawnArea ?? GameScene.Active.Model.Level.PlayAreaBounds);
 		T entity = (T)Activator.CreateInstance(typeof(T), [ pos ]);
-		GameScene.Active.AddObject(entity);
+		Game.AddObject(entity);
 		LastSuccessfulSpawn = LastSpawnAttempt;
 		CurrentChance = 0;
 	}

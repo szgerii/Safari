@@ -31,7 +31,7 @@ public enum MouseMode {
 public class GameScene : Scene {
 	private GameModel model;
 	public static GameScene Active => SceneManager.Active as GameScene;
-	public GameModel Model => model;
+	public virtual GameModel Model => model;
 
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
 	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
@@ -115,7 +115,7 @@ public class GameScene : Scene {
 			)
 		);
 
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			UserInterface.Active.MouseInputProvider.DoClick();
 		}
 
@@ -129,7 +129,7 @@ public class GameScene : Scene {
 
 		MapBuilder.BuildStartingMap(model.Level, StrippedInit);
 
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			Statusbar.Instance.Load();
 			EntityManager.Instance.Load();
 		}
@@ -166,7 +166,7 @@ public class GameScene : Scene {
 			model.Advance(gameTime);
 		}
 
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			Statusbar.Instance.Update(gameTime);
 			EntityManager.Instance.Update(gameTime);
 		}

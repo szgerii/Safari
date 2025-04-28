@@ -6,7 +6,6 @@ public class Grass : AutoTile {
 		LightRange = 1;
 
 		Sprite.LayerDepth = 0.5f;
-		HasDiagonalTiling = true;
 		UseDefaultLayout();
 	}
 }

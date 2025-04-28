@@ -17,6 +17,8 @@ internal static class GameAssert {
 	/// </summary>
 	internal static int DefaultFrameLimit { get; set; } = 1000;
 
+	internal static event EventHandler? RanFrame;
+
 	#region InNFrames
 	/// <summary>
 	/// Tests whether a condition is ever met during the next n frames, and throws an exception if it isn't
@@ -321,7 +323,7 @@ internal static class GameAssert {
 	public static int FalseBefore(Func<bool> condition, DateTime endDate, int? maxFrames = null) {
 		AssertGameInstanceNotNull();
 
-		int result = RunInstanceUntil(endDate, (int idx) => condition() ? idx : null, maxFrames ?? DefaultFrameLimit);
+		int result = RunInstanceUntil(endDate, (int idx) => condition() ? null : idx, maxFrames ?? DefaultFrameLimit);
 
 		return result != -1 ? result : throw new AssertFailedException($"Condition stayed true until {endDate}");
 	}
@@ -624,6 +626,7 @@ internal static class GameAssert {
 
 		for (int i = 1; i <= n; i++) {
 			GameInstance!.RunOneFrameNoDraw();
+			RanFrame?.Invoke(null, EventArgs.Empty);
 
 			int? result = iteration(i);
 			if (result != null) {
@@ -644,6 +647,7 @@ internal static class GameAssert {
 		DateTime currentDate = GameScene.Active.Model.IngameDate;
 		for (int i = 1; i <= maxFrames && currentDate < endDate; i++) {
 			GameInstance!.RunOneFrameNoDraw();
+			RanFrame?.Invoke(null, EventArgs.Empty);
 			currentDate = GameScene.Active.Model.IngameDate;
 
 			int? result = iteration(i);

@@ -47,7 +47,7 @@ public partial class AutoTile : Tile {
 	/// NOTE: this should only be used if you need the new texture immediately (e.g. construction preview).
 	/// For most use cases, set the <see cref="NeedsUpdate"/> prop to true to defer updating to the next frame
 	/// </summary>
-	public void UpdateTexture() {
+	public virtual void UpdateTexture() {
 		NeedsUpdate = false;
 
 		if (TileSize == -1) {
