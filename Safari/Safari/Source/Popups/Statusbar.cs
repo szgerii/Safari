@@ -35,10 +35,14 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private Panel categoryMenuPanel;
 
-    private CategoryMenu animals;
+    private Panel shopPanel;
+
+    private AnimalMenu animals;
     private Button animalsButton;
-    private CategoryMenu tiles;
+    private TileMenu tiles;
     private Button tilesButton;
+    private CategoryMenu others;
+    private Button othersButton;
 
     private Panel indicatorPanel;
 
@@ -64,6 +68,8 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     private Button entityManagerButton;
 
     private Rectangle maskArea;
+
+    public Rectangle Size => panel.CalcDestRect();
 
     private Statusbar() {
         background = null;
@@ -117,7 +123,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         speedButtonPanel.AddChild(fastButton);
         #endregion
 
-        entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.3f, 0.3f), new Vector2(20));
+        entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.25f, 0.3f), new Vector2(20));
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
             EntityManager.Instance.Toggle();
@@ -130,6 +136,29 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
         Vector2 panelSize = new Vector2(0.2f, 0);
         Vector2 paddingSize = new Vector2(0, 20);
+
+        #region SHOP
+        shopPanel = new Panel(new Vector2(0.45f, 0.3f), PanelSkin.None, Anchor.TopCenter, new Vector2(0, 20));
+        shopPanel.Padding = new Vector2(0);
+
+        animalsButton = new Button("Animal", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0));
+        animalsButton.Padding = new Vector2(0);
+        animalsButton.OnClick = AnimalButton;
+        shopPanel.AddChild(animalsButton);
+        animals = new AnimalMenu();
+
+        tilesButton = new Button("Tile", ButtonSkin.Default, Anchor.Center, new Vector2(0.3f, 0));
+        tilesButton.Padding = new Vector2(0);
+        tilesButton.OnClick = TileButton;
+        shopPanel.AddChild(tilesButton);
+        //tiles = new CategoryMenu("Tiles");
+
+        othersButton = new Button("Other", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0));
+        othersButton.Padding = new Vector2(0);
+        othersButton.OnClick = OtherButton;
+        shopPanel.AddChild(othersButton);
+        //others = new CategoryMenu("Other");
+        #endregion
 
         #region INDICATORS
 
@@ -170,8 +199,27 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
         SettingsMenu.ScaleChanged += ScaleText;
 
+        panel.AddChild(shopPanel);
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
+    }
+
+    private void AnimalButton(Entity entity) {
+        animals.ToggleCategoryMenu();
+        //tiles.Hide();
+        //others.Hide();
+    }
+
+    private void TileButton(Entity entity) {
+        tiles.ToggleCategoryMenu();
+        animals.Hide();
+        //others.Hide();
+    }
+
+    private void OtherButton(Entity entity) {
+        others.ToggleCategoryMenu();
+        animals.Hide();
+        tiles.Hide();
     }
 
     private void AdjustSpeedSettings(Entity entity) {
@@ -220,6 +268,11 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
             UserInterface.Active.RemoveEntity(panel);
             GameScene.Active.MaskedAreas.Remove(maskArea);
         }
+        animals.Hide();
+        //tiles.Hide();
+        //others.Hide();
+
+        this.Hide();
     }
 
     public void Toggle() {

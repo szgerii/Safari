@@ -71,7 +71,7 @@ public class GameScene : Scene {
 		Jeep.Cleanup();
 
 		if (!Game.Instance.IsHeadless) {
-			Statusbar.Instance.Hide();
+			Statusbar.Instance.Unload();
 			EntityControllerMenu.Active?.Hide();
 		}
 
@@ -254,7 +254,7 @@ public class GameScene : Scene {
 		return false;
 	}
 
-	private Vector2 GetMouseTilePos() {
+	public Vector2 GetMouseTilePos() {
 		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
 		mouseTilePos.X -= mouseTilePos.X % Model.Level.TileSize;
 		mouseTilePos.Y -= mouseTilePos.Y % Model.Level.TileSize;

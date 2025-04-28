@@ -16,8 +16,8 @@ public abstract class PopupMenu : IUpdatable {
         if (background != null) {
             UserInterface.Active.AddEntity(background);
         }
-            UserInterface.Active.AddEntity(panel);
-            panel.BringToFront();
+        UserInterface.Active.AddEntity(panel);
+        panel.BringToFront();
     }
 
     /// <summary>
