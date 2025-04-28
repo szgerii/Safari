@@ -3,6 +3,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
 using Safari.Components;
 using Safari.Helpers;
+using Safari.Model;
 using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
 using Safari.Model.Tiles;
@@ -14,7 +15,7 @@ namespace Safari.Popups;
 public class Shop : PopupMenu, IResettableSingleton {
     public const int TREE_COST = 400;
     public const int GRASS_COST = 25;
-    public const int ROAD_COST = 20;
+    public const int ROAD_COST = 15;
     public const int WATER_COST = 30;
     public const int BUSH_COST = 65;
     public const int JEEP_COST = 2000;
@@ -40,7 +41,7 @@ public class Shop : PopupMenu, IResettableSingleton {
             return;
         }
         Type animalType = type.GetAnimalType();
-        object[] constructorArgs = { new Vector2(10 * GameScene.Active.Model.Level.TileSize, 10 * GameScene.Active.Model.Level.TileSize), gender };
+        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level), gender };
         Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs);
         Game.AddObject(temp);
         GameScene.Active.Model.Funds -= type.GetPrice();

@@ -185,7 +185,7 @@ public class Jeep : Entity {
 
 	public Jeep(Vector2 pos, int color) : base(pos) {
 		DisplayName = "Jeep";
-		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 3);
+		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 6);
 		Attach(lightCmp);
 		Sprite = new SpriteCmp(textures[color]);
 		Sprite.LayerDepth = Animal.ANIMAL_LAYER;

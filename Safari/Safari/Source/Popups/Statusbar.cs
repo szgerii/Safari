@@ -127,7 +127,10 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
             EntityManager.Instance.Toggle();
-        };
+			animals.Hide();
+			tiles.Hide();
+			others.Hide();
+		};
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
 
@@ -271,6 +274,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
             UserInterface.Active.RemoveEntity(panel);
             GameScene.Active.MaskedAreas.Remove(maskArea);
         }
+        EntityManager.Instance.Unload();
         animals.Hide();
         tiles.Hide();
         others.Hide();
@@ -349,7 +353,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         tiles.Update(gameTime);
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +
-            (moneyCurr >= 10000 ? (moneyCurr / 1000d) + "K" : moneyCurr.ToString()) + "/" +
+            (moneyCurr >= 10000 ? ((moneyCurr / 1000d)).ToString("0.00") + "K" : moneyCurr.ToString()) + "/" +
             (GameScene.Active.Model.WinCriteriaFunds >= 10000 ? (GameScene.Active.Model.WinCriteriaFunds / 1000d) + "K" : GameScene.Active.Model.WinCriteriaFunds.ToString());
 
         ratingCurr = Tourist.AvgRating;
