@@ -151,7 +151,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         tilesButton.Padding = new Vector2(0);
         tilesButton.OnClick = TileButton;
         shopPanel.AddChild(tilesButton);
-        //tiles = new CategoryMenu("Tiles");
+        tiles = new TileMenu();
 
         othersButton = new Button("Other", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, 0));
         othersButton.Padding = new Vector2(0);
@@ -206,7 +206,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private void AnimalButton(Entity entity) {
         animals.ToggleCategoryMenu();
-        //tiles.Hide();
+        tiles.Hide();
         //others.Hide();
     }
 
@@ -269,8 +269,8 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
             GameScene.Active.MaskedAreas.Remove(maskArea);
         }
         animals.Hide();
-        //tiles.Hide();
-        //others.Hide();
+        tiles.Hide();
+        others.Hide();
 
         this.Hide();
     }
@@ -343,6 +343,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     }
 
     public override void Update(GameTime gameTime) {
+        tiles.Update(gameTime);
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +
             (moneyCurr >= 10000 ? (moneyCurr / 1000d) + "K" : moneyCurr.ToString()) + "/" +

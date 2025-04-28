@@ -154,13 +154,13 @@ public class GameScene : Scene {
 
 		UpdatePalette();
 
-		Vector2 mouseTilePos = GetMouseTilePos();
+		/*Vector2 mouseTilePos = GetMouseTilePos();
 		if (MousePlayable(mouseTilePos)) {
 			UpdateBuild();
 			if (MouseMode == MouseMode.Inspect) {
 				UpdateInspect();
 			}
-		}
+		}*/
 
 		if (model.GameSpeed != GameSpeed.Paused) {
 			model.Advance(gameTime);
@@ -193,7 +193,7 @@ public class GameScene : Scene {
 		PerformPostUpdate(gameTime);
 	}
 
-	private void UpdateInspect() {
+	public void UpdateInspect() {
 		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
 			Entity entity = Entity.GetEntityOnMouse();
 			if (entity != null && entity is Ranger ranger) {
@@ -229,7 +229,7 @@ public class GameScene : Scene {
 		}
 	}
 
-	private void UpdateBuild() {
+	public void UpdateBuild() {
 		if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
 			Point p = (GetMouseTilePos() / Model.Level.TileSize).ToPoint();
 			if (MouseMode == MouseMode.Build) {
@@ -237,11 +237,10 @@ public class GameScene : Scene {
 			} else {
 				Model.Level.ConstructionHelperCmp.Demolish(p);
 			}
-
 		}
 	}
 
-	private bool MousePlayable(Vector2 mouseTilePos) {
+	public bool MousePlayable(Vector2 mouseTilePos) {
 		return !Model.Level.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
 	}
 

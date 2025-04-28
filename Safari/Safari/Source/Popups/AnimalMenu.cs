@@ -84,12 +84,15 @@ public class AnimalMenu : CategoryMenu {
 
     public override void Show() {
         UserInterface.Active.AddEntity(genderPanel);
-        GameScene.Active.MaskedAreas.Add(genderPanel.CalcDestRect());
         base.Show();
         genderPanel.Offset = new Vector2(0, panel.Offset.Y);
+        GameScene.Active.MaskedAreas.Add(genderPanel.CalcDestRect());
     }
 
     public override void Hide() {
+        if(panel.Parent == null) {
+            return;
+        }
         UserInterface.Active.RemoveEntity(genderPanel);
         GameScene.Active.MaskedAreas.Remove(genderPanel.CalcDestRect());
         base.Hide();

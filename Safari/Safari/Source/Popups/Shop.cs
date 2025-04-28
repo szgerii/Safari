@@ -12,6 +12,12 @@ using System;
 namespace Safari.Popups;
 
 public class Shop : PopupMenu, IResettableSingleton {
+    public const int TREE_COST = 200;
+    public const int GRASS_COST = 50;
+    public const int ROAD_COST = 75;
+    public const int WATER_COST = 50;
+    public const int BUSH_COST = 25;
+
     private static Shop instance;
     public static Shop Instance {
         get {
@@ -32,7 +38,7 @@ public class Shop : PopupMenu, IResettableSingleton {
     }
 
     public void BuyAnimal(AnimalSpecies type, Gender gender) {
-        if (GameScene.Active.Model.Funds < type.GetPrice()) {
+        if (GameScene.Active.Model.Funds <= type.GetPrice()) {
             new AlertMenu("Funds", $"You don't have enough money to buy this {type.GetDisplayName()}").Show();
             return;
         }
