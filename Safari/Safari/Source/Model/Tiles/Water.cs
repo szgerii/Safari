@@ -8,7 +8,6 @@ public class Water : AutoTile {
 		IsWaterSource = true;
 		LightRange = 1;
 
-		HasDiagonalTiling = true;
 		UseDefaultLayout();
 	}
 }
