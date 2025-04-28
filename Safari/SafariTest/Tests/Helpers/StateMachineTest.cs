@@ -4,7 +4,7 @@ using Safari.Components;
 
 namespace SafariTest.Tests.Helpers;
 
-public class DummyObject(Vector2 pos) : GameObject(pos) {
+internal class DummyObject(Vector2 pos) : GameObject(pos) {
 	public int State1EnterCalled { get; private set; }
 	public int State1UpdateCalled { get; private set; }
 	public int State1EndCalled { get; private set; }

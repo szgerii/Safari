@@ -16,7 +16,7 @@ public static class Utils {
 	public static ITexture2D GenerateTexture(int width, int height, Color? color = null, bool outlineOnly = false) {
 		ITexture2D texture;
 		
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			texture = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, width, height));
 		} else {
 			texture = new NoopTexture2D(null, width, height);
@@ -71,7 +71,7 @@ public static class Utils {
 		int rowCount = (int)Math.Ceiling(textures.Length / (float)colCount);
 
 		ITexture2D atlasTex;
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			atlasTex = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, unitWidth * colCount, unitHeight * rowCount));
 		} else {
 			atlasTex = new NoopTexture2D(null, unitWidth * colCount, unitHeight * rowCount);
@@ -129,7 +129,7 @@ public static class Utils {
 		tex2.GetData(tex2Data);
 
 		ITexture2D result;
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			result = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, tex1.Width, tex1.Height));
 		} else {
 			result = new NoopTexture2D(null, tex1.Width, tex1.Height);

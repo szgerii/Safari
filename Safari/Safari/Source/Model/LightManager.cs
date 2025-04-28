@@ -17,7 +17,7 @@ namespace Safari.Model;
 public class LightManager : IPostProcessPass {
 	private IRenderTarget2D _output = null;
 	private IRenderTarget2D _lightTexture = null;
-	private Effect dayNightPass = Game.Instance.IsHeadless ? null : Game.ContentManager.Load<Effect>("Fx/dayNightPass");
+	private Effect dayNightPass = Game.CanDraw ? Game.ContentManager.Load<Effect>("Fx/dayNightPass") : null;
 	private int width;
 	private int height;
 	private int tileSize;

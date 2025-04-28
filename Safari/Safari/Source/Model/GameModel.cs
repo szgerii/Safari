@@ -145,7 +145,7 @@ public class GameModel {
 	/// <summary>
 	/// The current in-game date
 	/// </summary>
-	public DateTime IngameDate => startDate.AddDays(CurrentTime / DAY_LENGTH);
+	public virtual DateTime IngameDate => startDate.AddDays(CurrentTime / DAY_LENGTH);
 
 	/// <summary>
 	/// The current game level's tilemap
@@ -346,7 +346,7 @@ public class GameModel {
 		Difficulty = difficulty;
 		this.startDate = startDate;
 
-		ITexture2D staticBG = !Game.Instance.IsHeadless ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(Game.Instance.GraphicsDevice, 3584, 2048);
+		ITexture2D staticBG = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
 		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 
 		Jeep.Init(400);

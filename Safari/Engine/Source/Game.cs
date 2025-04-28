@@ -25,7 +25,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 	/// NOTE: this does not reseed the random, it only takes effect if it is set before <see cref="Initialize"/> is called
 	/// </summary>
 	public static int? Seed { get; set; }
-	public static Random Random { get; protected set; }
+	public static Random Random { get; set; }
 
 	private VertexBuffer fullScreenVbo;
 	private IndexBuffer fullScreenIbo;
@@ -34,6 +34,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 	/// Whether the game is running in headless mode (without interacting with any graphics API)
 	/// </summary>
 	public bool IsHeadless { get; private init; }
+	public static bool CanDraw => Instance != null && !Instance.IsHeadless;
 
 	public static float RenderTargetScale {
 		get {
@@ -51,7 +52,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 
 	private Dictionary<string, Point> texSizes = [];
 	public static ITexture2D LoadTexture(string path) {
-		return !Game.Instance.IsHeadless ? (Texture2DAdapter)ContentManager.Load<Texture2D>(path) : NoopTexture2D.Empty;
+		return CanDraw ? (Texture2DAdapter)ContentManager.Load<Texture2D>(path) : NoopTexture2D.Empty;
 	}
 
 	protected GraphicsDeviceManager _graphics;
