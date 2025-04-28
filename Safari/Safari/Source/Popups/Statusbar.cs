@@ -41,7 +41,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     private Button animalsButton;
     private TileMenu tiles;
     private Button tilesButton;
-    private CategoryMenu others;
+    private OtherMenu others;
     private Button othersButton;
 
     private Panel indicatorPanel;
@@ -157,7 +157,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         othersButton.Padding = new Vector2(0);
         othersButton.OnClick = OtherButton;
         shopPanel.AddChild(othersButton);
-        //others = new CategoryMenu("Other");
+        others = new OtherMenu();
         #endregion
 
         #region INDICATORS
@@ -205,18 +205,21 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     }
 
     private void AnimalButton(Entity entity) {
+        EntityManager.Instance.Hide();
         animals.ToggleCategoryMenu();
         tiles.Hide();
-        //others.Hide();
+        others.Hide();
     }
 
     private void TileButton(Entity entity) {
+        EntityManager.Instance.Hide();
         tiles.ToggleCategoryMenu();
         animals.Hide();
-        //others.Hide();
+        others.Hide();
     }
 
     private void OtherButton(Entity entity) {
+        EntityManager.Instance.Hide();
         others.ToggleCategoryMenu();
         animals.Hide();
         tiles.Hide();

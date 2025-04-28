@@ -261,7 +261,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                         break;
                 }
                 if (GameScene.Active.Model.Funds <= price) {
-                    new AlertMenu("Funds", "You don't have enough money for this").Show();
+                    new AlertMenu("Funds", "You don't have enough money for this.").Show();
                     return;
                 }
                 if (!Shop.CHelper.CanBuild(p, Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].Instance)) {
