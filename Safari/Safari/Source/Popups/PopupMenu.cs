@@ -24,10 +24,10 @@ public abstract class PopupMenu : IUpdatable {
     /// Hides the popup.
     /// </summary>
     public virtual void Hide() {
-        if (background != null && panel.Parent != null) {
+        if (background != null && panel?.Parent != null) {
             UserInterface.Active.RemoveEntity(background);
         }
-        if (panel != null && panel.Parent != null) {
+        if (panel != null && panel?.Parent != null) {
             UserInterface.Active.RemoveEntity(panel);
         }
     }
