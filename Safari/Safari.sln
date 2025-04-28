@@ -12,9 +12,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A83D2B3-246A-4AC0-A4D7-2F5DB1D70D5F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		CodeCoverage.runsettings = CodeCoverage.runsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SafariTest", "SafariTest\SafariTest.csproj", "{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SafariTest", "SafariTest\SafariTest.csproj", "{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

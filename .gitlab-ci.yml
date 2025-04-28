@@ -10,6 +10,16 @@ stages:
 .testbase:
   stage: test
   before_script: SDL_VIDEODRIVER=dummy
+  after_script:
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool update --global dotnet-coverage
+    - dotnet-coverage merge --output TestResults.cobertura.xml --output-format cobertura "Safari/TestResults/**/*.coverage"
+  artifacts:
+    name: $CI_JOB_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: TestResults.cobertura.xml
 
 default:
   image: mcr.microsoft.com/dotnet/sdk:8.0
@@ -29,11 +39,12 @@ test:debug:
   needs:
     - job: build:debug
   script:
-    - 'dotnet test -c Debug -p:StrippedBuild=true "Safari\Safari.sln"'
+    - 'dotnet test -c Debug -p:StrippedBuild=true --results-directory "Safari\TestResults" --collect:"Code Coverage;Format=cobertura" --settings "Safari/CodeCoverage.runsettings" "Safari\Safari.sln"'
 
 test:release:
   extends: .testbase
   needs:
     - job: build:release
   script:
-    - 'dotnet test -c Release -p:StrippedBuild=true "Safari\Safari.sln"'
+    - 'dotnet test -c Release -p:StrippedBuild=true --results-directory "Safari\TestResults" --collect:"Code Coverage;Format=cobertura" --settings "Safari/CodeCoverage.runsettings" "Safari\Safari.sln"'
+

@@ -6,6 +6,8 @@
 # MANUAL IGNORES (NOT GENERATED)
 
 .vscode/
+**/CoverageReport/*
+*.cobertura.xml
 
 # STANDARD IGNORES (GENERATED)
 
