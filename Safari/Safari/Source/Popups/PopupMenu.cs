@@ -16,18 +16,18 @@ public abstract class PopupMenu : IUpdatable {
         if (background != null) {
             UserInterface.Active.AddEntity(background);
         }
-            UserInterface.Active.AddEntity(panel);
-            panel.BringToFront();
+        UserInterface.Active.AddEntity(panel);
+        panel.BringToFront();
     }
 
     /// <summary>
     /// Hides the popup.
     /// </summary>
     public virtual void Hide() {
-        if (background != null && panel.Parent != null) {
+        if (background != null && panel?.Parent != null) {
             UserInterface.Active.RemoveEntity(background);
         }
-        if (panel != null && panel.Parent != null) {
+        if (panel != null && panel?.Parent != null) {
             UserInterface.Active.RemoveEntity(panel);
         }
     }
