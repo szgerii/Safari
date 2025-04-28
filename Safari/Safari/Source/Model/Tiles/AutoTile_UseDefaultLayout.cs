@@ -10,6 +10,7 @@ public partial class AutoTile : Tile {
 	/// Sets up the Layout dictionary to use a pre-defined "default" layout
 	/// </summary>
 	public void UseDefaultLayout() {
+		HasDiagonalTiling = true;
 		Layout.Clear();
 
 		// no neighbors

@@ -12,10 +12,21 @@
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\Collider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\ColliderCollectionCmp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Collision\CollisionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Components\LimitCmpOwnerTypeAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\DummyGraphicsDeviceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\IRenderTarget2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\ITexture2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\NoopOverreachException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\NoopRenderTarget2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\NoopTexture2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\RenderTarget2DAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\Texture2DAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\ISpatial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\QuadTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Source\Helpers\Vectangle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Interfaces\IPostProcessPass.cs" />
     <Compile Include="..\Engine\Source\Debug\PerformanceCalculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Source\Graphics\DisplayManager.cs" />
@@ -48,6 +59,7 @@
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Source\Debug\" />
     <Folder Include="$(MSBuildThisFileDirectory)Source\Components\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Source\Graphics\Stubs\Texture\" />
     <Folder Include="$(MSBuildThisFileDirectory)Source\Objects\" />
     <Folder Include="$(MSBuildThisFileDirectory)Source\Scenes\" />
   </ItemGroup>

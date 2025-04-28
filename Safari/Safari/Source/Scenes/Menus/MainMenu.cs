@@ -1,23 +1,35 @@
 ﻿using Engine.Scenes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Engine;
+using Safari.Helpers;
 
 namespace Safari.Scenes.Menus;
-class MainMenu : MenuScene {
-    private readonly static MainMenu instance = new MainMenu();
-    private Header title;
+public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
+	private static MainMenu instance;
+	public static MainMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Unload();
+		instance = null;
+	}
+
+	private Header title;
     private Panel buttonPanel;
     private Button newGameButton;
     private Button continueGameButton;
     private Button loadGameButton;
     private Button settingsButton;
     private Button exitButton;
-
-    public static MainMenu Instance => instance;
+    private bool loadGame = false;
 
     protected override void ConstructUI() {
         this.panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
-        
+
         title = new Header("Safari", Anchor.TopCenter);
 
         buttonPanel = new Panel(new Vector2(0.3f, 0.75f), PanelSkin.None, Anchor.Center);
@@ -52,11 +64,12 @@ class MainMenu : MenuScene {
     }
 
     private void ContinueGameClicked(Entity entity) {
-        SceneManager.Load(new GameScene());
+        SceneManager.Load(LoadingScene.Instance);
+        loadGame = true;
     }
 
     private void LoadGameClicked(Entity entity) {
-        SceneManager.Load(LoadGameMenu.Active);
+        SceneManager.Load(LoadGameMenu.Instance);
     }
 
     private void SettingsClicked(Entity entity) {
@@ -68,7 +81,7 @@ class MainMenu : MenuScene {
     }
 
     protected override void DestroyUI() {
-        this.panel = null;
+        panel = null;
         buttonPanel = null;
         title = null;
         newGameButton = null;
@@ -76,5 +89,12 @@ class MainMenu : MenuScene {
         loadGameButton = null;
         settingsButton = null;
         exitButton = null;
+    }
+
+    public override void Update(GameTime gameTime) {
+        if (loadGame) {
+            SceneManager.Load(new GameScene());
+            loadGame = false;
+        }
     }
 }

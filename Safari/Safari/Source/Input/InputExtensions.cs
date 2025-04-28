@@ -15,12 +15,14 @@ public static class InputExtensions {
     /// <param name="currLevel">The current level object (leave as null to use the active level)</param>
     /// <returns>The game world position of the mouse pointer as a vector</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public static Vector2 GetWorldPos(this Mouse mouse, Level currLevel = null) {
+    public static Vector2 GetWorldPos(this Mouse mouse, Level currLevel = null) {        
         try {
             currLevel ??= GameScene.Active.Model.Level;
         } catch (NullReferenceException) {
             throw new InvalidOperationException("Cannot get mouse's game world position when the current scene isn't a GameScene or no level is active");
 		}
+
+        if (Game.Instance.IsHeadless) return Vector2.Zero;
 
         float rtScale = Game.RenderTargetScale;
 		float rtDiffX = Game.Graphics.PreferredBackBufferWidth - rtScale * Game.RenderTarget.Width;
@@ -38,8 +40,6 @@ public static class InputExtensions {
         result -= rtOffset;
         result /= rtScale * Camera.Active.Zoom;
         result += Camera.Active.Position;
-        result.X -= result.X % currLevel.TileSize;
-        result.Y -= result.Y % currLevel.TileSize;
 
         return result;
     }

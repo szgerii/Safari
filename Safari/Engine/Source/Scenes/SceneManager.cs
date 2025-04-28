@@ -29,6 +29,11 @@ public static class SceneManager {
 		}
 	}
 
+	public static void UnloadActive() {
+		Active?.Unload();
+		Active = null;
+	}
+
 	public static void PerformScheduledLoad() {
 		if (Active != null && scheduledScene.Value.unload && Active.Loaded) {
 			Active.Unload();

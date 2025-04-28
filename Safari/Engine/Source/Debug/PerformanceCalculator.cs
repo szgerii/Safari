@@ -19,6 +19,8 @@ public class PerformanceCalculator {
 	}
 
 	public void AddValue(double value) {
+		if (double.IsNaN(value) || double.IsInfinity(value)) return;
+
 		Sum += value;
 
 		if (Count == Capacity) {

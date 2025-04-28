@@ -12,12 +12,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A83D2B3-246A-4AC0-A4D7-2F5DB1D70D5F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		CodeCoverage.runsettings = CodeCoverage.runsettings
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SafariTest", "SafariTest\SafariTest.csproj", "{2F9904D9-D2E3-45B9-9217-D5F062FFEF7C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{95C4416F-737F-4CB5-9465-1EDEAC6B6475} = {95C4416F-737F-4CB5-9465-1EDEAC6B6475}
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SafariTest", "SafariTest\SafariTest.csproj", "{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +31,10 @@ Global
 		{2110025E-7F62-47C7-8A90-E82FC1F2E848}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2110025E-7F62-47C7-8A90-E82FC1F2E848}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2110025E-7F62-47C7-8A90-E82FC1F2E848}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F9904D9-D2E3-45B9-9217-D5F062FFEF7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F9904D9-D2E3-45B9-9217-D5F062FFEF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F9904D9-D2E3-45B9-9217-D5F062FFEF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F9904D9-D2E3-45B9-9217-D5F062FFEF7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D5A76A7-16EC-4CA7-88C1-A9D4DE8D5500}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

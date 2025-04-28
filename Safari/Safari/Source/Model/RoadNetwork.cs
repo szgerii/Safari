@@ -1,9 +1,8 @@
 ﻿using Engine;
 using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -23,15 +22,33 @@ public enum RoadState {
 	FromNone
 }
 
+public class RoadChangedEventArgs : EventArgs {
+	/// <summary>
+	/// The tilemap coordinates of the changed point
+	/// </summary>
+	public Point Location { get; set; }
+	/// <summary>
+	/// The type of change (true -> road added, false -> road removed)
+	/// </summary>
+	public bool ChangeType { get; set; }
+
+	public RoadChangedEventArgs(Point location, bool changeType) {
+		Location = location;
+		ChangeType = changeType;
+	}
+};
+
 public class RoadNetwork {
 	private int width;
 	private int height;
 	private RoadState[,] network;
-	private Point start;
-	private Point end;
+
 	private List<List<Point>> cachedRoutes = new();
+	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
-	private Random rand = new Random();
+
+	public Point Start { get; set; }
+	public Point End { get; set; }
 
 	/// <summary>
 	/// Retrieve all routes in the network <br />
@@ -61,7 +78,16 @@ public class RoadNetwork {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes.Count > 0 ? cachedRoutes[rand.Next(cachedRoutes.Count)] : new List<Point>();
+			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random.Next(cachedRoutes.Count)] : new List<Point>();
+		}
+	}
+
+	public List<Point> ReturnRoute {
+		get {
+			if (!upToDate) {
+				UpdateNetwork();
+			}
+			return cachedReturnRoute;
 		}
 	}
 
@@ -69,13 +95,13 @@ public class RoadNetwork {
 	/// The example route used for debugging / presenting
 	/// </summary>
 	public List<Point> DebugRoute { get; set; } = new List<Point>();
-	private static Texture2D debugTexture = null;
+	private static ITexture2D debugTexture = null;
 
 	/// <summary>
 	/// Use this event any time an object store a route from this network.
 	/// This event gets invoked when the extisting, saved routes are invalidated.
 	/// </summary>
-	public event EventHandler RoadChanged;
+	public event EventHandler<RoadChangedEventArgs> RoadChanged;
 
 	static RoadNetwork() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
@@ -131,7 +157,7 @@ public class RoadNetwork {
 				size = new Point(middleA.X - middleB.X, width2 * 2);
 			}
 		}
-		Game.SpriteBatch.Draw(debugTexture, new Rectangle(loc, size), Color.White);
+		Game.SpriteBatch.Draw(debugTexture.ToTexture2D(), new Rectangle(loc, size), Color.White);
 	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {
@@ -140,9 +166,9 @@ public class RoadNetwork {
 		network = new RoadState[width, height];
 		SetAt(start, RoadState.Road);
 		SetAt(end, RoadState.Road);
-		this.start = start;
-		this.end = end;
-		RoadChanged += (object sender, EventArgs e) => DebugRoute = new List<Point>();
+		this.Start = start;
+		this.End = end;
+		RoadChanged += (object sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
 	}
 
 	/// <summary>
@@ -158,8 +184,9 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Road;
 			if (upToDate) {
 				upToDate = false;
-				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
+			RoadChangedEventArgs e = new RoadChangedEventArgs(new Point(x, y), true);
+			RoadChanged?.Invoke(this, e);
 		}
 	}
 	/// <summary>
@@ -181,8 +208,9 @@ public class RoadNetwork {
 			network[x, y] = RoadState.Empty;
 			if (upToDate) {
 				upToDate = false;
-				RoadChanged?.Invoke(this, EventArgs.Empty);
 			}
+			RoadChangedEventArgs e = new RoadChangedEventArgs(new Point(x, y), false);
+			RoadChanged?.Invoke(this, e);
 		}
 	}
 	/// <summary>
@@ -220,20 +248,10 @@ public class RoadNetwork {
 		);
 	}
 
-	// Reset all used roads to regular Road
-	private void NetworkCleanup() {
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				if (network[i, j] != RoadState.Empty) {
-					network[i, j] = RoadState.Road;
-				}
-			}
-		}
-	}
-
 	// Must be called every time a road tile changes
 	private void UpdateNetwork() {
 		cachedRoutes = new();
+		cachedReturnRoute = new();
 		CalculateAllRoutes();
 		upToDate = true;
 	}
@@ -250,20 +268,20 @@ public class RoadNetwork {
 
 	// Calculates a number of different, relatively interesting routes using the middle point method
 	private void CalculateAllRoutes() {
-		if (!FreeAt(start) || !FreeAt(end)) {
+		if (!FreeAt(Start) || !FreeAt(End)) {
 			return;
 		}
 		HashSet<Point> set = GatherPoints();
-		if (!set.Contains(end)) {
+		if (!set.Contains(End)) {
 			return;
 		}
-		set.Remove(start);
-		set.Remove(end);
+		set.Remove(Start);
+		set.Remove(End);
 		while (set.Count > 0) {
 			Point p = PickRandom(set);
 			RemoveRange(set, p, 2);
-			List<Point> route1 = GetPath(start, p);
-			List<Point> route2 = GetPath(p, end);
+			List<Point> route1 = GetPath(Start, p);
+			List<Point> route2 = GetPath(p, End);
 			List<Point> route = new List<Point>(route1.Count + route2.Count - 1);
 			for (int i = 0; i < route1.Count; i++) {
 				route.Add(route1[i]);
@@ -275,10 +293,16 @@ public class RoadNetwork {
 			}
 			SaveRoute(route);
 		}
+		cachedReturnRoute = GetPath(End, Start);
 	}
 
-	// Calculates the shortest path between two points
-	private List<Point> GetPath(Point from, Point to) {
+	/// <summary>
+	/// Calculates the shortest path between two points
+	/// </summary>
+	/// <param name="from"></param>
+	/// <param name="to"></param>
+	/// <returns>The route or an empty list</returns>
+	public List<Point> GetPath(Point from, Point to) {
 		Queue<Point> points = new();
 		HashSet<Point> used = new();
 		points.Enqueue(from);
@@ -319,6 +343,9 @@ public class RoadNetwork {
 		Point back = to;
 		List<Point> route = new();
 		if (!finished) {
+			foreach (Point p1 in used) {
+				SetAt(p1, RoadState.Road);
+			}
 			return route;
 		}
 		while (back != from) {
@@ -351,7 +378,7 @@ public class RoadNetwork {
 	// Pick a random point from a set
 	private Point PickRandom(HashSet<Point> set) {
 		Point[] points = set.ToArray();
-		return points[rand.Next(points.Length)];
+		return points[Game.Random.Next(points.Length)];
 	}
 
 	// Remove a point, and its neighbours in a given range, from a set
@@ -400,8 +427,8 @@ public class RoadNetwork {
 	private HashSet<Point> GatherPoints() {
 		HashSet<Point> result = new();
 		Queue<Point> points = new();
-		points.Enqueue(start);
-		SetAt(start, RoadState.FromNone);
+		points.Enqueue(Start);
+		SetAt(Start, RoadState.FromNone);
 		while (points.Count > 0) {
 			Point current = points.Dequeue();
 			if (!result.Contains(current)) {

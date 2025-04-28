@@ -11,6 +11,11 @@
 texture PrevStep;
 texture LightMap;
 float Time;
+// Day steps const
+float sunrise_start;
+float sunrise_end;
+float sunset_start;
+float sunset_end;
 
 // Texture samplers (important that all filters are set to linear)
 sampler PrevSampler = sampler_state
@@ -72,8 +77,6 @@ static const float4x4 sunrise_correction = float4x4(
         0.0, 0.0, 0.0, 1.0
     );
 static const float4 sunrise_brightness = -float4(.3, .35, .4, 0);
-static const float sunrise_start = 0.96;
-static const float sunrise_end = 0.04;
 // sunset consts
 static const float4x4 sunset_correction = float4x4(
         1.0, 0.35, 0.35, 0.0,
@@ -82,8 +85,6 @@ static const float4x4 sunset_correction = float4x4(
         0.0, 0.0, 0.0, 1.0
     );
 static const float4 sunset_brightness = -float4(.1, .08, .2, 0);
-static const float sunset_start = 0.46;
-static const float sunset_end = 0.54;
 
 // Vertex shader, just passing through basic coordinates
 VertexShaderOutput MainVS(in VertexShaderInput input)

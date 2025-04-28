@@ -1,5 +1,5 @@
-﻿using Engine.Collision;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Engine.Graphics.Stubs.Texture;
+using Engine.Helpers;
 
 namespace Safari.Model.Tiles;
 
@@ -43,29 +43,29 @@ public static class TreeTypeExtensions {
 	/// </summary>
 	/// <param name="type">The tree type</param>
 	/// <returns>The texture that represents the type</returns>
-	public static Texture2D GetTexture(this TreeType type) {
+	public static ITexture2D GetTexture(this TreeType type) {
 		return type switch {
-			TreeType.Digitata => Game.ContentManager.Load<Texture2D>("Assets/Trees/Digitata"),
-			TreeType.Grandideri => Game.ContentManager.Load<Texture2D>("Assets/Trees/Grandideri1"),
-			TreeType.ShortGrandideri => Game.ContentManager.Load<Texture2D>("Assets/Trees/Grandideri2"),
-			TreeType.Gregorii => Game.ContentManager.Load<Texture2D>("Assets/Trees/Gregorii"),
-			TreeType.Rubrostipa => Game.ContentManager.Load<Texture2D>("Assets/Trees/Rubrostipa"),
-			TreeType.Suarazensis => Game.ContentManager.Load<Texture2D>("Assets/Trees/Suarazensis"),
-			TreeType.Za => Game.ContentManager.Load<Texture2D>("Assets/Trees/Za"),
+			TreeType.Digitata => Game.LoadTexture("Assets/Trees/Digitata"),
+			TreeType.Grandideri => Game.LoadTexture("Assets/Trees/Grandideri1"),
+			TreeType.ShortGrandideri => Game.LoadTexture("Assets/Trees/Grandideri2"),
+			TreeType.Gregorii => Game.LoadTexture("Assets/Trees/Gregorii"),
+			TreeType.Rubrostipa => Game.LoadTexture("Assets/Trees/Rubrostipa"),
+			TreeType.Suarazensis => Game.LoadTexture("Assets/Trees/Suarazensis"),
+			TreeType.Za => Game.LoadTexture("Assets/Trees/Za"),
 			_ => null,
 		};
 	}
 
-	public static Collider GetCollider(this TreeType type) {
+	public static Vectangle GetCollider(this TreeType type) {
 		return type switch {
-			TreeType.Digitata => new Collider(21, 100, 56, 23),
-			TreeType.Grandideri => new Collider(28, 120, 36, 25),
-			TreeType.ShortGrandideri => new Collider(28, 100, 42, 24),
-			TreeType.Gregorii => new Collider(26, 98, 46, 26),
-			TreeType.Rubrostipa => new Collider(40, 100, 37, 22),
-			TreeType.Suarazensis => new Collider(44, 69, 12, 15),
-			TreeType.Za => new Collider(38, 130, 21, 20),
-			_ => Collider.Empty
+			TreeType.Digitata => new(21, 100, 56, 23),
+			TreeType.Grandideri => new(28, 120, 36, 25),
+			TreeType.ShortGrandideri => new(28, 100, 42, 24),
+			TreeType.Gregorii => new(26, 98, 46, 26),
+			TreeType.Rubrostipa => new(40, 100, 37, 22),
+			TreeType.Suarazensis => new(44, 69, 12, 15),
+			TreeType.Za => new(38, 130, 21, 20),
+			_ => Vectangle.Empty
 		};
 	}
 }

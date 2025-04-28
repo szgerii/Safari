@@ -2,11 +2,14 @@
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Safari.Components;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
@@ -14,10 +17,13 @@ namespace Safari.Model;
 /// Stores the static parts of the game world
 /// </summary>
 public class Level : GameObject {
+	public static int PLAY_AREA_CUTOFF_X = 8;
+	public static int PLAY_AREA_CUTOFF_Y = 8;
+
 	/// <summary>
 	/// The image to draw as a background to the tiles
 	/// </summary>
-	public Texture2D Background { get; set; }
+	public ITexture2D Background { get; set; }
 	/// <summary>
 	/// The dimension of a single cell inside the tilemap grid
 	/// </summary>
@@ -31,10 +37,7 @@ public class Level : GameObject {
 	/// </summary>
 	public int MapHeight { get; init; }
 
-	private readonly Tile[,] tiles;
-
-	private readonly Texture2D debugGridTex;
-	private readonly Texture2D selectedTileTex;
+	public Rectangle PlayAreaBounds => new(new Point(PLAY_AREA_CUTOFF_X * TileSize, PLAY_AREA_CUTOFF_Y * TileSize), new Point((MapWidth - (2 * PLAY_AREA_CUTOFF_X)) * TileSize, (MapHeight - (2 * PLAY_AREA_CUTOFF_X)) * TileSize));
 
 	/// <summary>
 	/// The network managing the roads and paths in this level
@@ -45,41 +48,38 @@ public class Level : GameObject {
 	/// </summary>
 	public LightManager LightManager { get; init; }
 
-	public Level(int tileSize, int width, int height, Texture2D background) : base(Vector2.Zero) {
+	/// <summary>
+	/// The component responsible for managing building / demolishing on the level
+	/// </summary>
+	public ConstructionHelperCmp ConstructionHelperCmp { get; init; }
+
+	private readonly Tile[,] tiles;
+
+	private readonly ITexture2D debugGridTex;
+
+	public Level(int tileSize, int width, int height, ITexture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
 		MapWidth = width;
 		MapHeight = height;
 		tiles = new Tile[width, height];
 		Background = background;
 
-		Texture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
-		Texture2D[] mergeArray = new Texture2D[MapWidth * MapHeight];
+		ITexture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
+		ITexture2D[] mergeArray = new ITexture2D[MapWidth * MapHeight];
 		for (int i = 0; i < mergeArray.Length; i++) {
 			mergeArray[i] = gridCellTex;
 		}
 		debugGridTex = Utils.CreateAtlas(mergeArray, MapWidth);
 
-		Texture2D outline = Utils.GenerateTexture(TileSize, TileSize, new Color(0f, 0f, 1f, 1f), true);
-		Texture2D fill = Utils.GenerateTexture(TileSize, TileSize, new Color(0.3f, 0.3f, 1f, 0.3f));
-		selectedTileTex = Utils.MergeTextures(fill, outline);
-
+		// lightmanager setup (before any tiles are placed)
 		LightManager = new LightManager(width, height, tileSize);
-
-		// start and end locations are not final
-		Point start = new Point(0, height / 2);
-		Point end = new Point(width / 2, 0);
+		// Roadmanger setup
+		Point start = new Point(PLAY_AREA_CUTOFF_X, height - PLAY_AREA_CUTOFF_Y - 8);
+		Point end = new Point(width - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
 		Network = new RoadNetwork(width, height, start, end);
-		SetTile(start, new Road());
-		SetTile(end, new Road());
-		Point current = new Point(start.X, start.Y);
-		while (current.X < end.X) {
-			current.X++;
-			SetTile(current, new Road());
-		}
-		while (current.Y > end.Y) {
-			current.Y--;
-			SetTile(current, new Road());
-		}
+
+		ConstructionHelperCmp = new ConstructionHelperCmp(width, height);
+		Attach(ConstructionHelperCmp);
 	}
 
 	/// <summary>
@@ -113,9 +113,11 @@ public class Level : GameObject {
 	public List<Tile> GetTilesInArea(Rectangle tilemapArea) {
 		List<Tile> tiles = new();
 
-		for (int x = tilemapArea.X; x < tilemapArea.Right; x++) {
-			for (int y = tilemapArea.Y; y < tilemapArea.Bottom; y++) {
-				if (IsOutOfBounds(x, y)) continue;
+		int xMax = tilemapArea.Right;
+		int yMax = tilemapArea.Bottom;
+		for (int x = tilemapArea.X; x < xMax; x++) {
+			for (int y = tilemapArea.Y; y < yMax; y++) {
+				if (IsOutOfPlayArea(x, y)) continue;
 
 				Tile tile = GetTile(x, y);
 
@@ -139,6 +141,8 @@ public class Level : GameObject {
 		return GetTilesInArea(tilemapArea);
 	}
 
+	public Vector2 GetTileCenter(Point p) => new Vector2(p.X * TileSize + TileSize / 2.0f, p.Y * TileSize + TileSize / 2.0f);
+
 	/// <summary>
 	/// Places or modifies a tile at a tilemap position
 	/// </summary>
@@ -156,7 +160,7 @@ public class Level : GameObject {
 		}
 
 		tile.Position = new Vector2(x * TileSize, y * TileSize) - tile.AnchorTile.ToVector2() * TileSize;
-		if (tile is Road) {
+		if (tile is Road && !IsOutOfPlayArea(x, y)) {
 			Network.AddRoad(x, y);
 		}
 		tiles[x, y] = tile;
@@ -166,6 +170,10 @@ public class Level : GameObject {
 
 		if (!tile.Loaded) {
 			Game.AddObject(tile);
+		}
+
+		if (tile is AutoTile auto) {
+			auto.NeedsUpdate = true;
 		}
 
 		UpdateAutoTilesAround(new Point(x, y));
@@ -218,8 +226,45 @@ public class Level : GameObject {
 	/// <param name="x">The x coordinate of the position</param>
 	/// <param name="y">The y coordinate of the position</param>
 	/// <returns>Whether the position is considered out of bounds</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsOutOfBounds(int x, int y) {
 		return x < 0 || y < 0 || x >= MapWidth || y >= MapHeight;
+	}
+
+	/// <summary>
+	/// Checks if a given tilemap position falls outside of the playable area
+	/// </summary>
+	/// <param name="x">The x coordinate of the position</param>
+	/// <param name="y">The y coordinate of the position</param>
+	/// <returns>Whether the position is considered not playable</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public bool IsOutOfPlayArea(int x, int y) {
+		return x < PLAY_AREA_CUTOFF_X || y < PLAY_AREA_CUTOFF_Y || x >= MapWidth - PLAY_AREA_CUTOFF_X || y >= MapHeight - PLAY_AREA_CUTOFF_Y;
+	}
+
+	/// <summary>
+	/// Returns a random (tile) position from the level
+	/// </summary>
+	/// <param name="playAreaOnly">Exclude values from outside of the playing area</param>
+	/// <returns>The random position</returns>
+	public Vector2 GetRandomPosition(bool playAreaOnly = true) {
+		int minX, maxX, minY, maxY;
+		
+		if (playAreaOnly) {
+			minX = PLAY_AREA_CUTOFF_X * TileSize;
+			maxX = (MapWidth - PLAY_AREA_CUTOFF_X - 1) * TileSize;
+			minY = PLAY_AREA_CUTOFF_Y * TileSize;
+			maxY = (MapHeight - PLAY_AREA_CUTOFF_Y - 1) * TileSize;
+		} else {
+			minX = 0; minY = 0;
+			maxX = (MapWidth - 1) * TileSize;
+			maxY = (MapHeight - 1) * TileSize;
+		}
+
+		return new Vector2(
+			Game.Random.Next(minX, maxX),
+			Game.Random.Next(minY, maxY)
+		);
 	}
 
 	public override void Load() {
@@ -243,59 +288,22 @@ public class Level : GameObject {
 		base.Unload();
 	}
 
-	// TODO: remove this whole tile placement part once not needed
-	private readonly Type[] brushes = [typeof(Road), typeof(Grass), typeof(Water), typeof(Tree)];
-	private int brushIndex = 0;
 	public override void Update(GameTime gameTime) {
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.N)) {
-			brushIndex = Math.Max(0, brushIndex - 1);
-		}
-		if (InputManager.Keyboard.JustPressed(Microsoft.Xna.Framework.Input.Keys.M)) {
-			brushIndex = Math.Min(brushes.Length - 1, brushIndex + 1);
-		}
-		DebugInfoManager.AddInfo("current brush", brushes[brushIndex].Name, DebugInfoPosition.BottomRight);
-
-		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
-
-		if (!IsOutOfBounds((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize)) {
-			Tile targetTile = GetTile((mousePosWorld / TileSize).ToPoint());
-
-			bool alreadyPainted = targetTile != null && targetTile.GetType() == brushes[brushIndex];
-			if (InputManager.Mouse.IsDown(MouseButtons.LeftButton) && !alreadyPainted) {
-				Tile tile;
-
-				if (brushes[brushIndex] == typeof(Tree)) {
-					tile = (Tree)Activator.CreateInstance(brushes[brushIndex], [TreeType.Digitata]);
-				} else {
-					tile = (Tile)Activator.CreateInstance(brushes[brushIndex]);
-				}
-
-				SetTile((mousePosWorld / TileSize).ToPoint(), tile);
-			}
-
-			bool alreadyEmpty = targetTile == null;
-			if (InputManager.Mouse.IsDown(MouseButtons.RightButton) && !alreadyEmpty) {
-				ClearTile((int)mousePosWorld.X / TileSize, (int)mousePosWorld.Y / TileSize);
-			}
-		}
+		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
+		DebugInfoManager.AddInfo("mouse pos", Utils.Format(mouseWorldPos, false, false), DebugInfoPosition.BottomRight);
 
 		base.Update(gameTime);
 	}
 
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
-			Game.SpriteBatch.Draw(Background, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+			Game.SpriteBatch.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 		}
-
-		// TODO: remove once not needed
-		Vector2 mousePosWorld = InputManager.Mouse.GetWorldPos();
-		Game.SpriteBatch.Draw(selectedTileTex, mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-
 		base.Draw(gameTime);
 	}
 
 	public void PostDraw(object _, GameTime gameTime) {
-		Game.SpriteBatch.Draw(debugGridTex, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+		Game.SpriteBatch.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 	}
 
 	/// <summary>

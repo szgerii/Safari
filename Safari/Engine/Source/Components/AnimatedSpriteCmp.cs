@@ -1,5 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Engine.Graphics.Stubs.Texture;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
@@ -29,9 +29,9 @@ public class Animation {
 	/// Overwrites the spritesheet of the AnimatedSpriteCmp this animation is registered to
 	/// The AnimatedSpriteCmp will use this instead for drawing
 	/// </summary>
-	public Texture2D Texture { get; set; }
+	public ITexture2D Texture { get; set; }
 
-	public Animation(int row, int length, bool loop = false, int offset = 0, Texture2D texture = null) {
+	public Animation(int row, int length, bool loop = false, int offset = 0, ITexture2D texture = null) {
 		Row = row;
 		Length = length;
 		Loop = loop;
@@ -81,7 +81,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int ColumnCount {
 		get => columnCount;
 		set {
-			FrameWidth = (Texture?.Width ?? 0) / value;
+			FrameWidth = (currentAnim?.Texture?.Width ?? Texture?.Width ?? 0) / value;
 			columnCount = value;
 		}
 	}
@@ -93,7 +93,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int RowCount {
 		get => rowCount;
 		set {
-			FrameHeight = (Texture?.Height ?? 0) / value;
+			FrameHeight = (currentAnim?.Texture?.Height ?? Texture?.Height ?? 0) / value;
 			rowCount = value;
 		}
 	}
@@ -126,25 +126,31 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 	}
 
+	public bool IsPlaying { get; protected set; }
+
 	protected float frameTime;
 
-	public AnimatedSpriteCmp(Texture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
+	public AnimatedSpriteCmp(ITexture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
 		ColumnCount = columnCount;
 		RowCount = rowCount;
 		FPS = fps;
 		Origin = Vector2.Zero;
 	}
 
-	private Texture2D prevTex;
+	private ITexture2D prevTex;
 	public void Update(GameTime gameTime) {
 		// TODO: handle this more efficiently
-		if (Texture != prevTex) {
+		ITexture2D inUseTex = currentAnim?.Texture ?? Texture;
+		
+		if (inUseTex != prevTex) {
 			ColumnCount = ColumnCount;
 			RowCount = RowCount;
 		}
-		prevTex = Texture;
+		prevTex = inUseTex;
 
 		if (currentAnim == null) return;
+
+		IsPlaying = true;
 
 		// if it's time, try to play the next frame
 		frameTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -158,9 +164,14 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 				} else {
 					CurrentFrame = currentAnim.Length - 1;
 					AnimationFinished?.Invoke(this, CurrentAnimation);
+					IsPlaying = false;
 				}
 			}
 		}
+	}
+
+	public Rectangle CalculateSrcRec() {
+		return new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight);
 	}
 
 	public override void Draw(GameTime gameTime) {
@@ -169,6 +180,6 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 
 		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim.Texture ?? Texture, Owner.Position, new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight), Color.White, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		Game.SpriteBatch.Draw(currentAnim?.Texture?.ToTexture2D() ?? Texture.ToTexture2D(), Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 }

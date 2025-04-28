@@ -1,6 +1,6 @@
 ﻿using Engine;
+using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ public partial class AutoTile : Tile {
 	/// </summary>
 	public bool NeedsUpdate = true;
 
-	public AutoTile(Texture2D atlasTex) : base() {
+	public AutoTile(ITexture2D atlasTex) : base() {
 		Texture = atlasTex;
 	}
 
@@ -43,9 +43,11 @@ public partial class AutoTile : Tile {
 	}
 
 	/// <summary>
-	/// Updates the source rectangle to match the current neighbor state
+	/// Updates the source rectangle to match the current neighbor state <br/>
+	/// NOTE: this should only be used if you need the new texture immediately (e.g. construction preview).
+	/// For most use cases, set the <see cref="NeedsUpdate"/> prop to true to defer updating to the next frame
 	/// </summary>
-	public void UpdateTexture() {
+	public virtual void UpdateTexture() {
 		NeedsUpdate = false;
 
 		if (TileSize == -1) {

@@ -4,22 +4,34 @@ using GeonBit.UI;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Safari.Helpers;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 
 namespace Safari.Popups;
 
-class PauseMenu : PopupMenu {
-    private static readonly PauseMenu instance = new PauseMenu();
-    private Header Title;
+public class PauseMenu : PopupMenu, IResettableSingleton {
+	private static PauseMenu instance;
+	public static PauseMenu Instance {
+		get {
+			instance ??= new();
+			return instance;
+		}
+	}
+	public static void ResetSingleton() {
+        instance?.Hide();
+		instance = null;
+	}
+
+	private Header Title;
     private Panel ButtonPanel;
     private Button ResumeButton;
     private Button SaveButton;
     private Button SaveAndExitButton;
     private Button ExitButton;
-    private bool visible;
+    private bool visible;       
 
-    public static PauseMenu Instance => instance;
+    public static bool Visible => Instance.visible;
 
     public PauseMenu() {
         visible = false;
@@ -82,7 +94,7 @@ class PauseMenu : PopupMenu {
     }
 
     public void TogglePauseMenu() {
-        if(SceneManager.Active is not GameScene) {
+        if (SceneManager.Active is not GameScene) {
             return;
         }
         if (visible) {
@@ -96,7 +108,7 @@ class PauseMenu : PopupMenu {
         }
     }
 
-    public void Update(GameTime gameTime) {
+    public override void Update(GameTime gameTime) {
         if (InputManager.IsGameFocused) return;
         if (JustPressed(Keys.Escape)) {
             TogglePauseMenu();

@@ -1,49 +1,45 @@
 ﻿using Engine.Collision;
+using Engine.Graphics.Stubs.Texture;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace Engine.Components;
 
-public class CollisionCmp : Component {
+public class CollisionCmp : Component, ISpatial {
 	public event EventHandler<CollisionCmp> CollisionEnter;
 	public event EventHandler<CollisionCmp> CollisionStay;
 	public event EventHandler<CollisionCmp> CollisionLeave;
 
 	public bool HasActiveCollisionEvents => CollisionEnter != null || CollisionStay != null || CollisionLeave != null;
 
-	public Texture2D ColliderTex { get; private set; }
-	private Collider collider;
-	public Collider Collider {
+	public ITexture2D ColliderTex { get; private set; }
+	private Vectangle collider;
+	public Vectangle Collider {
 		get => collider;
 		set {
-			bool performUpdate = Owner != null && Owner.Loaded;
-
-			if (performUpdate) {
-				CollisionManager.Remove(this);
+			if (collider.Width != value.Width || collider.Height != value.Height) {
+				int texWidth = Math.Max((int)value.Width, 1);
+				int texHeight = Math.Max((int)value.Height, 1);
+				ColliderTex = Utils.GenerateTexture(texWidth, texHeight, new Color(Color.Gold, 0.2f), true);
 			}
 
 			collider = value;
-			int texWidth = Math.Max((int)collider.Width, 1);
-			int texHeight = Math.Max((int)collider.Height, 1);
-			ColliderTex = Utils.GenerateTexture(texWidth, texHeight, new Color(Color.Gold, 0.2f), true);
-
-			if (performUpdate) {
-				CollisionManager.Insert(this);
-			}
 		}
 	}
-	public Collider AbsoluteCollider => Collider + Owner.Position;
-	public Collider ScreenCollider => Collider + Owner.ScreenPosition;
+	public Vectangle AbsoluteCollider => Collider + Owner.Position;
+	public Vectangle Bounds => AbsoluteCollider;
+
+	public Vectangle ScreenCollider => Collider + Owner.ScreenPosition;
 
 	public CollisionTags Tags;
 	public CollisionTags Targets;
 	
-	public CollisionCmp(Collider collider) {
+	public CollisionCmp(Vectangle collider) {
 		Collider = collider;
 	}
 
-	public CollisionCmp(int x, int y, int width, int height) : this(new Collider(x, y, width, height)) { }
+	public CollisionCmp(int x, int y, int width, int height) : this(new Vectangle(x, y, width, height)) { }
 
 	public override void Load() {
 		CollisionManager.Insert(this);
@@ -57,7 +53,7 @@ public class CollisionCmp : Component {
 		base.Unload();
 	}
 
-	public const int STEP_COUNT = 10;
+	public const int STEP_COUNT = 2;
 	/// <summary>
 	/// Moves the owner object by the specified amount, taking into account collisions along the way and returns the actual distance traversed
 	/// </summary>
@@ -70,35 +66,33 @@ public class CollisionCmp : Component {
 		Vector2 stepY = Vector2.UnitY * delta / STEP_COUNT;
 		Vector2 sum = Vector2.Zero;
 
-		Collider tempColl = AbsoluteCollider;
 		bool movedInPrevStep = true;
 		for (int i = 0; i < STEP_COUNT && movedInPrevStep; i++) {
 			movedInPrevStep = false;
 
-			tempColl += stepX;
-			if (!CollisionManager.IsOutOfBounds(tempColl) && !CollisionManager.Collides(tempColl, this)) {
-				Owner.Position += stepX;
+			Owner.Position += stepX;
+			if (!CollisionManager.IsOutOfBounds(this) && !CollisionManager.Collides(this)) {
 				sum += stepX;
 				movedInPrevStep = true;
 			} else {
-				tempColl -= stepX;
+				Owner.Position -= stepX;
 			}
 
-			tempColl += stepY;
-			if (!CollisionManager.IsOutOfBounds(tempColl) && !CollisionManager.Collides(tempColl, this)) {
-				Owner.Position += stepY;
+			Owner.Position += stepY;
+			if (!CollisionManager.IsOutOfBounds(this) && !CollisionManager.Collides(this)) {
 				sum += stepY;
 				movedInPrevStep = true;
 			} else {
-				tempColl -= stepY;
+				Owner.Position -= stepY;
 			}
 		}
 
 		CollisionManager.Insert(this);
+
 		return sum;
 	}
 
-	public bool Intersects(Collider collider) => AbsoluteCollider.Intersects(collider);
+	public bool Intersects(Vectangle collider) => AbsoluteCollider.Intersects(collider);
 
 	public bool Intersects(CollisionCmp cmp) => AbsoluteCollider.Intersects(cmp.AbsoluteCollider);
 

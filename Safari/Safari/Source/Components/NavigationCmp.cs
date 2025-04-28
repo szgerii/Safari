@@ -1,11 +1,8 @@
 ﻿using Engine;
-using Engine.Collision;
 using Engine.Components;
 using Microsoft.Xna.Framework;
-using Safari.Model;
-using Safari.Objects.Entities;
-using Safari.Objects.Entities.Animals;
-using Safari.Scenes;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
 using System;
 
 namespace Safari.Components;
@@ -13,7 +10,7 @@ namespace Safari.Components;
 /// <summary>
 /// Event arguments for NavigationCmp's ReachedTarget event
 /// </summary>
-public class ReachedTargetEventArgs : EventArgs {
+public class NavigationTargetEventArgs : EventArgs {
 	/// <summary>
 	/// The target position that has been reached (if the cmp was approaching a point)
 	/// </summary>
@@ -23,11 +20,11 @@ public class ReachedTargetEventArgs : EventArgs {
 	/// </summary>
 	public GameObject TargetObject { get; init; } = null;
 
-	public ReachedTargetEventArgs(GameObject obj) {
+	public NavigationTargetEventArgs(GameObject obj) {
 		TargetObject = obj;
 	}
 
-	public ReachedTargetEventArgs(Vector2 pos) {
+	public NavigationTargetEventArgs(Vector2 pos) {
 		TargetPosition = pos;
 	}
 }
@@ -38,11 +35,13 @@ public class ReachedTargetEventArgs : EventArgs {
 [LimitCmpOwnerType(typeof(Entity), typeof(AnimalGroup))]
 public class NavigationCmp : Component, IUpdatable {
 	private const float FALLBACK_REACH_THRESHOLD = 0.1f;
+	private const float FALLBACK_SIGHT_THRESHOLD = 0.2f;
 
 	/// <summary>
 	/// Fired when the cmp owner reaches their destination
 	/// </summary>
-	public event EventHandler<ReachedTargetEventArgs> ReachedTarget;
+	public event EventHandler<NavigationTargetEventArgs> ReachedTarget;
+	public event EventHandler<NavigationTargetEventArgs> TargetInSight;
 
 	private Vector2? targetPosition = null;
 	/// <summary>
@@ -81,7 +80,15 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// The current position the component is trying to move towards
 	/// </summary>
-	public Vector2? Target => TargetObject?.Position ?? TargetPosition;
+	public Vector2? Target {
+		get {
+			if (TargetObject != null) {
+				return TargetObject is Entity entity ? entity.CenterPosition : TargetObject.Position;
+			} else {
+				return TargetPosition;
+			}
+		}
+	}
 
 	/// <summary>
 	/// The speed at which the component's owner is moving
@@ -100,9 +107,29 @@ public class NavigationCmp : Component, IUpdatable {
 	/// Unit vector of the last direction the component was trying to move its owner in
 	/// </summary>
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
+	private Entity ownerEntity;
+	private CollisionCmp collCmp;
+
+	public bool AccountForBounds { get; set; } = true;
 
 	public NavigationCmp(float speed = 50f) {
 		Speed = speed;
+	}
+
+	public override void Load() {
+		if (Owner is Entity entity) {
+			ownerEntity = entity;
+			Owner.GetComponent(out collCmp);
+		}
+
+		base.Load();
+	}
+
+	public override void Unload() {
+		ownerEntity = null;
+		collCmp = null;
+
+		base.Unload();
 	}
 
 	public void Update(GameTime gameTime) {
@@ -111,58 +138,65 @@ public class NavigationCmp : Component, IUpdatable {
 		if (Target == null) return;
 
 		if (Moving) {
+			if (ownerEntity != null) {
+				EntityBoundsManager.RemoveEntity(ownerEntity);
+			}
+
 			Vector2 targetPos = Target.Value;
-			if (Owner is Entity ownerEntity) {
-				targetPos -= ownerEntity.Bounds.Size.ToVector2() / 2f;
+			if (AccountForBounds && ownerEntity != null) {
+				targetPos -= ownerEntity.Bounds.Size / 2f;
 				if (targetPos.X < 0) targetPos.X = 0;
 				if (targetPos.Y < 0) targetPos.Y = 0;
 			}
 
 			Vector2 delta = Target.Value - Owner.Position;
+			Vector2 deltaSaved = delta;
+			Vector2 oldPos = Owner.Position;
 
-
-			if (delta.Length() > 0.1f) {
+			if (delta.Length() > 0.01f) {
 				delta.Normalize();
 				LastIntendedDelta = delta;
 				delta *= Speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-				Level currLevel = GameScene.Active.Model.Level;
-				Vector2 minPos = Vector2.Zero;
-				Vector2 maxPos = new Vector2(currLevel.MapWidth, currLevel.MapHeight) * currLevel.TileSize + new Vector2(currLevel.TileSize);
-				if (Owner.GetComponent(out CollisionCmp collCmp)) {
-					collCmp.MoveOwner(delta);
+				if (collCmp != null) {
+					if (delta.Length() > deltaSaved.Length()) {
+						collCmp.MoveOwner(deltaSaved);
+					} else {
+						collCmp.MoveOwner(delta);
+					}
 				} else {
-					Owner.Position += delta;
-				}
-
-				Vector2 clampPos = Vector2.Clamp(Owner.Position, minPos, maxPos);
-				if (clampPos != Owner.Position) {
-					if (collCmp != null) {
-						CollisionManager.Remove(collCmp);
-					}
-
-					Owner.Position = clampPos;
-
-					if (collCmp != null) {
-						CollisionManager.Insert(collCmp);
+					if (delta.Length() > deltaSaved.Length()) {
+						Owner.Position = Target.Value;
+					} else {
+						Owner.Position += delta;
 					}
 				}
+			}
 
+			if (ownerEntity != null) {
+				if (oldPos != Owner.Position) {
+					ownerEntity.UpdateBounds();
+				}
+
+				EntityBoundsManager.AddEntity(ownerEntity);
+			}
+
+			if (TargetInSight != null && CanSee(Target.Value)) {
+				TargetInSight.Invoke(this, GetArgsForTarget());
 			}
 
 			if (CanReach(Target.Value)) {
-				ReachedTargetEventArgs args = TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
-				ReachedTarget?.Invoke(this, args);
-
 				if (StopOnTargetReach) {
 					Moving = false;
 				}
+
+				ReachedTarget?.Invoke(this, GetArgsForTarget());
 			}
 		}
 	}
 
 	private bool CanReach(Vector2 pos) {
-		if (Owner is Entity ownerEntity) {
+		if (ownerEntity != null && ownerEntity.ReachDistance > 0) {
 			return ownerEntity.CanReach(pos);
 		}
 
@@ -170,6 +204,20 @@ public class NavigationCmp : Component, IUpdatable {
 			return ownerGroup.CanAnybodyReach(pos);
 		}
 
-		return Vector2.Distance(Owner.Position, pos) < FALLBACK_REACH_THRESHOLD;
+		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_REACH_THRESHOLD * FALLBACK_REACH_THRESHOLD);
 	}
+
+	private bool CanSee(Vector2 pos) {
+		if (ownerEntity != null && ownerEntity.SightDistance > 0) {
+			return ownerEntity.CanSee(pos);
+		}
+
+		if (Owner is AnimalGroup ownerGroup) {
+			return ownerGroup.CanAnybodySee(pos);
+		}
+
+		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
+	}
+
+	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
 }

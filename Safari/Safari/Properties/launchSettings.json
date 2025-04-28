@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Safari": {
+      "commandName": "Project"
+    },
+    "Headless": {
+      "commandName": "Project",
+      "commandLineArgs": "--headless --demo",
+      "environmentVariables": {
+        "SDL_VIDEODRIVER": "dummy"
+      }
+    }
+  }
+}
