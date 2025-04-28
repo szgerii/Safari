@@ -47,8 +47,8 @@ public class RoadNetwork {
 	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 
-	public Point Start { get; init; }
-	public Point End { get; init; }
+	public Point Start { get; set; }
+	public Point End { get; set; }
 
 	/// <summary>
 	/// Retrieve all routes in the network <br />
@@ -246,17 +246,6 @@ public class RoadNetwork {
 			x < width &&
 			y < height
 		);
-	}
-
-	// Reset all used roads to regular Road
-	private void NetworkCleanup() {
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				if (network[i, j] != RoadState.Empty) {
-					network[i, j] = RoadState.Road;
-				}
-			}
-		}
 	}
 
 	// Must be called every time a road tile changes

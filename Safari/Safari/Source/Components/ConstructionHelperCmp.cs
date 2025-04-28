@@ -102,6 +102,34 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	private List<Point> unbreakable = new List<Point>();
 
 	/// <summary>
+	/// Fetch the currently selected palette item
+	/// </summary>
+	public PaletteItem SelectedItem {
+		get {
+			if (SelectedIndex >= 0) {
+				return Palette[SelectedIndex];
+			} else {
+				return null;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Fetch the tile instance of the currently selected item in the palette
+	/// </summary>
+	public Tile SelectedInstance {
+		get {
+			if (SelectedIndex >= 0) {
+				return Palette[SelectedIndex].Instance;
+			} else {
+				return null;
+			}
+		}
+	}
+
+	
+
+	/// <summary>
 	/// Initializes the component with the size of the level (in tiles)
 	/// </summary>
 	public ConstructionHelperCmp(int width, int height) {
@@ -157,6 +185,16 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	public bool CanBuild(int x, int y, Tile tile) => CanBuild(new(x, y), tile);
 
 	/// <summary>
+	/// Checks whether the selected tile can be built at the given coordinates
+	/// </summary>
+	public bool CanBuildCurrent(int x, int y) => SelectedInstance != null ? CanBuild(x, y, SelectedInstance) : false;
+
+	/// <summary>
+	/// Checks whether the selected tile can be built at the given coordinates
+	/// </summary>
+	public bool CanBuildCurrent(Point p) => CanBuildCurrent(p.X, p.Y);
+
+	/// <summary>
 	/// Select the next option in the palette in order
 	/// </summary>
 	public void SelectNext() {
@@ -202,10 +240,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// Attempts placing the currently selected tile at the given coordinates
 	/// </summary>
 	public void BuildCurrent(Point p) {
-		if (SelectedIndex < 0) {
-			return;
-		}
-		Tile tile = Palette[SelectedIndex].Instance;
+		Tile tile = SelectedInstance;
 		if (tile == null || !CanBuild(p, tile)) {
 			return;
 		}
@@ -225,6 +260,9 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// Attempts demolishing the the tile at the given coordinates
 	/// </summary>
 	public void Demolish(Point p) {
+		if (Level.IsOutOfPlayArea(p.X, p.Y)) {
+			return;
+		}
 		Tile tile = Level.GetTile(p);
 		if (tile == null || unbreakable.Contains(p)) {
 			return;
@@ -232,6 +270,9 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 		Level.ClearTile(p);
 		Free(p);
 		foreach (Point offset in tile.ConstructionBlockOffsets) {
+			if (Level.IsOutOfPlayArea((p + offset).X, (p + offset).Y)) {
+				continue;
+			}
 			Free(p + offset);
 		}
 	}
@@ -253,7 +294,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	private void Free(Point p) => Free(p.X, p.Y);
 
 	private bool Check(int x, int y) {
-		return !mapStatus[x, y] && !Level.IsOutOfPlayArea(x, y);
+		return !Level.IsOutOfPlayArea(x, y) && !mapStatus[x, y];
 	}
 
 	private bool Check(Point p) => Check(p.X, p.Y);

@@ -11,6 +11,7 @@ public abstract class SimulationTest {
 	protected Safari.Game Game { get; set; }
 	protected GameModel Model => GameScene.Active.Model;
 
+
 	[TestInitialize]
 	public void StartGame() {
 		Game = new(true) { StartupMode = Safari.GameStartupMode.EmptyScene };
