@@ -36,6 +36,8 @@ public class Game : Engine.Game {
 	public Game(bool headless = false) : base(headless) { }
 
 	protected override void Initialize() {
+		BaseResolution = new Point(1920, 1080);
+
 		base.Initialize();
 
 		if (!IsHeadless) {
