@@ -15,7 +15,7 @@ stages:
     - dotnet tool update --global dotnet-coverage
     - dotnet-coverage merge --output TestResults.cobertura.xml --output-format cobertura "Safari/TestResults/**/*.coverage"
   artifacts:
-    name: {$CI_JOB_ID}-{$CI_COMMIT_REF_NAME}-{$CI_COMMIT_SHORT_SHA}
+    name: $CI_JOB_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
     reports:
       coverage_report:
         coverage_format: cobertura
