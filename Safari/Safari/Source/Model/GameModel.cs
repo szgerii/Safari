@@ -433,6 +433,7 @@ public class GameModel {
 	}
 
 	private void TriggerLose(LoseReason reason) {
+		CheckWinLose = false;
 		GameLost?.Invoke(this, reason);
 	}
 

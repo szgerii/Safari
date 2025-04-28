@@ -503,7 +503,7 @@ public static class MapBuilder {
 
 	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;
 
-	private static Vector2 GetRandomSpawn(Level level) {
+	public static Vector2 GetRandomSpawn(Level level) {
 		int minTX = Level.PLAY_AREA_CUTOFF_X + 3;
 		int maxTX = level.MapWidth - Level.PLAY_AREA_CUTOFF_X - 3;
 		int minTY = Level.PLAY_AREA_CUTOFF_Y + 3;

@@ -3,6 +3,7 @@ using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Components;
+using Safari.Model;
 using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
 using Safari.Model.Entities.Tourists;
@@ -275,7 +276,9 @@ class EntityManager : PopupMenu {
         if (DefaultAnimalSelectorPopup.Showing) {
             defaultSelector.Hide();
         }
-        Hide();
+        if (panel.Parent != null) {
+            Hide();
+        }
     }
 
     public void Load() {
@@ -335,7 +338,7 @@ class EntityManager : PopupMenu {
     }
 
     private void RangerPlusBtn(GeonBit.UI.Entities.Entity entity) {
-        Ranger temp = new Ranger(new Vector2((GameScene.Active.Model.Level.MapWidth / 2) * GameScene.Active.Model.Level.TileSize, (GameScene.Active.Model.Level.MapHeight / 2) * GameScene.Active.Model.Level.TileSize));
+        Ranger temp = new Ranger(MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level));
         rangerTargetIndex = (rangerTargetIndex + 1) % Enum.GetValues(typeof(AnimalSpecies)).Length;
         Game.AddObject(temp);
         rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
