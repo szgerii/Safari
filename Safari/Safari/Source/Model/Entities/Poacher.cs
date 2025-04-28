@@ -50,10 +50,13 @@ public class Poacher : Entity {
 	/// </summary>
 	public Animal CaughtAnimal { get; private set; } = null;
 
+	private bool isRevealed = false;
+	public override bool Visible => isRevealed && base.Visible;
+
 	private AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
 
 	/// <summary>
-	/// Whether to force reveal all poacher, regardless of not being seen by any friendly entity
+	/// Whether to force reveal all poachers, regardless of not being seen by any friendly entity
 	/// </summary>
 	private static bool revealAll = false;
 
@@ -153,7 +156,7 @@ public class Poacher : Entity {
 	/// Can be called during Update, PostUpdate or PreDraw
 	/// </summary>
 	public void Reveal() {
-		Sprite.Visible = true;
+		isRevealed = true;
 	}
 
 	/// <summary>
@@ -329,6 +332,6 @@ public class Poacher : Entity {
 	}
 
 	private void HideOnPreUpdate(object sender, GameTime e) {
-		Sprite.Visible = false;
+		isRevealed = false;
 	}
 }

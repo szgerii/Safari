@@ -84,7 +84,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Getter for checking whether this entity is currently visible to the player
 	/// </summary>
-	public bool Visible {
+	public virtual bool Visible {
 		get {
 			GameModel model = GameScene.Active.Model;
 			Level level = model.Level;
@@ -328,52 +328,52 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	/// <param name="pos">The position to check</param>
 	/// <returns>Whether the position is inside the entity's sight</returns>
-	public bool CanSee(Vector2 pos) => SightArea.Contains(pos);
+	public virtual bool CanSee(Vector2 pos) => SightArea.Contains(pos);
 	/// <summary>
 	/// Checks if the entity can see a given game object
 	/// </summary>
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
-	public bool CanSee(GameObject obj) => CanSee(obj.Position);
-	public bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
+	public virtual bool CanSee(GameObject obj) => CanSee(obj.Position);
+	public virtual bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
 	/// </summary>
 	/// <param name="pos">The position to check</param>
 	/// <returns>Whether the position is inside the entity's reach</returns>
-	public bool CanReach(Vector2 pos) => ReachArea.Contains(pos);
+	public virtual bool CanReach(Vector2 pos) => ReachArea.Contains(pos);
 	/// <summary>
 	/// Checks if the entity can reach a given game object
 	/// </summary>
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's reach</returns>
-	public bool CanReach(GameObject obj) => CanReach(obj.Position);
-	public bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
+	public virtual bool CanReach(GameObject obj) => CanReach(obj.Position);
+	public virtual bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
 
 	/// <summary>
 	/// Retrieves a list of all other active and alive entities inside the entity's sight
 	/// (does not include itself)
 	/// </summary>
 	/// <returns>The list of active entities inside the entity's vision</returns>
-	public List<Entity> GetEntitiesInSight() => GetEntitiesInArea(SightArea);
+	public virtual List<Entity> GetEntitiesInSight() => GetEntitiesInArea(SightArea);
 
 	/// <summary>
 	/// Retrieves a list of all other active and alive entities inside the entity's reach
 	/// (does not include itself)
 	/// </summary>
 	/// <returns>The list of active entities inside the entity's reach</returns>
-	public List<Entity> GetEntitiesInReach() => GetEntitiesInArea(ReachArea);
+	public virtual List<Entity> GetEntitiesInReach() => GetEntitiesInArea(ReachArea);
 
 	/// <summary>
 	/// Retrieves a list of the non-empty tiles inside the entity's sight
 	/// </summary>
 	/// <returns>A list of the tiles inside the entity's vision</returns>
-	public List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)SightArea);
+	public virtual List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)SightArea);
 	/// <summary>
 	/// Retrieves a list of the non-empty tiles inside the entity's reach
 	/// </summary>
 	/// <returns>A list of the tiles that the entity can interact with</returns>
-	public List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)ReachArea);
+	public virtual List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)ReachArea);
 
 	public override string ToString() {
 		return DisplayName;

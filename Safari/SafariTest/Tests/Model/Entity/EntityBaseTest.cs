@@ -1,20 +1,23 @@
 ﻿using Engine.Helpers;
 using NSubstitute;
 using Microsoft.Xna.Framework;
-using Ent = Safari.Model.Entities.Entity;
 using SafariTest.Utils;
 using Safari.Scenes;
 using Safari.Model;
 using Engine.Components;
 using Engine.Graphics.Stubs.Texture;
+using Engine;
+
+using Ent = Safari.Model.Entities.Entity;
 
 namespace SafariTest.Tests.Model.Entity;
 
 [TestClass]
 public class EntityBaseTest : SimulationTest {
 	[TestMethod("Properties Test")]
-	public void TestEntity() {
-		Ent entity = Substitute.For<Ent>(new Vector2(500, 500));
+	public void TestProps() {
+		Ent entity = Substitute.ForPartsOf<Ent>(new Vector2(500, 500));
+		entity.Bounds = new Vectangle(0, 0, 1, 1);
 		Safari.Game.AddObject(entity);
 		RunOneFrame();
 
@@ -77,7 +80,7 @@ public class EntityBaseTest : SimulationTest {
 	[TestMethod("Spatial Queries Test")]
 	public void TestSpatial() {
 		Ent entity = Substitute.ForPartsOf<Ent>(new Vector2(500, 500));
-		entity.Bounds = new Vectangle(0, 0, 200, 200); // center is (600, 600) used for sight/reach origin
+		entity.Bounds = new Vectangle(0, 0, 200, 200); // center is (600, 600) -> center for sight/reach area
 		entity.UpdateBounds();
 		entity.SightDistance = 5;
 		entity.ReachDistance = 2;
@@ -85,15 +88,24 @@ public class EntityBaseTest : SimulationTest {
 		Assert.AreEqual(new Vectangle(440, 440, 320, 320), entity.SightArea);
 		Assert.AreEqual(new Vectangle(536, 536, 128, 128), entity.ReachArea);
 
+		Assert.IsTrue(entity.CanSee(new Vector2(450, 450)));
+		Assert.IsTrue(entity.CanReach(new Vector2(550, 550)));
+
 		Ent entity2 = Substitute.ForPartsOf<Ent>(new Vector2(entity.ReachArea.Left, entity.ReachArea.Top));
 		entity2.Bounds = new Vectangle(0, 0, 10, 10);
 		entity2.UpdateBounds();
+
+		Assert.AreEqual(0, Model.EntityCount);
 		Safari.Game.AddObject(entity);
 		Safari.Game.AddObject(entity2);
 		RunOneFrame();
+		RunOneFrame();
+		Assert.AreEqual(2, GameScene.Active.Model.EntityCount);
 
 		Assert.IsTrue(entity.CanSee(entity2));
 		Assert.IsTrue(entity.CanReach(entity2));
+		Assert.IsTrue(entity.CanSee((GameObject)entity2));
+		Assert.IsTrue(entity.CanReach((GameObject)entity2));
 
 		entity2.Position = new Vector2(entity.ReachArea.Right - 1, entity.ReachArea.Bottom - 1);
 		entity2.UpdateBounds();
@@ -124,5 +136,12 @@ public class EntityBaseTest : SimulationTest {
 		CollectionAssert.Contains(reachedEntities, entity3);
 		CollectionAssert.DoesNotContain(seenEntities, entity2);
 		CollectionAssert.DoesNotContain(reachedEntities, entity2);
+
+		Assert.AreEqual(3, Model.EntityCount);
+		Safari.Game.RemoveObject(entity);
+		Safari.Game.RemoveObject(entity2);
+		Safari.Game.RemoveObject(entity3);
+		RunOneFrame();
+		Assert.AreEqual(0, Model.EntityCount);
 	}
 }

@@ -20,6 +20,7 @@ public class EntitySpawnerTest {
 	private int spawnedCount = 0;
 	private int goAddCount = 0;
 	private GameModel model = null!;
+	private event EventHandler<GameObject>? EntityCreated;
 
 	[TestInitialize]
 	public void InitSpawner() {
@@ -36,7 +37,11 @@ public class EntitySpawnerTest {
 
 		gs.Configure()
 			.When((GameScene gs) => gs.AddObject(Arg.Any<GameObject>()))
-			.Do((CallInfo _) => { spawnedCount++; goAddCount++; });
+			.Do((CallInfo ci) => {
+				spawnedCount++;
+				goAddCount++;
+				EntityCreated?.Invoke(this, ci.Arg<GameObject>());
+			});
 
 		// scene & game stuff
 		PrivateType sm = new(typeof(SceneManager));
@@ -59,7 +64,8 @@ public class EntitySpawnerTest {
 		Assert.AreEqual(1, spawner.BaseChance);
 		Assert.AreEqual(0.1f, spawner.ChanceIncrease);
 		Assert.AreEqual(1, spawner.CurrentChance);
-		
+		Assert.IsNull(spawner.SpawnArea);
+
 		spawner.Update(gt);
 		Assert.AreEqual(1, spawnedCount);
 		Assert.AreEqual(model.IngameDate, spawner.LastSpawnAttempt);
@@ -126,5 +132,22 @@ public class EntitySpawnerTest {
 		current += TimeSpan.FromHours(1);
 		spawner.Update(gt);
 		Assert.AreEqual(4, spawnedCount);
+
+		spawner.Active = false;
+		current += TimeSpan.FromHours(1);
+		spawner.Update(gt);
+		Assert.AreEqual(4, spawnedCount);
+		spawner.Active = true;
+
+		Vector2? placement = null;
+		EntityCreated += (object? sender, GameObject go) => {
+			placement = go.Position;
+		};
+		spawner.SpawnArea = new Rectangle(50, 50, 0, 0);
+		current += TimeSpan.FromHours(1);
+		spawner.Update(gt);
+		Assert.AreEqual(5, spawnedCount);
+		Assert.IsNotNull(placement);
+		Assert.AreEqual(new Vector2(50, 50), placement);
 	}
 }
