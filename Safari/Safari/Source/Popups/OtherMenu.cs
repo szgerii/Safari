@@ -42,10 +42,6 @@ public class OtherMenu : CategoryMenu {
         itemsPanel.AddChild(jeepPanel);
     }
 
-    public override void Show() {
-        base.Show();
-    }
-
     public override void Hide() {
         if (panel.Parent == null) {
             return;

@@ -34,10 +34,6 @@ public class Shop : PopupMenu, IResettableSingleton {
         instance = null;
     }
 
-    public void BuyTree() {
-        
-    }
-
     public void BuyAnimal(AnimalSpecies type, Gender gender) {
         if (GameScene.Active.Model.Funds <= type.GetPrice()) {
             new AlertMenu("Funds", $"You don't have enough money to buy this {type.GetDisplayName()}").Show();
@@ -51,7 +47,6 @@ public class Shop : PopupMenu, IResettableSingleton {
     }
 
     private Shop() {
-        //GameScene.Active.MouseMode
-        //InputManager.Mouse.OnPressed
+
     }
 }
