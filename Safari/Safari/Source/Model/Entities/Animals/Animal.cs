@@ -30,13 +30,15 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The level of hunger at which an animal will become hungry
 	/// </summary>
-	private const int HUNGER_THRESHOLD = 50;
-	private const float INITIAL_HUNGER_DECAY = 0.15f;
+	private const int HUNGER_THRESHOLD_HERB = 50;
+	private const float INITIAL_HUNGER_DECAY_HERB = 0.1f;
+	private const int HUNGER_TRESHOLD_CARN = 35;
+	private const float INITIAL_HUNGER_DECAY_CARN = 0.05f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.3f;
+	private const float INITIAL_THIRST_DECAY = 0.2f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
@@ -74,7 +76,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Determines how fast the animal's hunger level drops
 	/// </summary>
-	public float HungerDecay => (1f + (float)Age / MAX_AGE) * INITIAL_HUNGER_DECAY;
+	public float HungerDecay => (1f + (float)Age / MAX_AGE) * (IsCarnivorous ? INITIAL_HUNGER_DECAY_CARN : INITIAL_HUNGER_DECAY_HERB);
 	/// <summary>
 	/// Determines how fast the animal's thirst level drops
 	/// </summary>
@@ -84,7 +86,7 @@ public abstract class Animal : Entity {
 	/// Whether the animal is currently hungry
 	/// (i.e. hunger level has fallen under the hunger threshold)
 	/// </summary>
-	public bool IsHungry => HungerLevel < HUNGER_THRESHOLD;
+	public bool IsHungry => HungerLevel < (IsCarnivorous ? HUNGER_TRESHOLD_CARN : HUNGER_THRESHOLD_HERB);
 	/// <summary>
 	/// Whether the animal is currently thirsty
 	/// (i.e. thirst level has fallen under the thirst threshold)

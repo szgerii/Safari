@@ -88,7 +88,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                 GameScene.Active.MouseMode = MouseMode.Demolish;
                 destroyButton.Checked = true;
             } else {
-                GameScene.Active.MouseMode = MouseMode.Inspect;
+                GameScene.Active.MouseMode = MouseMode.Build;
                 destroyButton.Checked = false;
             }
         };
@@ -108,6 +108,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent == null) {
                 extrasPanel.AddChild(treeTypePanel);
             }
+            destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.TREE;
             if (treeTypePanel.Parent == null) {
@@ -134,6 +135,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if(treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
+            destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.WATER;
         };
@@ -156,6 +158,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
+            destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.GRASS;
         };
@@ -178,6 +181,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
+            destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.ROAD;
         };
@@ -200,8 +204,10 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
+            destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.BUSH;
+            Shop.CHelper.SelectedItem.VariantChoice = 0;
         };
 
         Label bushLabel = new Label("Bush" + "(" + Shop.BUSH_COST + ")", Anchor.Center, new Vector2(0));
@@ -284,6 +290,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
         GameScene.Active.MouseMode = MouseMode.Build;
         UserInterface.Active.AddEntity(extrasPanel);
         base.Show();
+        destroyButton.Checked = false;
         extrasPanel.Offset = new Vector2(0, panel.Offset.Y);
         GameScene.Active.MaskedAreas.Add(extrasPanel.CalcDestRect());
     }

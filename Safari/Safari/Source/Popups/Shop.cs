@@ -12,12 +12,12 @@ using System;
 namespace Safari.Popups;
 
 public class Shop : PopupMenu, IResettableSingleton {
-    public const int TREE_COST = 200;
-    public const int GRASS_COST = 50;
-    public const int ROAD_COST = 75;
-    public const int WATER_COST = 50;
-    public const int BUSH_COST = 25;
-    public const int JEEP_COST = 1000;
+    public const int TREE_COST = 400;
+    public const int GRASS_COST = 25;
+    public const int ROAD_COST = 20;
+    public const int WATER_COST = 30;
+    public const int BUSH_COST = 65;
+    public const int JEEP_COST = 2000;
 
     private static Shop instance;
     public static Shop Instance {

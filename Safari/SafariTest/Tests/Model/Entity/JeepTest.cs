@@ -102,10 +102,10 @@ public class JeepTest : SimulationTest {
 		Assert.AreEqual(JeepState.WaitingForTourists, j3.StateMachine.CurrentState);
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.FalseBefore(() => Model.IsDaytime, TimeSpan.FromHours(18));
+		GameAssert.AreEqualBefore(JeepState.FollowingRoute, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(18));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
-		Assert.AreEqual(JeepState.FollowingRoute, j3.StateMachine.CurrentState);
+		Assert.IsFalse(Model.IsDaytime);
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.AreEqualBefore(JeepState.Parking, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
