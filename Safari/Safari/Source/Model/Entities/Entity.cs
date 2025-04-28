@@ -188,9 +188,23 @@ public abstract class Entity : GameObject, ISpatial {
 			Vector2 size = Sprite.SourceRectangle?.Size.ToVector2() ?? Sprite.Texture.Bounds.Size.ToVector2();
 			result = new Vectangle(Position - Sprite.Origin, size);
 		}
-		result.Size *= Sprite.Scale;
+
+		if (Sprite != null) {
+			result.Size *= Sprite.Scale;
+		}
 
 		calcBounds = result;
+	}
+
+	/// <summary>
+	/// Clears the entity's bounds override vectangle
+	/// </summary>
+	/// <returns>Whether the override needed to be cleared (or was already null)</returns>
+	public bool ClearBoundsOverride() {
+		if (boundsBaseOverride == null) return false;
+
+		boundsBaseOverride = null;
+		return true;
 	}
 
 	public static Entity GetEntityOnMouse() {
