@@ -7,6 +7,7 @@ using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
 using Engine.Graphics.Stubs.Texture;
+using Newtonsoft.Json;
 
 namespace Safari.Model;
 
@@ -28,6 +29,7 @@ public enum LoseReason {
 	Animals
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public class GameModel {
 	// constants for money requirements for winning
 	public const int WIN_FUNDS_EASY = 30000;
@@ -77,17 +79,20 @@ public class GameModel {
 	public const double SUNSET_END = 0.66;
 
 	private GameSpeed prevSpeed;
+	[JsonProperty]
 	private readonly DateTime startDate;
 
 	/// <summary>
 	/// The name of the park (used when saving the park)
 	/// </summary>
+	[JsonProperty]
 	public string ParkName { get; init; }
 	private int funds;
 	/// <summary>
 	/// How much money ($?) the player currently has
 	/// Reaching 0 will result in an instant game over
 	/// </summary>
+	[JsonProperty]
 	public int Funds {
 		get => funds;
 		set {
@@ -102,6 +107,7 @@ public class GameModel {
 	/// <summary>
 	/// The selected difficulty for this park (easy, normal or hard)
 	/// </summary>
+	[JsonProperty]
 	public GameDifficulty Difficulty { get; init; }
 
 	/// <summary>
@@ -124,6 +130,7 @@ public class GameModel {
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
 	/// </summary>
+	[JsonProperty]
 	public double CurrentTime { get; private set; } = 0.0f;
 	/// <summary>
 	/// Returns a value between 0 and 1, corresponding to the time of day
@@ -150,6 +157,7 @@ public class GameModel {
 	/// <summary>
 	/// The current game level's tilemap
 	/// </summary>
+	[JsonProperty]
 	public Level Level { get; set; }
 
 	/// <summary>
@@ -245,7 +253,7 @@ public class GameModel {
 		GameDifficulty.Normal => WIN_DAYS_NORMAL,
 		_ => WIN_DAYS_HARD,
 	};
-
+	[JsonProperty]
 	private bool winTimerRunning = false;
 	/// <summary>
 	/// Whether the win criteria is met therefore the win countdown is running
@@ -254,6 +262,7 @@ public class GameModel {
 	/// <summary>
 	/// How many days are left until winning
 	/// </summary>
+	[JsonProperty]
 	public double WinTimerDays { get; private set; } = 0.0;
 	/// <summary>
 	/// How much time is left until winning
@@ -267,6 +276,7 @@ public class GameModel {
 	/// <summary>
 	/// Stores whether this save has been won
 	/// </summary>
+	[JsonProperty]
 	public bool PostWin { get; set; } = false;
 
 	/// <summary>
@@ -339,6 +349,9 @@ public class GameModel {
 			}
 		}));
 	}
+
+	[JsonConstructor]
+	public GameModel() { }
 
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
 		ParkName = parkName;
@@ -442,7 +455,7 @@ public class GameModel {
 	}
 
 	private void WinUpdate() {
-		if (WinConCheck()) {
+		if (WinConCheck() && !PostWin) {
 			if (!winTimerRunning) {
 				WinTimerDays = WinCriteriaDays;
 				winTimerRunning = true;

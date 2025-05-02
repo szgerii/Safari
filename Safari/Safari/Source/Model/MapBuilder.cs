@@ -387,7 +387,7 @@ public static class MapBuilder {
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
 	/// <param name="strippedInit">Whether to skip placing down animals/plants/jeeps/etc</param>
-	public static void BuildStartingMap(Level level, bool strippedInit = false) {
+	public static void BuildStartingMap(Level level, bool strippedInit = false, bool loadInit = false) {
 		// road placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
@@ -400,7 +400,9 @@ public static class MapBuilder {
 			current.X++;
 			Road r = new Road();
 			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
+				if (!loadInit) {
+					level.ConstructionHelperCmp.InstaBuild(current, r);
+				}
 			} else {
 				level.SetTile(current, r);
 			}
@@ -409,7 +411,9 @@ public static class MapBuilder {
 			current.Y--;
 			Road r = new Road();
 			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
+				if (!loadInit) {
+					level.ConstructionHelperCmp.InstaBuild(current, r);
+				}
 			} else {
 				level.SetTile(current, r);
 			}
@@ -443,8 +447,12 @@ public static class MapBuilder {
 			y--;
 		}
 
-		if (strippedInit) return;
+		if (!strippedInit && !loadInit) {
+			AddStartingObjects(level);
+		}
+	}
 
+	private static void AddStartingObjects(Level level) {
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {
 			level.ConstructionHelperCmp.InstaBuild(p, new Water());

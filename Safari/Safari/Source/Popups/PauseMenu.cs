@@ -5,8 +5,10 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Helpers;
+using Safari.Model;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
+using Safari.Source.Persistence;
 
 namespace Safari.Popups;
 
@@ -80,6 +82,8 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
     }
 
     private void SaveButtonClicked(Entity entity) {
+        GameModel model = GameScene.Active.Model;
+        new GameModelPersistence(model.ParkName).Save(model);
         new AlertMenu("Feature", "This feature is currently WIP, check back another time").Show();
     }
 

@@ -42,6 +42,11 @@ public class GameScene : Scene {
 	/// </summary>
 	public bool StrippedInit { get; set; } = false;
 
+	/// <summary>
+	/// Whether the GS is being initialized from an existing save
+	/// </summary>
+	public bool LoadInit { get; set; } = false;
+
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
@@ -63,6 +68,13 @@ public class GameScene : Scene {
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
 			SceneManager.Load(new GameScene());
 		}));
+	}
+
+	public GameScene() : base() { }
+
+	public GameScene(GameModel model) : base() {
+		this.model = model;
+		LoadInit = true;
 	}
 
 	public override void Unload() {
@@ -89,9 +101,11 @@ public class GameScene : Scene {
 	public override void Load() {
 		// init game model
 		// The start of the game is always <date of creation> 6 am
-		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-		startDate = startDate.AddHours(6);
-		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
+		if (!LoadInit) {
+			DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+			startDate = startDate.AddHours(6);
+			model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
+		}
 		if (!Game.Instance.IsHeadless) {
 			PostProcessPasses.Add(model.Level.LightManager);
 		}
@@ -127,8 +141,7 @@ public class GameScene : Scene {
 		buildHover = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.1f, 0.3f, 0.7f, 1f), true);
 
 		base.Load();
-
-		MapBuilder.BuildStartingMap(model.Level, StrippedInit);
+		MapBuilder.BuildStartingMap(model.Level, StrippedInit, LoadInit);
 
 		if (Game.CanDraw) {
 			Statusbar.Instance.Load();
@@ -348,7 +361,6 @@ public class GameScene : Scene {
 				SceneManager.Load(MainMenu.Instance);
 			} else {
 				model.PostWin = true;
-				model.CheckWinLose = false;
 				model.Resume();
 			}
 		};
