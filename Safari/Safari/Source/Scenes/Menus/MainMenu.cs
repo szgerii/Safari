@@ -5,7 +5,7 @@ using Engine;
 using Safari.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework.Input;
-using Safari.Source.Persistence;
+using Safari.Persistence;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {

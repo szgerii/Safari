@@ -2,13 +2,16 @@ using Engine.Components;
 using Engine.Collision;
 using Microsoft.Xna.Framework;
 using Engine.Helpers;
+using Newtonsoft.Json;
 
 namespace Safari.Model.Tiles;
 
 /// <summary>
 /// Tile for representing
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Bush : Tile {
+	[JsonConstructor]
 	public Bush() : base(Game.LoadTexture("Assets/Bush/Bush1")) {
 		IsFoodSource = true;
 		LightRange = 1;
@@ -21,11 +24,13 @@ public class Bush : Tile {
 	}
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public class WideBush : Tile {
 	private static readonly Point[] BushOffsets = [
 		new(1, 0)
 	];
 
+	[JsonConstructor]
 	public WideBush() : base(Game.LoadTexture("Assets/Bush/Bush2")) {
 		ConstructionBlockOffsets = BushOffsets;
 		IsFoodSource = true;

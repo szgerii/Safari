@@ -122,13 +122,15 @@ public class GameScene : Scene {
 		model.GameWon += OnGameWon;
 
 		// init camera
-		CreateCamera(
-			new Rectangle(
-				0, 0,
-				model.Level.MapWidth * model.Level.TileSize,
-				model.Level.MapHeight * model.Level.TileSize
-			)
-		);
+		if (!LoadInit) {
+			CreateCamera(
+				new Rectangle(
+					0, 0,
+					model.Level.MapWidth * model.Level.TileSize,
+					model.Level.MapHeight * model.Level.TileSize
+				)
+			);
+		}
 
 		if (Game.CanDraw) {
 			UserInterface.Active.MouseInputProvider.DoClick();

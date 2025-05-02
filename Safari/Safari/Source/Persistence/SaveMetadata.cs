@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace Safari.Source.Persistence;
+namespace Safari.Persistence;
 
 [JsonObject(MemberSerialization.OptIn)]
 public class SaveMetadata {

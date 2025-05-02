@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Engine.Graphics.Stubs.Texture;
 using Engine.Input;
+using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using Safari.Components;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -193,7 +195,7 @@ public class Level : GameObject {
 			LightManager.AddLightSource(x, y, tile.LightRange);
 		}
 
-		if (!tile.Loaded) {
+		if (!tile.Loaded && SceneManager.Active is GameScene) {
 			Game.AddObject(tile);
 		}
 

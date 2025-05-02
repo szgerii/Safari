@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
-namespace Safari.Source.Persistence;
+namespace Safari.Persistence;
 
 [JsonObject(MemberSerialization.OptIn)]
 public class SafariSaveHead {
@@ -16,11 +17,15 @@ public class SafariSaveHead {
 	[JsonProperty]
 	public SaveMetadata MetaData { get; set; }
 
+	[JsonProperty]
+	public List<SafariSaveNode> SaveNodes { get; set; }
+
 	[JsonConstructor]
 	public SafariSaveHead() { }
 
-	public SafariSaveHead(string gameCoreSerialized, SaveMetadata metadata) {
+	public SafariSaveHead(string gameCoreSerialized, SaveMetadata metadata, List<SafariSaveNode> saveNodes) {
 		GameCoreSerialized = gameCoreSerialized;
 		MetaData = metadata;
+		SaveNodes = saveNodes;
 	}
 }

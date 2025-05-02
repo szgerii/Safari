@@ -1,12 +1,14 @@
 using Engine.Components;
 using Engine.Collision;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 
 namespace Safari.Model.Tiles;
 
 /// <summary>
 /// Tile for representing a tree
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Tree : Tile {
 
 	private static readonly Point[] TreeOffsets = [
@@ -15,6 +17,7 @@ public class Tree : Tile {
 		new (1, -1), new(1, 0), new(1, 1)
 	];
 
+	[JsonProperty]
 	private TreeType type;
 	/// <summary>
 	/// The type of the tree tile
@@ -37,6 +40,7 @@ public class Tree : Tile {
 	/// </summary>
 	public string DisplayName => type.GetDisplayName();
 
+	[JsonConstructor]
 	public Tree(TreeType type) : base(type.GetTexture()) {
 		ConstructionBlockOffsets = TreeOffsets;
 		IsFoodSource = true;
