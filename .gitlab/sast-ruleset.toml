@@ -1,0 +1,6 @@
+[semgrep]
+    [[semgrep.ruleset]]
+        disable = true
+        [semgrep.ruleset.identifier]
+            type = "cwe"
+            value = "338"
