@@ -8,11 +8,11 @@ namespace Engine.Helpers;
 /// </summary>
 public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	private static Vectangle emptyVectangle = new();
-	
-	public float X;
-	public float Y;
-	public float Width;
-	public float Height;
+
+	public float X { get; set; }
+	public float Y { get; set; }
+	public float Width { get; set; }
+	public float Height { get; set; }
 
 	public static Vectangle Empty => emptyVectangle;
 
@@ -95,12 +95,18 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 		return this == rect;
 	}
 
-	/// <summary>
-	/// NOTE: significantly differs from <see cref="Rectangle.GetHashCode"/>
-	/// </summary>
+#pragma warning disable IDE0070
 	public readonly override int GetHashCode() {
-		return HashCode.Combine(X, Y, Width, Height);
+		unchecked {
+			var hash = 17;
+			hash = hash * 23 + X.GetHashCode();
+			hash = hash * 23 + Y.GetHashCode();
+			hash = hash * 23 + Width.GetHashCode();
+			hash = hash * 23 + Height.GetHashCode();
+			return hash;
+		}
 	}
+#pragma warning restore IDE0070
 
 	public void Inflate(float horizontalAmt, float verticalAmt) {
 		X -= horizontalAmt;
@@ -178,6 +184,8 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	}
 
 	public readonly void CopyTo(out Vectangle copyTarget) {
+		copyTarget = new();
+
 		copyTarget.X = X;
 		copyTarget.Y = Y;
 		copyTarget.Width = Width;

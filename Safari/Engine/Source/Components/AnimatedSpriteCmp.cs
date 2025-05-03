@@ -148,6 +148,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public void Update(GameTime gameTime) {
 		if (currentAnim == null) {
 			IsPlaying = false;
+			return;
 		}
 
 		IsPlaying = true;
