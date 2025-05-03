@@ -4,9 +4,14 @@
 # https://www.meziantou.net/computing-code-coverage-for-a-dotnet-project.htm
 
 workflow:
+  name: $GL_PIPELINE_NAME
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == 'develop'
+      variables:
+        GL_PIPELINE_NAME: 'Pipeline for MR #$CI_MERGE_REQUEST_IID'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == 'develop' || $CI_COMMIT_BRANCH =~ /-ci$/
+      variables:
+        GL_PIPELINE_NAME: 'Pipeline for branch $CI_COMMIT_BRANCH ($CI_COMMIT_SHORT_SHA)'
 
 stages:
   - build
