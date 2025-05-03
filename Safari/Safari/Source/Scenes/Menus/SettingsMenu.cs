@@ -220,7 +220,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
 
         resolutions = new List<(int, int)>();
         bool addRest = false;
-        foreach (DisplayMode item in DisplayManager.supportedResolutions) {
+        foreach (DisplayMode item in DisplayManager.SupportedResolutions) {
             if (item.Width == 1280 && item.Height == 720) {
                 addRest = true;
             }
@@ -274,11 +274,11 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
 
         menuAndDiscardButton = new Button("Exit & Discard", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.55f, -1));
         menuAndDiscardButton.Padding = new Vector2(10);
-        menuAndDiscardButton.OnClick = menuAndDiscardButtonClicked;
+        menuAndDiscardButton.OnClick = MenuAndDiscardButtonClicked;
 
         saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
         saveChangesButton.Padding = new Vector2(10);
-        saveChangesButton.OnClick = saveChangesButtonClicked;
+        saveChangesButton.OnClick = SaveChangesButtonClicked;
 
         buttonPanel.AddChild(menuAndDiscardButton);
         buttonPanel.AddChild(saveChangesButton);
@@ -286,22 +286,22 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
 
-        scaleText();
+        ScaleText();
     }
 
-    private void saveChangesButtonClicked(Entity entity) {
+    private void SaveChangesButtonClicked(Entity entity) {
         CameraControllerCmp.DefaultScrollSpeed = cameraStoredValue;
-        scaleText();
+        ScaleText();
         DisplayManager.ApplyChanges();
     }
 
-    private void menuAndDiscardButtonClicked(Entity entity) {
+    private void MenuAndDiscardButtonClicked(Entity entity) {
         cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
         DisplayManager.DiscardChanges();
         SceneManager.Load(MainMenu.Instance);
     }
 
-    private void scaleText() {
+    private void ScaleText() {
         Scale = ((float)selectedResolution.Item2 / 1080f) * 1.2f;
         fpsText.Scale = Scale;
         vsyncText.Scale = Scale;

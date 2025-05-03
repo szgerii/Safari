@@ -24,7 +24,7 @@ public class RoadNetworkTest {
 			network.AddRoad(new(1, 0));
 			network.GetRoad(new(1, 0));
 			network.ClearRoad(new(1, 0));
-		} catch (Exception e) {
+		} catch {
 			exceptionThrown = true;
 		}
 		Assert.IsFalse(exceptionThrown);
@@ -33,7 +33,7 @@ public class RoadNetworkTest {
 		exceptionThrown = false;
 		try {
 			network.AddRoad(new(4, 0));
-		} catch (Exception e) {
+		} catch {
 			exceptionThrown = true;
 		}
 		Assert.IsTrue(exceptionThrown);
@@ -41,7 +41,7 @@ public class RoadNetworkTest {
 		exceptionThrown = false;
 		try {
 			network.AddRoad(new(-1, 0));
-		} catch (Exception e) {
+		} catch {
 			exceptionThrown = true;
 		}
 	}
@@ -61,7 +61,7 @@ public class RoadNetworkTest {
 		// Check event firing / not firing
 		bool eventFired = false;
 		bool changeType = false;
-		network.RoadChanged += (object sender, RoadChangedEventArgs e) => {
+		network.RoadChanged += (object? sender, RoadChangedEventArgs e) => {
 			eventFired = true;
 			changeType = e.ChangeType;
 		};

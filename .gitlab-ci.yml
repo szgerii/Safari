@@ -1,50 +1,95 @@
+# SOURCES / REFERENCES:
+#
+# https://docs.gitlab.com/ci/
+# https://szofttech.inf.elte.hu/mate/tictactoe-dotnet
+# https://www.meziantou.net/computing-code-coverage-for-a-dotnet-project.htm
+
 workflow:
+  name: $GL_PIPELINE_NAME
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == 'develop'
+      variables:
+        GL_PIPELINE_NAME: 'Pipeline for MR #$CI_MERGE_REQUEST_IID'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == 'develop' || $CI_COMMIT_BRANCH =~ /-ci$/
+      variables:
+        GL_PIPELINE_NAME: 'Pipeline for branch $CI_COMMIT_BRANCH ($CI_COMMIT_SHORT_SHA)'
 
 stages:
   - build
   - test
+  - deploy
 
-.testbase:
-  stage: test
-  before_script: SDL_VIDEODRIVER=dummy
-  after_script:
-    - export PATH="$PATH:/root/.dotnet/tools"
-    - dotnet tool update --global dotnet-coverage
-    - dotnet-coverage merge --output TestResults.cobertura.xml --output-format cobertura "Safari/TestResults/**/*.coverage"
-  artifacts:
-    name: $CI_JOB_ID-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: TestResults.cobertura.xml
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml
+  - component: szofttech.inf.elte.hu/components/code-quality-dotnet/linux@2.1.1
+    inputs:
+      check_path: "./Safari/"
+      build_config: "Release -p:StrippedBuild=true"
+
+variables:
+  GITLAB_ADVANCED_SAST_ENABLED: true
+  DS_MAX_DEPTH: 3
 
 default:
   image: mcr.microsoft.com/dotnet/sdk:8.0
 
-build:debug:
+build:
   stage: build
   script:
-    - 'dotnet build -p:Configuration=Debug -p:StrippedBuild=true "Safari\Safari.sln"'
+    - dotnet build -p:Configuration=Release -p:StrippedBuild=true Safari/Safari.sln
 
-build:release:
-  stage: build
+model_tests:
+  stage: test
   script:
-    - 'dotnet build -p:Configuration=Release -p:StrippedBuild=true "Safari\Safari.sln"'
+    - SDL_VIDEODRIVER=dummy # no-op graphics driver for headless execution of the game
+    - >
+      dotnet test Safari/Safari.sln -c Debug -p:StrippedBuild=true
+      --logger:"junit;MethodFormat=Class;FailureBodyFormat=Verbose"
+      --collect:"XPlat Code Coverage"
+      --settings "Safari/CodeCoverage.runsettings"
+    # install deps
+    - apt-get update -yqq
+    - apt-get install -yqq bc
+    - dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
+    # merge reports
+    - ./reportgenerator "-reports:$CI_PROJECT_DIR/**/TestResults/*/coverage.cobertura.xml" "-targetdir:report" "-reporttypes:Cobertura"
+    # generate HTML report (for Pages)
+    - ./reportgenerator "-reports:$CI_PROJECT_DIR/**/TestResults/*/coverage.cobertura.xml" "-targetdir:report/html" "-reporttypes:Html"
+    # calculate coverage
+    - line_rate="$(head -n 3 ./report/Cobertura.xml | sed 'N;N;s/.*line-rate="\([^" ]*\).*/\1/g')"
+    - coverage=$(echo "${line_rate} * 100" | bc)
+    - 'printf "TOTAL_COVERAGE=%2.2f\n" "$coverage"'
+  artifacts:
+    paths:
+      - ./Safari/*/TestResults/TestResults.xml
+      - ./Safari/*/TestResults/*/coverage.cobertura.xml
+      - ./report/html/
+    reports:
+      junit:
+        - ./Safari/*/TestResults/TestResults.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: ./Safari/*/TestResults/*/coverage.cobertura.xml
+  coverage: '/TOTAL_COVERAGE=(\d+.\d+)/'
 
-test:debug:
-  extends: .testbase
-  needs:
-    - job: build:debug
+generate_docs:
+  stage: deploy
+  image: ubuntu:24.04
+  before_script:
+    - apt-get update -yqq
+    - apt-get install -yqq doxygen graphviz
   script:
-    - 'dotnet test -c Debug -p:StrippedBuild=true --results-directory "Safari\TestResults" --collect:"Code Coverage;Format=cobertura" --settings "Safari/CodeCoverage.runsettings" "Safari\Safari.sln"'
-
-test:release:
-  extends: .testbase
-  needs:
-    - job: build:release
-  script:
-    - 'dotnet test -c Release -p:StrippedBuild=true --results-directory "Safari\TestResults" --collect:"Code Coverage;Format=cobertura" --settings "Safari/CodeCoverage.runsettings" "Safari\Safari.sln"'
-
+    - doxygen
+    - mkdir -p public/docs public/coverage
+    - cp -r doc/html/. public/docs
+    - cp -r report/html/. public/coverage
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 day
+  only:
+    - master
+    - develop
+    - /-ci$/

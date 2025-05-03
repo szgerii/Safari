@@ -46,7 +46,7 @@ public class Jeep : Entity {
 	/// </summary>
 	public const double MAX_WAITING_HOURS = 4;
 
-	private List<Tourist> occupants = new List<Tourist>();
+	private readonly List<Tourist> occupants = new List<Tourist>();
 	private static Queue<Jeep> garage = new Queue<Jeep>();
 	private static bool jeepEntering = false;
 
@@ -62,8 +62,8 @@ public class Jeep : Entity {
 	private DateTime waitStart;
 
 	private const int TEXTURE_COUNT = 4;
-	private static string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
-	private static ITexture2D[] textures = new ITexture2D[4] {null, null, null, null};
+	private static readonly string[] textureNames = new string[4] { "Red", "White", "Green", "Brown" };
+	private static readonly ITexture2D[] textures = new ITexture2D[4] {null, null, null, null};
 
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 

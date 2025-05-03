@@ -46,7 +46,7 @@ public class JeepTest : SimulationTest {
 		RunOneFrame();
 		Assert.IsNull(Jeep.WaitingJeep);
 
-		Jeep.JeepReadyToFill += (object sender, EventArgs e) => { eventInvoked = true; };
+		Jeep.JeepReadyToFill += (object? sender, EventArgs e) => { eventInvoked = true; };
 
 		Jeep.RequestNextJeep();
 		RunOneFrame();

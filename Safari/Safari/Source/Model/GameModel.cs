@@ -77,7 +77,7 @@ public class GameModel {
 	public const double SUNSET_END = 0.66;
 
 	private GameSpeed prevSpeed;
-	private DateTime startDate;
+	private readonly DateTime startDate;
 
 	/// <summary>
 	/// The name of the park (used when saving the park)

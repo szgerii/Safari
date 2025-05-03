@@ -8,8 +8,8 @@ using System;
 namespace Safari.Components;
 
 public class CameraControllerCmp : Component, IUpdatable {
-	public static float DefaultScrollSpeed = 100f;
-	public static float DefaultZoom = 2;
+	public static float DefaultScrollSpeed { get; set; } = 100f;
+	public static float DefaultZoom { get; set; } = 2;
 
     public float ScrollSpeed { get; set; } = 100f;
 

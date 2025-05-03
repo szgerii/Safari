@@ -13,8 +13,8 @@ namespace Safari.Components;
 /// </summary>
 [LimitCmpOwnerType(typeof(Entity))]
 public class LightEntityCmp : Component, IUpdatable {
-	private Level level;
-	private int range;
+	private readonly Level level;
+	private readonly int range;
 	private Point? old_map_pos = null;
 	private Entity ownerEntity;
 

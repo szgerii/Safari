@@ -7,11 +7,11 @@ using System;
 namespace Safari.Popups;
 
 public class RangerControllerMenu : EntityControllerMenu {
-	DropDown dropDown;
-	Button fireButton;
-	Array animalTypes = Enum.GetValues(typeof(AnimalSpecies));
-	Safari.Model.Entities.Ranger ranger;
-	int nullValue = -1;
+	readonly DropDown dropDown;
+	readonly Button fireButton;
+	readonly Array animalTypes = Enum.GetValues(typeof(AnimalSpecies));
+	readonly Safari.Model.Entities.Ranger ranger;
+	readonly int nullValue = -1;
 
 	public RangerControllerMenu(Safari.Model.Entities.Ranger ranger) : base(ranger) {
 		this.ranger = ranger;

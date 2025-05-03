@@ -62,14 +62,14 @@ public class Actions {
 	public GamePadState CurrentGPS { get; set; }
 	public bool LockToActiveDevice { get; set; } = true;
 
-	private Dictionary<string, DateTime> downTimeouts = new Dictionary<string, DateTime>();
-	private Dictionary<string, InputAction> actions = new Dictionary<string, InputAction>();
+	private readonly Dictionary<string, DateTime> downTimeouts = new Dictionary<string, DateTime>();
+	private readonly Dictionary<string, InputAction> actions = new Dictionary<string, InputAction>();
 
 	public delegate void PressedCallback();
 	public delegate void ReleasedCallback();
 
-	private Dictionary<string, PressedCallback> pressedCallbacks = new Dictionary<string, PressedCallback>();
-	private Dictionary<string, ReleasedCallback> releasedCallbacks = new Dictionary<string, ReleasedCallback>();
+	private readonly Dictionary<string, PressedCallback> pressedCallbacks = new Dictionary<string, PressedCallback>();
+	private readonly Dictionary<string, ReleasedCallback> releasedCallbacks = new Dictionary<string, ReleasedCallback>();
 
 	internal void UpdateEvents() {
 		foreach (string name in pressedCallbacks.Keys) {

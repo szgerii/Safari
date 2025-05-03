@@ -29,10 +29,10 @@ public class GamePadAxisChangedEventArgs : EventArgs {
 /// Manages all gamepad checks and events (currently gamepad#1 only), including connection status, buttons and axis
 /// </summary>
 public class GamePad {
-	public GamePadState PrevGPS;
-	public GamePadState CurrentGPS;
+	public GamePadState PrevGPS { get; set; }
+	public GamePadState CurrentGPS { get; set; }
 
-	private Dictionary<Buttons, DateTime> downTimeouts = new Dictionary<Buttons, DateTime>();
+	private readonly Dictionary<Buttons, DateTime> downTimeouts = new Dictionary<Buttons, DateTime>();
 
 	public delegate void PressedCallback();
 	public delegate void ReleasedCallback();
@@ -40,9 +40,9 @@ public class GamePad {
 	public delegate void ConnectedCallback();
 	public delegate void DisconnectedCallback();
 
-	private Dictionary<Buttons, PressedCallback> pressedCallbacks = new Dictionary<Buttons, PressedCallback>();
-	private Dictionary<Buttons, ReleasedCallback> releasedCallbacks = new Dictionary<Buttons, ReleasedCallback>();
-	private Dictionary<GamePadAxes, AxisChangedCallback> axisChangedCallbacks = new Dictionary<GamePadAxes, AxisChangedCallback>();
+	private readonly Dictionary<Buttons, PressedCallback> pressedCallbacks = new Dictionary<Buttons, PressedCallback>();
+	private readonly Dictionary<Buttons, ReleasedCallback> releasedCallbacks = new Dictionary<Buttons, ReleasedCallback>();
+	private readonly Dictionary<GamePadAxes, AxisChangedCallback> axisChangedCallbacks = new Dictionary<GamePadAxes, AxisChangedCallback>();
 	private ConnectedCallback connectedCallback = null;
 	private DisconnectedCallback disconnectedCallback = null;
 

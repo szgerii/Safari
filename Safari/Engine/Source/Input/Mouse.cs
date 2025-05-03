@@ -46,7 +46,7 @@ public class Mouse {
 
 	public bool ScrollLock { get; set; }
 
-	private Dictionary<MouseButtons, DateTime> downTimeouts = new Dictionary<MouseButtons, DateTime>();
+	private readonly Dictionary<MouseButtons, DateTime> downTimeouts = new Dictionary<MouseButtons, DateTime>();
 
 	public delegate void PressedCallback();
 	public delegate void ReleasedCallback();
@@ -54,8 +54,8 @@ public class Mouse {
 	public delegate void ScrollWheelChangedCallback(MouseScrollWheelChangedEventArgs e);
 	public delegate void HScrollWheelChangedCallback(MouseScrollWheelChangedEventArgs e);
 
-	private Dictionary<MouseButtons, PressedCallback> pressedCallbacks = new Dictionary<MouseButtons, PressedCallback>();
-	private Dictionary<MouseButtons, ReleasedCallback> releasedCallbacks = new Dictionary<MouseButtons, ReleasedCallback>();
+	private readonly Dictionary<MouseButtons, PressedCallback> pressedCallbacks = new Dictionary<MouseButtons, PressedCallback>();
+	private readonly Dictionary<MouseButtons, ReleasedCallback> releasedCallbacks = new Dictionary<MouseButtons, ReleasedCallback>();
 	private MovedCallback movedCallback = null;
 	private ScrollWheelChangedCallback scrollWheelChangedCallback = null;
 	private HScrollWheelChangedCallback hScrollWheelChangedCallback = null;

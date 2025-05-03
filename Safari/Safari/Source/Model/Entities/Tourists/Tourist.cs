@@ -22,8 +22,8 @@ public class Tourist : Entity {
 	public static EntitySpawner<Tourist> Spawner { get; set; }
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
 
-	private HashSet<Animal> seenAnimals = new();
-	private HashSet<AnimalSpecies> seenAnimalSpecies = new();
+	private readonly HashSet<Animal> seenAnimals = new();
+	private readonly HashSet<AnimalSpecies> seenAnimalSpecies = new();
 
 
 	private int targetQueueIndex = -1;
@@ -32,9 +32,9 @@ public class Tourist : Entity {
 	private bool shouldDraw = true;
 	private int payedAmount = 0;
 	private double rating = 2.5f;
-	private int moneyThreshold;
-	private AnimalSpecies favSpecies;
-	private float xOffset;
+	private readonly int moneyThreshold;
+	private readonly AnimalSpecies favSpecies;
+	private readonly float xOffset;
 	private bool preferStandingRight = true;
 	private DateTime nextSwitch;
 
@@ -71,9 +71,9 @@ public class Tourist : Entity {
 		}
 	}
 
-	public const int milestoneCount = 12;
-	public static double[] milestones = new double[milestoneCount] {1.0, 2.0, 2.5, 3.0, 3.3, 3.7, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0};
-	public static double[] spawnRates = new double[milestoneCount] { 0.4, 0.7, 1.0, 1.5, 1.9, 2.5, 3.2, 4.2, 5.1, 6.0, 7.0, 8.0 };
+	private const int milestoneCount = 12;
+	private static readonly double[] milestones = new double[milestoneCount] { 1.0, 2.0, 2.5, 3.0, 3.3, 3.7, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0 };
+	private static readonly double[] spawnRates = new double[milestoneCount] { 0.4, 0.7, 1.0, 1.5, 1.9, 2.5, 3.2, 4.2, 5.1, 6.0, 7.0, 8.0 };
 	public static double SpawnRate {
 		get {
 			// base spawn rate -> lerp

@@ -5,9 +5,13 @@
 
 # MANUAL IGNORES (NOT GENERATED)
 
+.store/
+report/
+doc/
 .vscode/
 **/CoverageReport/*
 *.cobertura.xml
+reportgenerator
 
 # STANDARD IGNORES (GENERATED)
 

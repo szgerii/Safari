@@ -19,7 +19,7 @@ public static class MapBuilder {
 	public readonly static int TIGER_COUNT = 6;
 	public readonly static int TIGER_WHITE_COUNT = 3;
 
-	public readonly static List<Point> LAKE_LOC = new() {
+	public readonly static IReadOnlyList<Point> LAKE_LOC = new List<Point>() {
 		new Point(13, 42),
 		new Point(13, 43),
 		new Point(13, 44),
@@ -151,7 +151,7 @@ public static class MapBuilder {
 		new Point(90, 32),
 		new Point(90, 33),
 	};
-	public readonly static List<Point> GRASS_LOC = new() {
+	public readonly static IReadOnlyList<Point> GRASS_LOC = new List<Point>() {
 		new Point(12, 10),
 		new Point(12, 11),
 		new Point(12, 12),
@@ -323,16 +323,16 @@ public static class MapBuilder {
 		new Point(88, 39),
 		new Point(88, 40),
 	};
-	public readonly static List<Point> BUSH_LOC = new() {
+	public readonly static IReadOnlyList<Point> BUSH_LOC = new List<Point>() {
 		new Point(24, 25),
 		new Point(35, 38),
 	};
-	public readonly static List<Point> WBUSH_LOC = new() {
+	public readonly static IReadOnlyList<Point> WBUSH_LOC = new List<Point>() {
 		new Point(54, 23),
 		new Point(89, 14),
 		new Point(91, 14),
 	};
-	public readonly static List<(Point, TreeType)> TREE_LOC = new() {
+	public readonly static IReadOnlyList<(Point, TreeType)> TREE_LOC = new List<(Point, TreeType)>() {
 		(new Point(10, 15), TreeType.Za),
 		(new Point(18, 30), TreeType.Grandideri),
 		(new Point(55, 34), TreeType.Gregorii),
@@ -345,35 +345,35 @@ public static class MapBuilder {
 	public static void DumpMap(Level level) {
 		List<Tile> tiles = level.GetTilesInArea(new Rectangle(0, 0, level.MapWidth, level.MapHeight));
 		using (StreamWriter sw = new StreamWriter("map_dump.txt")) {
-			sw.WriteLine("public readonly static List<Point> LAKE_LOC = new() {");
+			sw.WriteLine("public readonly static IReadOnlyList<Point> LAKE_LOC = new List<Point>() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Water) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public readonly static List<Point> GRASS_LOC = new() {");
+			sw.WriteLine("public readonly static IReadOnlyList<Point> GRASS_LOC = new List<Point>() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Grass) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public readonly static List<Point> BUSH_LOC = new() {");
+			sw.WriteLine("public readonly static IReadOnlyList<Point> BUSH_LOC = new List<Point>() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Bush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public readonly static List<Point> WBUSH_LOC = new() {");
+			sw.WriteLine("public readonly static IReadOnlyList<Point> WBUSH_LOC = new List<Point>() {");
 			foreach (Tile tile in tiles) {
 				if (tile is WideBush) {
 					sw.WriteLine($"\tnew Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}),");
 				}
 			}
 			sw.WriteLine("};");
-			sw.WriteLine("public readonly static List<(Point, TreeType)> TREE_LOC = new() {");
+			sw.WriteLine("public readonly static IReadOnlyList<(Point, TreeType)> TREE_LOC = new List<(Point, TreeType)>() {");
 			foreach (Tile tile in tiles) {
 				if (tile is Tree) {
 					sw.WriteLine($"\t(new Point({tile.TilemapPosition.X}, {tile.TilemapPosition.Y}), TreeType.Digitata),");

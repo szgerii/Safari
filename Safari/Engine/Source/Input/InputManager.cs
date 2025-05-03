@@ -19,8 +19,8 @@ public static class InputManager {
 	private static KeyboardState currentKS;
 	private static MouseState prevMS;
 	private static MouseState currentMS;
-	private static GamePadState[] prevGPS = new GamePadState[4];
-	private static GamePadState[] currentGPS = new GamePadState[4];
+	private static readonly GamePadState[] prevGPS = new GamePadState[4];
+	private static readonly GamePadState[] currentGPS = new GamePadState[4];
 
 	public static Mouse Mouse { get; private set; } = new Mouse();
 	public static Keyboard Keyboard { get; private set; } = new Keyboard();

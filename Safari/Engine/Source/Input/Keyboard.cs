@@ -11,13 +11,13 @@ public class Keyboard {
 	public KeyboardState PrevKS { get; set; }
 	public KeyboardState CurrentKS { get; set; }
 
-	private Dictionary<Keys, DateTime> downTimeouts = new Dictionary<Keys, DateTime>();
+	private readonly Dictionary<Keys, DateTime> downTimeouts = new Dictionary<Keys, DateTime>();
 
 	public delegate void PressedCallback();
 	public delegate void ReleasedCallback();
 
-	private Dictionary<Keys, PressedCallback> pressedCallbacks = new Dictionary<Keys, PressedCallback>();
-	private Dictionary<Keys, ReleasedCallback> releasedCallbacks = new Dictionary<Keys, ReleasedCallback>();
+	private readonly Dictionary<Keys, PressedCallback> pressedCallbacks = new Dictionary<Keys, PressedCallback>();
+	private readonly Dictionary<Keys, ReleasedCallback> releasedCallbacks = new Dictionary<Keys, ReleasedCallback>();
 
 	internal void UpdateEvents() {
 		if (!InputManager.IsGameFocused) {

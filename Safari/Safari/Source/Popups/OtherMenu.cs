@@ -8,7 +8,7 @@ using Safari.Scenes.Menus;
 namespace Safari.Popups;
 
 public class OtherMenu : CategoryMenu {
-    private Panel itemsPanel;
+    private readonly Panel itemsPanel;
 
     public OtherMenu() : base("Other") {
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);

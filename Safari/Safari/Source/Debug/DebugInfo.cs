@@ -13,7 +13,7 @@ public struct DebugInfo {
 	public string Info { get; set; }
 	public DebugInfoPosition ScreenPos { get; set; }
 
-	public override string ToString() {
+	public readonly override string ToString() {
 		if (Name != null) {
 			return $"{Name}: {Info}";
 		} else {

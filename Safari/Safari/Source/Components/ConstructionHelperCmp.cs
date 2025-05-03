@@ -31,7 +31,7 @@ public class PaletteItem {
 			}
 		}
 	}
-	private Func<int, Tile> prepareNextInstance;
+	private readonly Func<int, Tile> prepareNextInstance;
 
 	/// <summary>
 	/// Creates a palette item which generates tiles using the given function
@@ -75,9 +75,9 @@ public class PaletteItem {
 }
 
 public class ConstructionHelperCmp : Component, IUpdatable {
-	private int width;
-	private int height;
-	private bool[,] mapStatus;
+	private readonly int width;
+	private readonly int height;
+	private readonly bool[,] mapStatus;
 
 	private Level Level => Owner as Level;
 	public const int ROAD = 0;
@@ -99,7 +99,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// The currently selected index in the palette (set to -1 for nothing)
 	/// </summary>
 	public int SelectedIndex { get; set; }
-	private List<Point> unbreakable = new List<Point>();
+	private readonly List<Point> unbreakable = new List<Point>();
 
 	/// <summary>
 	/// Fetch the currently selected palette item
