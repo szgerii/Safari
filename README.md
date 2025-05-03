@@ -1,16 +1,57 @@
-# Gerik - Szafari
+# Safari (Gerik)
+
+## Status
+
+### 'master' branch
+![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg)
+![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg)
+
+### 'develop' branch
+![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg)
+![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg)
 
 ## Project Structure
 - `Safari/Safari`: the main project for the game itself
-- `Safari/Engine`: the engine used by the game, powered by [MonoGame](https://monogame.net/)
+- `Safari/Engine`: the engine used by the game
+    The engine runs on top of [MonoGame](https://monogame.net/) and is an expansion of an old hobby project started by us.
 - `Safari/GeonBit.UI`: UI library for MonoGame ([GeonBit.UI](https://www.nuget.org/packages/GeonBit.UI/))
 - `Safari/SafariTest`: MSTest project for unit testing the game
 
 ## Development / Building
+
 Visual Studio is recommended for modifying, building and testing the project, as it is the only IDE that is/was tested by us during development.
 
-The `MonoGame.Templates.CSharp` NuGet package should pull in everything needed to build. It also includes a GUI editor for the .mgcb file (the content pipeline configuration).
+It is recommended to install the `MonoGame.Templates.CSharp` NuGet package for development purposes, which should pull in everything needed to configure MonoGame related project data. It also includes a GUI editor for the .mgcb file (the content pipeline configuration).
 
 ## CI pipeline
 
+The pipeline consists of three stages: build, test and deploy.
+All of these are ran after every commit to master and develop, and the first two also run after every merge request.
+
+### 1. Build
+
+The build stage simply builds the game in Release configuration. If this fails, no other job is executed.
+This skips any parts that would require an actual graphics device to work (mainly running the content pipeline for the game assets).
+
+### 2. Tests
+
+#### Unit tests
+
+The unit tests contained under the `SafariTest` project are ran, calculating a code coverage percentage (and report) along the way.
+The detailed test results are also saved as an artifact report, allowing them to be accessed from the GitLab webpage.
+
+#### SAST
+
+GitLab Static Application Security Testing is also included in the pipeline, with an exception for the weak PRNG rule (as it is not relevant for our use case).
+
+#### Secret Detection, Dependency Scanning
+
+These two GitLab pipeline jobs have also been included on a "better safe than sorry" basis.
+
+#### Static Code Analysis
+
 WIP
+
+### 3. Deploy
+
+Lastly, the pipeline generates the documentation files based on the XML comments from the code. They are generated using Doxygen, in HTML format and are exported as an artifact.
