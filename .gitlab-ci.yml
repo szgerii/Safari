@@ -25,6 +25,7 @@ include:
 
 variables:
   GITLAB_ADVANCED_SAST_ENABLED: true
+  DS_MAX_DEPTH: 3
 
 default:
   image: mcr.microsoft.com/dotnet/sdk:8.0
@@ -36,8 +37,6 @@ build:
 
 model_tests:
   stage: test
-  needs:
-    - job: build
   script:
     - SDL_VIDEODRIVER=dummy # no-op graphics driver for headless execution of the game
     - >
@@ -73,8 +72,6 @@ model_tests:
 generate_docs:
   stage: deploy
   image: ubuntu:24.04
-  needs:
-    - job: model_tests
   before_script:
     - apt-get update -yqq
     - apt-get install -yqq doxygen graphviz
