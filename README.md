@@ -2,13 +2,11 @@
 
 ## Status
 
-### 'master' branch
-![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg)
-![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg)
+![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg?key_text=master+pipeline&key_width=100)
+![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg?key_text=master+model+coverage&key_width=150)
 
-### 'develop' branch
-![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg)
-![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg)
+![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg?key_text=develop+pipeline&key_width=100)
+![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg?key_text=develop+model+coverage&key_width=150)
 
 ## Project Structure
 - `Safari/Safari`: the main project for the game itself
