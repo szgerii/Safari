@@ -12,17 +12,17 @@ using Safari.Scenes.Menus;
 namespace Safari.Popups;
 
 public class TileMenu : CategoryMenu, IUpdatable {
-    private Panel itemsPanel;
+    private readonly Panel itemsPanel;
 
-    private Panel extrasPanel;
+    private readonly Panel extrasPanel;
 
-    private Panel treeTypePanel;
-    private Panel treeTypeDisplayPanel;
-    private Label treeTypeLabel;
-    private Button treeTypePlus;
-    private Button treeTypeMinus;
+    private readonly Panel treeTypePanel;
+    private readonly Panel treeTypeDisplayPanel;
+    private readonly Label treeTypeLabel;
+    private readonly Button treeTypePlus;
+    private readonly Button treeTypeMinus;
 
-    private Button destroyButton;
+    private readonly Button destroyButton;
 
     public TileMenu() : base("Tiles and plants") {
         //grass

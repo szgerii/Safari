@@ -9,7 +9,7 @@ namespace Safari.Popups;
 public class EntityControllerMenu : PopupMenu {
 	public static EntityControllerMenu Active { get; private set; } = null;
 	private Button closeButton;
-	private Image image;
+	private readonly Image image;
 	private Header header;
 	private Rectangle maskArea;
 	protected Safari.Model.Entities.Entity controlledEntity;

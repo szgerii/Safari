@@ -17,8 +17,8 @@ namespace Safari.Model;
 /// Stores the static parts of the game world
 /// </summary>
 public class Level : GameObject {
-	public static int PLAY_AREA_CUTOFF_X = 8;
-	public static int PLAY_AREA_CUTOFF_Y = 8;
+	public static int PLAY_AREA_CUTOFF_X { get; set; } = 8;
+	public static int PLAY_AREA_CUTOFF_Y { get; set; } = 8;
 
 	/// <summary>
 	/// The image to draw as a background to the tiles

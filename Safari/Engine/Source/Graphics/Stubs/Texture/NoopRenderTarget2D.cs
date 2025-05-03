@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿#pragma warning disable IDE0060
+using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace Engine.Graphics.Stubs.Texture;
@@ -13,8 +14,11 @@ public class NoopRenderTarget2D : NoopTexture2D, IRenderTarget2D {
 
 	public int MultiSampleCount { get; set; }
 
+// ignore obsolete warning (needed for MonoGame compatibility)
+#pragma warning disable CS0067
 	[Obsolete("This is provided for XNA compatibility only and is never called by MonoGame")]
 	public event EventHandler<EventArgs> ContentLost;
+#pragma warning restore CS0067
 
 	public NoopRenderTarget2D(GraphicsDevice graphicsDevice, int width, int height, bool mipMap, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage, bool shared, int arraySize)
 		: base(graphicsDevice, width, height, mipMap, preferredFormat) {

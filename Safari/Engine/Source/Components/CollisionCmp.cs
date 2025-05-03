@@ -32,8 +32,8 @@ public class CollisionCmp : Component, ISpatial {
 
 	public Vectangle ScreenCollider => Collider + Owner.ScreenPosition;
 
-	public CollisionTags Tags;
-	public CollisionTags Targets;
+	public CollisionTags Tags { get; set; }
+	public CollisionTags Targets { get; set; }
 	
 	public CollisionCmp(Vectangle collider) {
 		Collider = collider;

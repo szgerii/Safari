@@ -28,7 +28,7 @@ public partial class AutoTile : Tile {
 	/// <summary>
 	/// Whether the current texture should be recalculated on the next frame
 	/// </summary>
-	public bool NeedsUpdate = true;
+	public bool NeedsUpdate { get; set; } = true;
 
 	public AutoTile(ITexture2D atlasTex) : base() {
 		Texture = atlasTex;

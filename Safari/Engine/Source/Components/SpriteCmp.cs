@@ -13,7 +13,7 @@ public class SpriteCmp : Component, IDrawable {
 	/// <summary>
 	/// The texture of the sprite
 	/// </summary>
-	public ITexture2D Texture { get; set; }
+	public virtual ITexture2D Texture { get; set; }
 	/// <summary>
 	/// The origin point of the sprite
 	/// </summary>

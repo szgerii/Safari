@@ -27,45 +27,43 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private bool visible;
 
-    private Panel speedButtonPanel;
-    private Button pauseButton;
-    private Button slowButton;
-    private Button mediumButton;
-    private Button fastButton;
+    private readonly Panel speedButtonPanel;
+    private readonly Button pauseButton;
+    private readonly Button slowButton;
+    private readonly Button mediumButton;
+    private readonly Button fastButton;
 
-    private Panel categoryMenuPanel;
+    private readonly Panel shopPanel;
 
-    private Panel shopPanel;
+    private readonly AnimalMenu animals;
+    private readonly Button animalsButton;
+    private readonly TileMenu tiles;
+    private readonly Button tilesButton;
+    private readonly OtherMenu others;
+    private readonly Button othersButton;
 
-    private AnimalMenu animals;
-    private Button animalsButton;
-    private TileMenu tiles;
-    private Button tilesButton;
-    private OtherMenu others;
-    private Button othersButton;
+    private readonly Panel indicatorPanel;
 
-    private Panel indicatorPanel;
-
-    private Panel moneyPanel;
-    private Label moneyText;
+    private readonly Panel moneyPanel;
+    private readonly Label moneyText;
     private double moneyCurr;
 
-    private Panel ratingPanel;
-    private Label ratingText;
+    private readonly Panel ratingPanel;
+    private readonly Label ratingText;
     private double ratingCurr;
 
-    private Panel carnivorePanel;
-    private Label carnivoreText;
+    private readonly Panel carnivorePanel;
+    private readonly Label carnivoreText;
     private int carnivoreCurr;
 
-    private Panel herbivorePanel;
-    private Label herbivoreText;
+    private readonly Panel herbivorePanel;
+    private readonly Label herbivoreText;
     private int herbivoreCurr;
 
-    private Panel winDaysPanel;
-    private Label winDaysText;
+    private readonly Panel winDaysPanel;
+    private readonly Label winDaysText;
 
-    private Button entityManagerButton;
+    private readonly Button entityManagerButton;
 
     private Rectangle maskArea;
 

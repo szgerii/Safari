@@ -17,15 +17,15 @@ namespace Safari.Model;
 public class LightManager : IPostProcessPass {
 	private IRenderTarget2D _output = null;
 	private IRenderTarget2D _lightTexture = null;
-	private Effect dayNightPass = Game.CanDraw ? Game.ContentManager.Load<Effect>("Fx/dayNightPass") : null;
-	private int width;
-	private int height;
-	private int tileSize;
-	private int[,] lightMap;
+	private readonly Effect dayNightPass = Game.CanDraw ? Game.ContentManager.Load<Effect>("Fx/dayNightPass") : null;
+	private readonly int width;
+	private readonly int height;
+	private readonly int tileSize;
+	private readonly int[,] lightMap;
 
 	IRenderTarget2D IPostProcessPass.Output => _output;
 	Effect IPostProcessPass.Shader => dayNightPass;
-	ITexture2D red = Utils.GenerateTexture(1, 1, Color.Red);
+	readonly ITexture2D red = Utils.GenerateTexture(1, 1, Color.Red);
 
 	public LightManager(int width, int height, int tileSize) {
 		this.width = width;

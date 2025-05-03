@@ -22,7 +22,7 @@ public class Bush : Tile {
 }
 
 public class WideBush : Tile {
-	private static Point[] BushOffsets = [
+	private static readonly Point[] BushOffsets = [
 		new(1, 0)
 	];
 

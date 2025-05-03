@@ -23,15 +23,15 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
         instance = null;
 	}
 
-	private Panel consoleTextPanel;
-    private RichParagraph consoleTextLog;
-    private TextInput input;
+	private readonly Panel consoleTextPanel;
+    private readonly RichParagraph consoleTextLog;
+    private readonly TextInput input;
     private bool visible;
     private StringBuilder builder;
     private int scrollNeeded;
     private bool tryFocusInput = true;
     private Vector2? mousePosStorage = null;
-    private LinkedList<string> commandHistory = new();
+    private readonly LinkedList<string> commandHistory = new();
     private LinkedListNode<string> currentHistoryNode = null;
 
     public static bool Visible => Instance.visible;

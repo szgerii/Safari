@@ -18,11 +18,11 @@ public class AnimalMenu : CategoryMenu {
     //private Image lionImage;
     //private Image tigerImage;
     //private Image tigerWhiteImage;
-    private Panel itemsPanel;
+    private readonly Panel itemsPanel;
 
-    private Panel genderPanel;
-    private Button maleButton;
-    private Button femaleButton;
+    private readonly Panel genderPanel;
+    private readonly Button maleButton;
+    private readonly Button femaleButton;
 
     public Gender SelectedGender { get; private set; } = Gender.Female;
 

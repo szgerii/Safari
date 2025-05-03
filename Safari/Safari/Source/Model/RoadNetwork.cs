@@ -39,9 +39,9 @@ public class RoadChangedEventArgs : EventArgs {
 };
 
 public class RoadNetwork {
-	private int width;
-	private int height;
-	private RoadState[,] network;
+	private readonly int width;
+	private readonly int height;
+	private readonly RoadState[,] network;
 
 	private List<List<Point>> cachedRoutes = new();
 	private List<Point> cachedReturnRoute = new();

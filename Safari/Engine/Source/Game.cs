@@ -52,7 +52,6 @@ public class Game : Microsoft.Xna.Framework.Game {
 	public static void RemoveObject(GameObject obj) => SceneManager.Active.RemoveObject(obj);
 	#endregion
 
-	private Dictionary<string, Point> texSizes = [];
 	public static ITexture2D LoadTexture(string path) {
 		return CanDraw ? (Texture2DAdapter)ContentManager.Load<Texture2D>(path) : NoopTexture2D.Empty;
 	}
