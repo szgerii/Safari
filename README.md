@@ -2,16 +2,16 @@
 
 ## Status
 
-![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg?key_text=master+pipeline&key_width=100)
-![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg?key_text=master+model+coverage&key_width=150)
+[![pipeline master](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg?key_text=master+pipeline&key_width=100)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/master)
+[![coverage master](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg?key_text=master+model+coverage&key_width=150)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/master)
 
-![pipeline](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg?key_text=develop+pipeline&key_width=100)
-![coverage](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg?key_text=develop+model+coverage&key_width=150)
+[![pipeline develop](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg?key_text=develop+pipeline&key_width=100)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/develop)
+[![coverage develop](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg?key_text=develop+model+coverage&key_width=150)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/develop)
 
 ## Project Structure
 - `Safari/Safari`: the main project for the game itself
-- `Safari/Engine`: the engine used by the game
-    The engine runs on top of [MonoGame](https://monogame.net/) and is an expansion of an old hobby project started by us.
+- `Safari/Engine`: the engine used by the game<br>
+    - The engine runs on top of the [MonoGame](https://monogame.net/) framework and is an expansion of an old hobby project started by us.
 - `Safari/GeonBit.UI`: UI library for MonoGame ([GeonBit.UI](https://www.nuget.org/packages/GeonBit.UI/))
 - `Safari/SafariTest`: MSTest project for unit testing the game
 
@@ -31,7 +31,7 @@ All of these are ran after every commit to master and develop, and the first two
 The build stage simply builds the game in Release configuration. If this fails, no other job is executed.
 This skips any parts that would require an actual graphics device to work (mainly running the content pipeline for the game assets).
 
-### 2. Tests
+### 2. Test
 
 #### Unit tests
 
@@ -48,7 +48,7 @@ These two GitLab pipeline jobs have also been included on a "better safe than so
 
 #### Static Code Analysis
 
-WIP
+Static code analysis is implemented through the [Code Quality .NET](https://szofttech.inf.elte.hu/components/code-quality-dotnet) CI component.
 
 ### 3. Deploy
 
