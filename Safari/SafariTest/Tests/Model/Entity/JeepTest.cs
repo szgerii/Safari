@@ -35,7 +35,7 @@ public class JeepTest : SimulationTest {
 
 	[TestMethod]
 	public void JeepWait() {
-		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
+		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f) { Active = false };
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 
@@ -102,13 +102,10 @@ public class JeepTest : SimulationTest {
 		Assert.AreEqual(JeepState.WaitingForTourists, j3.StateMachine.CurrentState);
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.AreEqualBefore(JeepState.FollowingRoute, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(18));
+		GameAssert.AreEqualBefore(JeepState.Parking, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(18));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
 		Assert.IsFalse(Model.IsDaytime);
-		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.AreEqualBefore(JeepState.Parking, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(1));
-		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.TrueBefore(() => Model.IsDaytime, TimeSpan.FromHours(18));

@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using Safari.Popups;
 using Engine.Helpers;
 using Engine.Graphics.Stubs.Texture;
+using Newtonsoft.Json;
+using Safari.Persistence;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -19,6 +21,7 @@ public enum Gender {
 	Female
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Animal : Entity {
 	/// <summary>
 	/// The base layer depth for animals
@@ -53,7 +56,9 @@ public abstract class Animal : Entity {
 
 	private const int INDICATOR_HEIGHT = 8;
 
+	[JsonProperty]
 	protected DateTime birthTime;
+	[JsonProperty]
 	protected DateTime? lastMatingTime = null;
 
 	/// <summary>
@@ -68,10 +73,12 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Represents how hungry the animal currently is (goes down with time)s
 	/// </summary>
+	[JsonProperty]
 	public float HungerLevel { get; protected set; } = 100f;
 	/// <summary>
 	/// Represents how thirsty the animal currently is (goes down with time)s
 	/// </summary>
+	[JsonProperty]
 	public float ThirstLevel { get; protected set; } = 100f;
 	/// <summary>
 	/// Determines how fast the animal's hunger level drops
@@ -96,15 +103,18 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Whether the animal is currently being escorted by a poacher
 	/// </summary>
+	[JsonProperty]
 	public bool IsCaught { get; protected set; }
 
 	/// <summary>
 	/// The gender of the animal
 	/// </summary>
+	[JsonProperty]
 	public Gender Gender { get; init; }
 	/// <summary>
 	/// The species of this animal
 	/// </summary>
+	[JsonProperty]
 	public AnimalSpecies Species { get; init; }
 	/// <summary>
 	/// Whether the animal feeds on other, herbivorous animals
@@ -128,6 +138,7 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public int Price => Utils.Round(Species.GetPrice() * 0.5f + (Species.GetPrice() * 0.5f * ((float)Age / MAX_AGE)));
 
+	[JsonProperty]
 	private bool hasChip;
 	/// <summary>
 	/// Controls whether this animal has a chip attached
@@ -162,12 +173,23 @@ public abstract class Animal : Entity {
 	/// The animal's collision detection component
 	/// </summary>
 	protected CollisionCmp collisionCmp;
+	
+	[JsonConstructor]
+	public Animal() : base() {
+		Died += (object sender, EventArgs e) => {
+			Group?.Leave(this);
+		};
+		InitAnimations();
+
+		InitCollision();
+	}
 
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
 		// data
 		Species = species;
 		Gender = gender;
 		Group = new AnimalGroup(this);
+		Game.AddObject(Group);
 		VisibleAtNight = false;
 
 		ReachDistance = 3;
@@ -178,7 +200,21 @@ public abstract class Animal : Entity {
 			Group?.Leave(this);
 		};
 
-		// animations
+		InitAnimations();
+
+		InitCollision();
+
+	}
+
+	private void InitCollision() {
+		collisionCmp = new CollisionCmp(Vectangle.Empty) {
+			Tags = CollisionTags.Animal,
+			Targets = CollisionTags.World // | CollisionTags.Animal
+		};
+		Attach(collisionCmp);
+	}
+
+	private void InitAnimations() {
 		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
 		Sprite = animSprite;
 		Attach(Sprite);
@@ -192,13 +228,6 @@ public abstract class Animal : Entity {
 		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
 		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
 		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
-
-		// collision
-		collisionCmp = new CollisionCmp(Vectangle.Empty) {
-			Tags = CollisionTags.Animal,
-			Targets = CollisionTags.World // | CollisionTags.Animal
-		};
-		Attach(collisionCmp);
 	}
 
 	static Animal() {

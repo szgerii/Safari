@@ -6,6 +6,7 @@ using Engine.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Input;
 using Safari.Model.Entities.Animals;
@@ -17,19 +18,8 @@ using System.Collections.Generic;
 namespace Safari.Model.Entities;
 
 [SimulationActor]
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Entity : GameObject, ISpatial {
-	/// <summary>
-	/// Invoked every time an in-game hour passes for this entity
-	/// </summary>
-	public event EventHandler HourPassed;
-	/// <summary>
-	/// Invoked every time an in-game day passes for this entity
-	/// </summary>
-	public event EventHandler DayPassed;
-	/// <summary>
-	/// Invoked every time an in-game week passes for this entity
-	/// </summary>
-	public event EventHandler WeekPassed;
 	/// <summary>
 	/// Invoked exactly once at the end of an entity's lifetime
 	/// </summary>
@@ -44,12 +34,14 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Entity name to display in the shop / manager screens
 	/// </summary>
+	[JsonProperty]
 	public string DisplayName { get; protected init; }
 
 	/// <summary>
 	/// The calculated bounds for the current frame, invalidated (set to null) on PreUpdate
 	/// </summary>
 	private Vectangle calcBounds = new(-1, -1, -1, -1);
+	[JsonProperty]
 	private Vectangle? boundsBaseOverride;
 	/// <summary>
 	/// The bounding rectangle of the entity's display content <br/>
@@ -71,15 +63,18 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
 	/// </summary>
+	[JsonProperty]
 	public float SightDistance { get; set; } = 5;
 	/// <summary>
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
+	[JsonProperty]
 	public float ReachDistance { get; set; } = 1;
-	
+
 	/// <summary>
 	/// Bool for controlling whether this entity is visible (without any nearby light) at night
 	/// </summary>
+	[JsonProperty]
 	public bool VisibleAtNight { get; set; } = true;
 	/// <summary>
 	/// Getter for checking whether this entity is currently visible to the player
@@ -129,11 +124,13 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Indicates if the entity has died
 	/// </summary>
+	[JsonProperty]
 	public bool IsDead { get; private set; } = false;
 
 	/// <summary>
 	/// The navigation component controlling the entity's movement
 	/// </summary>
+	[JsonProperty]
 	public NavigationCmp NavCmp { get; protected set; }
 
 	/// <summary>
@@ -146,13 +143,11 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	public bool IsBeingInspected { get; set; }
 
-	private DateTime lastHourUpdate;
-	private DateTime lastDayUpdate;
-	private DateTime lastWeekUpdate;
+	[JsonConstructor]
+	public Entity() : this(Vector2.Zero) { }
 
 	public Entity(Vector2 pos) : base(pos) {
 		NavCmp = new NavigationCmp();
-		Attach(NavCmp);
 	}
 
 	static Entity() {
@@ -224,10 +219,9 @@ public abstract class Entity : GameObject, ISpatial {
 	}
 
 	public override void Load() {
+		Attach(NavCmp);
+
 		GameModel model = GameScene.Active.Model;
-		lastHourUpdate = model.IngameDate;
-		lastDayUpdate = model.IngameDate;
-		lastWeekUpdate = model.IngameDate;
 
 		model.EntityCount++;
 		activeEntities.Add(this);
@@ -247,18 +241,6 @@ public abstract class Entity : GameObject, ISpatial {
 
 	public override void Update(GameTime gameTime) {
 		DateTime ingameDate = GameScene.Active.Model.IngameDate;
-		if (ingameDate - lastHourUpdate > TimeSpan.FromHours(1)) {
-			HourPassed?.Invoke(this, EventArgs.Empty);
-			lastHourUpdate = ingameDate;
-		}
-		if (ingameDate - lastDayUpdate > TimeSpan.FromDays(1)) {
-			DayPassed?.Invoke(this, EventArgs.Empty);
-			lastDayUpdate = ingameDate;
-		}
-		if (ingameDate - lastWeekUpdate > TimeSpan.FromDays(7)) {
-			WeekPassed?.Invoke(this, EventArgs.Empty);
-			lastWeekUpdate = ingameDate;
-		}
 		base.Update(gameTime);
 	}
 

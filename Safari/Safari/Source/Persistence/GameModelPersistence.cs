@@ -7,13 +7,17 @@ using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model;
 using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
 using Safari.Model.Entities.Tourists;
 using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace Safari.Persistence;
 
@@ -36,12 +40,11 @@ public class GameModelPersistence {
 	public static List<Type> GameObjectTypes = new List<Type>() {
 		typeof(Camera),
 		typeof(EntitySpawner<Tourist>), typeof(EntitySpawner<Poacher>),
-		typeof(Road),
-		typeof(Water),
-		typeof(Grass),
-		typeof(Bush),
-		typeof(WideBush),
-		typeof(Tree)
+		typeof(Road), typeof(Water), typeof(Grass),
+		typeof(Bush), typeof(WideBush), typeof(Tree),
+		typeof(Tiger), typeof(TigerWhite), typeof(Lion),
+		typeof(Zebra), typeof(Elephant), typeof(Giraffe),
+		typeof(AnimalGroup)
 	};
 	public static List<InitializationRule> Rules = new List<InitializationRule>() {
 		// camera initializer
@@ -76,6 +79,10 @@ public class GameModelPersistence {
 				cons.InstaBuild(tmappos, t);
 			}
 		}, (obj, scene) => obj is Tile),
+		// entity / group
+		new ((obj, scene) => {
+			scene.AddObject(obj);
+		}, (obj, scene) => obj is AnimalGroup || obj is Entity),
 	};
 	private static MethodInfo deserMI;
 
@@ -124,13 +131,47 @@ public class GameModelPersistence {
 		SaveMetadata metadata = new SaveMetadata(DateTime.Now, model.ParkName, TimeSpan.FromSeconds(model.CurrentTime), model.IngameDate, model.PostWin);
 
 		List<SafariSaveNode> nodes = new List<SafariSaveNode>();
+		Dictionary<GameObject, int> refIDs = new();
+		int nextID = 0;
+
+		foreach (GameObject go in GameScene.Active.GameObjects) {
+			refIDs.Add(go, nextID);
+			nextID++;
+		}
 
 		foreach (GameObject go in GameScene.Active.GameObjects) {
 			foreach (Type type in GameObjectTypes) {
 				if (go.GetType() == type) {
 					string dump = JsonConvert.SerializeObject(go);
 					string typeName = type.AssemblyQualifiedName;
-					nodes.Add(new(typeName, dump));
+					List<SafariSaveRefNode> refs = new();
+					foreach (PropertyInfo pi in go.GetType().GetRuntimeProperties()) {
+						if (pi.GetCustomAttribute(typeof(GameobjectReferencePropertyAttribute)) != null) {
+							if (typeof(GameObject).IsAssignableFrom(pi.PropertyType)) {
+								string propName = pi.Name;
+
+								GameObject target = (GameObject)go.GetType().GetProperty(propName).GetValue(go, null);
+								int id = refIDs.ContainsKey(target) ? refIDs[target] : -1;
+
+								refs.Add(new(propName, JsonConvert.SerializeObject(new List<int>() { id })));
+							} else if (pi.PropertyType.IsGenericType && pi.PropertyType.GetGenericTypeDefinition() == typeof(List<>)) {
+								string propName = pi.Name;
+
+								List<int> ids = new();
+								IList raw = (IList)go.GetType().GetProperty(propName).GetValue(go, null);
+								foreach (object obj in raw) {
+									ids.Add(refIDs.ContainsKey((GameObject)obj) ? refIDs[(GameObject)obj] : -1);
+								}
+
+								refs.Add(new(propName, JsonConvert.SerializeObject(ids)));
+							} else {
+								throw new GameModelPersistenceException($"Gameobject reference type not yet supported: {pi.PropertyType.Name}.");
+							}
+						}
+					}
+
+					nodes.Add(new(typeName, dump, refIDs[go], refs));
+					break;
 				}
 			}
 		}
@@ -148,6 +189,10 @@ public class GameModelPersistence {
 		Tourist.Init();
 
 		GameScene scene = new GameScene(model);
+
+		Dictionary<int, GameObject> refs = new();
+		List<(GameObject, MethodInfo, Dictionary<string, List<int>>)> setupMethods = new();
+
 		foreach (SafariSaveNode node in head.SaveNodes) {
 			Type objectType = Type.GetType(node.FullTypeName);
 			object obj = deserMI
@@ -160,7 +205,30 @@ public class GameModelPersistence {
 						break;
 					}
 				}
+				refs.Add(node.GameObjectID, gameobject);
+				foreach (MethodInfo mi in gameobject.GetType().GetRuntimeMethods()) {
+					if (mi.GetCustomAttribute(typeof(PostPersistenceSetupAttribute)) != null) {
+						Dictionary<string, List<int>> refIds = new();
+						foreach (SafariSaveRefNode rn in node.Refs) {
+							List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized);
+							refIds.Add(rn.Name, l);
+						}
+						setupMethods.Add((gameobject, mi, refIds));
+					}
+				}
 			}
+		}
+
+		foreach ((GameObject gameobject, MethodInfo mi, Dictionary<string, List<int>> refIds) in setupMethods) {
+			Dictionary<string, List<GameObject>> refObjs = new();
+			foreach (string key in refIds.Keys) {
+				List<GameObject> current = new();
+				foreach (int i in refIds[key]) {
+					current.Add(refs[i]);
+				}
+				refObjs.Add(key, current);
+			}
+			mi.Invoke(gameobject, new[] { refObjs });
 		}
 
 		model.Level.Background = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
