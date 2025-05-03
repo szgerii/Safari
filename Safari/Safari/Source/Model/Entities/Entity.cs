@@ -88,7 +88,6 @@ public abstract class Entity : GameObject, ISpatial {
 		get {
 			GameModel model = GameScene.Active.Model;
 			Level level = model.Level;
-			int tileSize = GameScene.Active.Model.Level.TileSize;
 			Vector2 offset = Bounds.Size / 2;
 			Vector2 centerPoint = Position + offset;
 			int map_x = (int)(centerPoint.X / level.TileSize);

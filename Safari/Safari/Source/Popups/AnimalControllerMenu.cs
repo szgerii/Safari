@@ -7,11 +7,10 @@ using Safari.Scenes.Menus;
 namespace Safari.Popups;
 	
 public class AnimalControllerMenu : EntityControllerMenu {
-	private Button sellButton;
+	private readonly Button sellButton;
 	private Button chipButton = null;
-	private Paragraph chipParagraph = null;
-	private Paragraph dataParagraph = null;
-	private Animal animal;
+	private readonly Paragraph dataParagraph = null;
+	private readonly Animal animal;
 
 	public AnimalControllerMenu(Animal animal) : base(animal) {
 		this.animal = animal;
@@ -27,10 +26,7 @@ public class AnimalControllerMenu : EntityControllerMenu {
 		sellButton.ButtonParagraph.Scale = 0.75f;
 		panel.AddChild(sellButton);
 
-		if (animal.HasChip) {
-			//chipParagraph = new Paragraph("This animal already has a microchip installed");
-			//panel.AddChild(chipParagraph);
-		} else {
+		if (!animal.HasChip) {
 			chipButton = new Button("Buy chip (-250)", ButtonSkin.Default, Anchor.AutoCenter);
 			chipButton.Size = new Vector2(0.8f, 0.1f);
 			chipButton.ButtonParagraph.Scale = 0.75f;
@@ -76,8 +72,6 @@ public class AnimalControllerMenu : EntityControllerMenu {
 		GameScene.Active.Model.Funds -= 250;
 		this.animal.HasChip = true;
 		panel.RemoveChild(chipButton);
-		//chipParagraph = new Paragraph("This animal already has a microchip installed");
-		//panel.AddChild(chipParagraph);
 		chipButton = null;
 	}
 

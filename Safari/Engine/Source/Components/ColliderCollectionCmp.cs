@@ -8,7 +8,7 @@ public class ColliderCollectionCmp : Component {
 	public CollisionTags DefaultTag { get; set; }
 	public CollisionTags DefaultTargets { get; set; }
 
-	private List<CollisionCmp> components = new();
+	private readonly List<CollisionCmp> components = new();
 
 	public void AddCollider(CollisionCmp cmp) {
 		if (cmp.Tags == 0) {

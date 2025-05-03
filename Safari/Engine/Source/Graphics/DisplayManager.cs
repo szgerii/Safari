@@ -23,10 +23,10 @@ public static class DisplayManager {
 	private static Game Game => Game.Instance;
 	private static GraphicsDeviceManager Graphics => Game.Graphics;
 	private static GameWindow Window => Game.Window;
-	public static List<DisplayMode> supportedResolutions { get; private set; }
+	public static List<DisplayMode> SupportedResolutions { get; private set; }
 
 	public static void Init(WindowType windowType = WindowType.WINDOWED) {
-		supportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes.ToList();
+		SupportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes.ToList();
 		SetResolution(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode, false);
 
 		VSync = true;
@@ -73,7 +73,7 @@ public static class DisplayManager {
 	public static void DiscardChanges() {
 		Width = Graphics.PreferredBackBufferWidth;
 		Height = Graphics.PreferredBackBufferHeight;
-		AspectRatio = Width / Height;
+		AspectRatio = (float)Width / Height;
 		VSync = Graphics.SynchronizeWithVerticalRetrace;
 
 		if (Graphics.IsFullScreen) {
@@ -88,7 +88,7 @@ public static class DisplayManager {
 	}
 
 	public static bool IsSupported(int width, int height) {
-		foreach (DisplayMode res in supportedResolutions) {
+		foreach (DisplayMode res in SupportedResolutions) {
 			if (res.Width == width && res.Height == height) {
 				return true;
 			}
@@ -111,7 +111,7 @@ public static class DisplayManager {
 		if (WindowType == WindowType.WINDOWED) {
 			Width = width;
 			Height = height;
-			AspectRatio = width / height;
+			AspectRatio = (float)width / height;
 			
 			if (apply) {
 				ApplyChanges();
@@ -120,7 +120,7 @@ public static class DisplayManager {
 			return;
 		}
 		
-		foreach (DisplayMode mode in supportedResolutions) {
+		foreach (DisplayMode mode in SupportedResolutions) {
 			if (mode.Width == width && mode.Height == height) {
 				SetResolution(mode, apply);
 				return;
@@ -131,18 +131,18 @@ public static class DisplayManager {
 	}
 
 	public static void IncreaseResolution() {
-		for (int i = 0; i < supportedResolutions.Count - 1; i++) {
-			if (supportedResolutions[i].Width == Width && supportedResolutions[i].Height == Height) {
-				SetResolution(supportedResolutions[i + 1]);
+		for (int i = 0; i < SupportedResolutions.Count - 1; i++) {
+			if (SupportedResolutions[i].Width == Width && SupportedResolutions[i].Height == Height) {
+				SetResolution(SupportedResolutions[i + 1]);
 				break;
 			}
 		}
 	}
 
 	public static void DecreaseResolution() {
-		for (int i = supportedResolutions.Count; i >= 1; i--) {
-			if (supportedResolutions[i].Width == Width && supportedResolutions[i].Height == Height) {
-				SetResolution(supportedResolutions[i - 1]);
+		for (int i = SupportedResolutions.Count; i >= 1; i--) {
+			if (SupportedResolutions[i].Width == Width && SupportedResolutions[i].Height == Height) {
+				SetResolution(SupportedResolutions[i - 1]);
 				break;
 			}
 		}

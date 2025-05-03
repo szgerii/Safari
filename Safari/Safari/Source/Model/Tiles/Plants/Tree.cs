@@ -9,7 +9,7 @@ namespace Safari.Model.Tiles;
 /// </summary>
 public class Tree : Tile {
 
-	private static Point[] TreeOffsets = [
+	private static readonly Point[] TreeOffsets = [
 		new(-1, -1), new(-1, 0), new(-1, 1),
 		new (0, -1), new(0, 1),
 		new (1, -1), new(1, 0), new(1, 1)

@@ -1,4 +1,18 @@
-﻿[*.{cs,vb}]
+﻿root=true
+
+[*.{cs,vb}]
 
 # IDE0130: Namespace does not match folder structure
 dotnet_style_namespace_match_folder = false
+
+# Message-level checks for newer .NET syntax sugar features
+# (prevent them from filling up VS error logs with spam)
+dotnet_diagnostic.IDE0017.severity=silent
+dotnet_diagnostic.IDE0028.severity=silent
+dotnet_diagnostic.IDE0060.severity=silent
+dotnet_diagnostic.IDE0063.severity=silent
+dotnet_diagnostic.IDE0066.severity=silent
+dotnet_diagnostic.IDE0090.severity=silent
+dotnet_diagnostic.IDE0290.severity=silent
+dotnet_diagnostic.IDE0300.severity=silent
+dotnet_diagnostic.IDE0305.severity=silent

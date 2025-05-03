@@ -26,37 +26,37 @@ class EntityManager : PopupMenu {
     private readonly static EntityManager instance = new EntityManager();
     private bool visible;
     private EntityManagerTab currentPanel = EntityManagerTab.None;
-    private Header title;
-    private Panel buttonPanel;
+    private readonly Header title;
+    private readonly Panel buttonPanel;
 
-    private Panel rangerPanel;
-    private Button rangerTabBtn;
-    private Button rangerDefaultTargetButton;
-    private Panel rangerTopPanel;
-    private Label rangerHireLabel;
-    private Button rangerHirePlus;
-    private Button rangerHireMinus;
-    private Panel rangerListPanel;
+    private readonly Panel rangerPanel;
+    private readonly Button rangerTabBtn;
+    private readonly Button rangerDefaultTargetButton;
+    private readonly Panel rangerTopPanel;
+    private readonly Label rangerHireLabel;
+    private readonly Button rangerHirePlus;
+    private readonly Button rangerHireMinus;
+    private readonly Panel rangerListPanel;
     private int rangerTargetIndex = 0;
     bool update = false;
     int prevRangerCount;
 
-    private Panel animalPanel;
-    private Button animalTabBtn;
-    private Panel animalListPanel;
+    private readonly Panel animalPanel;
+    private readonly Button animalTabBtn;
+    private readonly Panel animalListPanel;
 
-    private Panel otherPanel;
-    private Button otherTabBtn;
-    private Panel jeepRentFeePanel;
-    private Label jeepRentFeeLabel;
-    private Label jeepRentFeeDisplayLabel;
-    private Panel jeepRentFeeDisplayPanel;
-    private Button jeepRentFeeMinusButton;
-    private Button jeepRentFeePlusButton;
+    private readonly Panel otherPanel;
+    private readonly Button otherTabBtn;
+    private readonly Panel jeepRentFeePanel;
+    private readonly Label jeepRentFeeLabel;
+    private readonly Label jeepRentFeeDisplayLabel;
+    private readonly Panel jeepRentFeeDisplayPanel;
+    private readonly Button jeepRentFeeMinusButton;
+    private readonly Button jeepRentFeePlusButton;
 
     private Rectangle maskArea;
 
-    private DefaultAnimalSelectorPopup defaultSelector = DefaultAnimalSelectorPopup.Instance;
+    private readonly DefaultAnimalSelectorPopup defaultSelector = DefaultAnimalSelectorPopup.Instance;
 
     public static EntityManager Instance => instance;
 

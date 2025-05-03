@@ -36,7 +36,7 @@ public class Animation {
 		Length = length;
 		Loop = loop;
 		Offset = offset;
-		Texture	= texture;
+		Texture = texture;
 	}
 }
 
@@ -55,6 +55,14 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	/// This maps names to animations
 	/// </summary>
 	public Dictionary<string, Animation> Animations { get; set; } = new Dictionary<string, Animation>();
+
+	public override ITexture2D Texture {
+		get => base.Texture;
+		set {
+			base.Texture = value;
+			UpdateFrameSize();
+		}
+	}
 
 	protected Animation currentAnim;
 	protected string currentAnimationName;
@@ -81,8 +89,8 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int ColumnCount {
 		get => columnCount;
 		set {
-			FrameWidth = (currentAnim?.Texture?.Width ?? Texture?.Width ?? 0) / value;
 			columnCount = value;
+			UpdateFrameSize();
 		}
 	}
 
@@ -93,8 +101,8 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	public int RowCount {
 		get => rowCount;
 		set {
-			FrameHeight = (currentAnim?.Texture?.Height ?? Texture?.Height ?? 0) / value;
 			rowCount = value;
+			UpdateFrameSize();
 		}
 	}
 
@@ -137,23 +145,16 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		Origin = Vector2.Zero;
 	}
 
-	private ITexture2D prevTex;
 	public void Update(GameTime gameTime) {
-		// TODO: handle this more efficiently
-		ITexture2D inUseTex = currentAnim?.Texture ?? Texture;
-		
-		if (inUseTex != prevTex) {
-			ColumnCount = ColumnCount;
-			RowCount = RowCount;
+		if (currentAnim == null) {
+			IsPlaying = false;
 		}
-		prevTex = inUseTex;
-
-		if (currentAnim == null) return;
 
 		IsPlaying = true;
 
 		// if it's time, try to play the next frame
 		frameTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
 		if (frameTime > frameGapMs) {
 			frameTime = 0;
 
@@ -181,5 +182,10 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 
 		// draw the current frame
 		Game.SpriteBatch.Draw(currentAnim?.Texture?.ToTexture2D() ?? Texture.ToTexture2D(), Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
+	}
+
+	private void UpdateFrameSize() {
+		FrameHeight = (currentAnim?.Texture?.Height ?? Texture?.Height ?? 0) / (RowCount != 0 ? RowCount : 1);
+		FrameWidth = (currentAnim?.Texture?.Width ?? Texture?.Width ?? 0) / (ColumnCount != 0 ? ColumnCount : 1);
 	}
 }

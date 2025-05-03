@@ -92,3 +92,4 @@ generate_docs:
   only:
     - master
     - develop
+    - /-ci$/

@@ -8,8 +8,8 @@ namespace Safari.Debug;
 
 public static class DebugInfoManager {
 
-	private static List<DebugInfo> debugInfos = new();
-	private static Dictionary<DebugInfoPosition, Paragraph> infoParagraphs = new();
+	private static readonly List<DebugInfo> debugInfos = new();
+	private static readonly Dictionary<DebugInfoPosition, Paragraph> infoParagraphs = new();
 
 	static DebugInfoManager() {
 		if (Game.Instance.IsHeadless) return;

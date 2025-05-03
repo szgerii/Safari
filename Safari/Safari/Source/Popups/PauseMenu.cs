@@ -23,12 +23,12 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
 		instance = null;
 	}
 
-	private Header Title;
-    private Panel ButtonPanel;
-    private Button ResumeButton;
-    private Button SaveButton;
-    private Button SaveAndExitButton;
-    private Button ExitButton;
+	private readonly Header Title;
+    private readonly Panel ButtonPanel;
+    private readonly Button ResumeButton;
+    private readonly Button SaveButton;
+    private readonly Button SaveAndExitButton;
+    private readonly Button ExitButton;
     private bool visible;       
 
     public static bool Visible => Instance.visible;

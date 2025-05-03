@@ -8,9 +8,9 @@ namespace Safari.Popups;
 public class AlertMenu : PopupMenu {
     private Header header;
     private Paragraph paragraph;
-    private Button button1;
-    private Button button2 = null;
-    private static Queue<AlertMenu> queue = new Queue<AlertMenu>();
+    private readonly Button button1;
+    private readonly Button button2 = null;
+    private static readonly Queue<AlertMenu> queue = new Queue<AlertMenu>();
     private static int waitCounter = 0;
     private static bool waitNeeded = false;
     private static AlertMenu Active = null;

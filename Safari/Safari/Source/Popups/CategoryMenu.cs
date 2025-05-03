@@ -7,7 +7,7 @@ namespace Safari.Popups;
 
 public abstract class CategoryMenu : PopupMenu {
     private bool visible = false;
-    private Header header;
+    private readonly Header header;
 
     private Rectangle maskArea;
 
