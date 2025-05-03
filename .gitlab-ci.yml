@@ -1,4 +1,5 @@
-# SOURCES:
+# SOURCES / REFERENCES:
+#
 # https://docs.gitlab.com/ci/
 # https://szofttech.inf.elte.hu/mate/tictactoe-dotnet
 # https://www.meziantou.net/computing-code-coverage-for-a-dotnet-project.htm
@@ -22,6 +23,10 @@ include:
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
   - template: Jobs/SAST.gitlab-ci.yml
+  - component: szofttech.inf.elte.hu/components/code-quality-dotnet/linux@2.1.1
+    inputs:
+      check_path: "./Safari/"
+      build_config: "Release -p:StrippedBuild=true"
 
 variables:
   GITLAB_ADVANCED_SAST_ENABLED: true
