@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Debug;
 using Engine.Graphics.Stubs.Texture;
 using Engine.Input;
 using Engine.Scenes;
@@ -302,6 +303,8 @@ public class Level : GameObject {
 				Game.AddObject(tile);
 			}
 		}
+
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", PostDraw, GameLoopStage.POST_DRAW));
 
 		base.Load();
 	}

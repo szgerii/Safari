@@ -66,11 +66,17 @@ public class GameScene : Scene {
 		}));
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
-			SceneManager.Load(new GameScene());
+			SceneManager.Load(new GameScene(Active.model.ParkName, Active.model.Difficulty));
 		}));
 	}
 
-	public GameScene() : base() { }
+	public GameScene() : this("test park", GameDifficulty.Easy) { }
+
+	public GameScene(string parkName, GameDifficulty difficulty) : base() {
+		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+		startDate = startDate.AddHours(6);
+		model = new GameModel(parkName, 6000, difficulty, startDate, StrippedInit);
+	}
 
 	public GameScene(GameModel model) : base() {
 		this.model = model;
@@ -102,13 +108,37 @@ public class GameScene : Scene {
 		// init game model
 		// The start of the game is always <date of creation> 6 am
 		if (!LoadInit) {
-			DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-			startDate = startDate.AddHours(6);
-			model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
+			ITexture2D staticBG = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
+			model.Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
+			AddObject(model.Level);
+
+			if (!StrippedInit) {
+				// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
+				Jeep.Init(400);
+				Tourist.Init();
+
+				EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
+					EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
+					EntityCount = () => model.PoacherCount // use PoacherCount to determine number of poachers on the map
+				};
+				Game.AddObject(poacherSpawner);
+
+				Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+					EntityLimit = 30,
+					EntityCount = () => Tourist.Queue.Count,
+					SpawnArea = new Rectangle(-64, 512, 32, 320),
+					ExtraCondition = () => model.IsDaytime
+				};
+				Game.AddObject(Tourist.Spawner);
+				Tourist.UpdateSpawner();
+			}
 		}
+
 		if (!Game.Instance.IsHeadless) {
 			PostProcessPasses.Add(model.Level.LightManager);
 		}
+
+		
 
 		int tileSize = model.Level.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);

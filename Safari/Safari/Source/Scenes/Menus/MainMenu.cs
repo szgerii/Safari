@@ -72,7 +72,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void LoadGameClicked(Entity entity) {
-		//SceneManager.Load(LoadGameMenu.Instance);
+        //SceneManager.Load(LoadGameMenu.Instance);
 		new GameModelPersistence("test park").Load(0);
 	}
 
@@ -97,7 +97,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
 
     public override void Update(GameTime gameTime) {
         if (loadGame) {
-            SceneManager.Load(new GameScene());
+            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
             loadGame = false;
         }
     }

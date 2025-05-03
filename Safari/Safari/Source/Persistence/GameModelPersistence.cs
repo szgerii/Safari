@@ -87,7 +87,7 @@ public class GameModelPersistence {
 	private static MethodInfo deserMI;
 
 	private string dirPath;
-	private List<SafariSaveHead> saves = new();
+	public List<SafariSaveHead> Saves { get; private init; } = new();
 
 	static GameModelPersistence() {
 		foreach (MethodInfo mi in typeof(JsonConvert).GetRuntimeMethods()) {
@@ -106,16 +106,18 @@ public class GameModelPersistence {
 		for (int i = 0; i < MAX_SLOTS; i++) {
 			string current = FileName(i);
 			if (!File.Exists(current)) {
-				break;
+				if (MoveDown(i)) {
+					i--;
+				}
+				continue;
 			}
 			try {
 				using (StreamReader sr = new StreamReader(FileName(i))) {
 					SafariSaveHead head = JsonConvert.DeserializeObject<SafariSaveHead>(sr.ReadToEnd());
-					saves.Add(head);
+					Saves.Add(head);
 				}
 			} catch (Exception e) {
-				MoveDown(i);
-				i--;
+				
 			}
 		}
 	}
@@ -183,7 +185,7 @@ public class GameModelPersistence {
 	}
 
 	public bool Load(int slot) {
-		SafariSaveHead head = saves[slot];
+		SafariSaveHead head = Saves[slot];
 		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized);
 		Jeep.Init(400);
 		Tourist.Init();
@@ -238,6 +240,30 @@ public class GameModelPersistence {
 		return true;
 	}
 
+
+
+	public static bool IsNameAvailable(string parkName) {
+		foreach (string dir in Directory.GetDirectories(SAVE_PATH)) {
+			string name = Path.GetFileName(dir);
+			if (name == parkName) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/// <summary>
+	/// Fetches all existing saved parks, sorted (newest first)
+	/// </summary>
+	/// <returns></returns>
+	public static List<string> ListExistingParkNames() =>
+		Directory
+		.GetDirectories(SAVE_PATH)
+		.OrderByDescending(s => Directory.GetLastWriteTime(s))
+		.Select(s => Path.GetFileName(s))
+		.ToList();
+	
+
 	private string FileName(int slot) => Path.Join(dirPath, $"slot{slot}.safsav");
 
 	private void MoveUp() {
@@ -254,18 +280,22 @@ public class GameModelPersistence {
 		}
 	}
 
-	private void MoveDown(int deleteSlot) {
+	private bool MoveDown(int deleteSlot) {
+		bool somethingHappened = false;
 		string first = FileName(deleteSlot);
 		if (File.Exists(first)) {
 			File.Delete(first);
+			somethingHappened = true;
 		}
 		for (int i = deleteSlot + 1; i < MAX_SLOTS; i++) {
 			string current = FileName(i);
 			string prev = FileName(i - 1);
 			if (File.Exists(current)) {
 				File.Move(current, prev);
+				somethingHappened = true;
 			}
 		}
+		return somethingHappened;
 	}
 }
 

@@ -99,7 +99,7 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
 
     public override void Update(GameTime gameTime) {
         if (loadGame) {
-            SceneManager.Load(new GameScene());
+            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
             loadGame = false;
         }
     }
