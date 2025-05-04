@@ -118,6 +118,7 @@ public class NavigationCmp : Component, IUpdatable {
 	private Entity ownerEntity;
 	private CollisionCmp collCmp;
 
+	[JsonProperty]
 	public bool AccountForBounds { get; set; } = true;
 
 	[JsonConstructor]

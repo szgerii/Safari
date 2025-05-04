@@ -45,10 +45,11 @@ public class GameModelPersistence {
 		typeof(Tiger), typeof(TigerWhite), typeof(Lion),
 		typeof(Zebra), typeof(Elephant), typeof(Giraffe),
 		typeof(AnimalGroup),
-		typeof(Poacher), typeof(Ranger)
+		typeof(Poacher), typeof(Ranger),
+		typeof(Jeep), typeof(Tourist)
 	};
 	public static readonly List<Type> StaticTypes = new List<Type>() {
-		typeof(Ranger),
+		typeof(Ranger), typeof(Jeep), typeof(Tourist)
 	};
 	public static List<InitializationRule> Rules = new List<InitializationRule>() {
 		// camera initializer
