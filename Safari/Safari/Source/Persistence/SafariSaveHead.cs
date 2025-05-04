@@ -20,12 +20,16 @@ public class SafariSaveHead {
 	[JsonProperty]
 	public List<SafariSaveNode> SaveNodes { get; set; }
 
+	[JsonProperty]
+	public List<SafariSaveStaticNode> StaticNodes { get; set; }
+
 	[JsonConstructor]
 	public SafariSaveHead() { }
 
-	public SafariSaveHead(string gameCoreSerialized, SaveMetadata metadata, List<SafariSaveNode> saveNodes) {
+	public SafariSaveHead(string gameCoreSerialized, SaveMetadata metadata, List<SafariSaveNode> saveNodes, List<SafariSaveStaticNode> staticNodes) {
 		GameCoreSerialized = gameCoreSerialized;
 		MetaData = metadata;
 		SaveNodes = saveNodes;
+		StaticNodes = staticNodes;
 	}
 }

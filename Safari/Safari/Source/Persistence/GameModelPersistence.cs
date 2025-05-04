@@ -37,14 +37,18 @@ public class InitializationRule {
 public class GameModelPersistence {
 	public const int MAX_SLOTS = 5;
 	public const string SAVE_PATH = "saves";
-	public static List<Type> GameObjectTypes = new List<Type>() {
+	public static readonly List<Type> GameObjectTypes = new List<Type>() {
 		typeof(Camera),
 		typeof(EntitySpawner<Tourist>), typeof(EntitySpawner<Poacher>),
 		typeof(Road), typeof(Water), typeof(Grass),
 		typeof(Bush), typeof(WideBush), typeof(Tree),
 		typeof(Tiger), typeof(TigerWhite), typeof(Lion),
 		typeof(Zebra), typeof(Elephant), typeof(Giraffe),
-		typeof(AnimalGroup)
+		typeof(AnimalGroup),
+		typeof(Poacher), typeof(Ranger)
+	};
+	public static readonly List<Type> StaticTypes = new List<Type>() {
+		typeof(Ranger),
 	};
 	public static List<InitializationRule> Rules = new List<InitializationRule>() {
 		// camera initializer
@@ -135,6 +139,7 @@ public class GameModelPersistence {
 		List<SafariSaveNode> nodes = new List<SafariSaveNode>();
 		Dictionary<GameObject, int> refIDs = new();
 		int nextID = 0;
+		List<SafariSaveStaticNode> staticNodes = new List<SafariSaveStaticNode>();
 
 		foreach (GameObject go in GameScene.Active.GameObjects) {
 			refIDs.Add(go, nextID);
@@ -147,28 +152,14 @@ public class GameModelPersistence {
 					string dump = JsonConvert.SerializeObject(go);
 					string typeName = type.AssemblyQualifiedName;
 					List<SafariSaveRefNode> refs = new();
-					foreach (PropertyInfo pi in go.GetType().GetRuntimeProperties()) {
+					foreach (PropertyInfo pi in go.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)) {
 						if (pi.GetCustomAttribute(typeof(GameobjectReferencePropertyAttribute)) != null) {
-							if (typeof(GameObject).IsAssignableFrom(pi.PropertyType)) {
-								string propName = pi.Name;
-
-								GameObject target = (GameObject)go.GetType().GetProperty(propName).GetValue(go, null);
-								int id = refIDs.ContainsKey(target) ? refIDs[target] : -1;
-
-								refs.Add(new(propName, JsonConvert.SerializeObject(new List<int>() { id })));
-							} else if (pi.PropertyType.IsGenericType && pi.PropertyType.GetGenericTypeDefinition() == typeof(List<>)) {
-								string propName = pi.Name;
-
-								List<int> ids = new();
-								IList raw = (IList)go.GetType().GetProperty(propName).GetValue(go, null);
-								foreach (object obj in raw) {
-									ids.Add(refIDs.ContainsKey((GameObject)obj) ? refIDs[(GameObject)obj] : -1);
-								}
-
-								refs.Add(new(propName, JsonConvert.SerializeObject(ids)));
-							} else {
-								throw new GameModelPersistenceException($"Gameobject reference type not yet supported: {pi.PropertyType.Name}.");
-							}
+							refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(go, null)));
+						}
+					}
+					foreach (FieldInfo fi in go.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)) {
+						if (fi.GetCustomAttribute(typeof(GameobjectReferencePropertyAttribute)) != null) {
+							refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(go)));
 						}
 					}
 
@@ -178,9 +169,56 @@ public class GameModelPersistence {
 			}
 		}
 
-		SafariSaveHead head = new SafariSaveHead(modelStr, metadata, nodes);
+		foreach (Type type in StaticTypes) {
+			string typeName = type.AssemblyQualifiedName;
+			List<SafariSaveStaticProp> props = new();
+			List<SafariSaveRefNode> refs = new();
+			foreach (PropertyInfo pi in type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)) {
+				if (pi.GetCustomAttribute(typeof(StaticSavedPropertyAttribute)) != null) {
+					string propName = pi.Name;
+					string propType = pi.PropertyType.AssemblyQualifiedName;
+					props.Add(new(propType, propName, true, JsonConvert.SerializeObject(pi.GetValue(null, null))));
+				} else if (pi.GetCustomAttribute(typeof(StaticSavedReferenceAttribute)) != null) {
+					refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(null, null)));
+				}
+			}
+			foreach (FieldInfo fi in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)) {
+				if (fi.GetCustomAttribute(typeof(StaticSavedPropertyAttribute)) != null) {
+					string propName = fi.Name;
+					string propType = fi.FieldType.AssemblyQualifiedName;
+					props.Add(new(propType, propName, false, JsonConvert.SerializeObject(fi.GetValue(null))));
+				} else if (fi.GetCustomAttribute(typeof(StaticSavedReferenceAttribute)) != null) {
+					refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(null)));
+				}
+			}
+			staticNodes.Add(new(typeName, props, refs));
+		}
+
+		SafariSaveHead head = new SafariSaveHead(modelStr, metadata, nodes, staticNodes);
 		using (StreamWriter sw = new StreamWriter(fileName)) {
 			sw.WriteLine(JsonConvert.SerializeObject(head));
+		}
+	}
+
+	private SafariSaveRefNode GetRef(string name, Type type, Dictionary<GameObject, int> refIDs, object value) {
+		if (typeof(GameObject).IsAssignableFrom(type)) {
+
+			GameObject target = (GameObject)value;
+			int id = target == null || !refIDs.ContainsKey(target) ? -1 : refIDs[target];
+
+			return new(name, JsonConvert.SerializeObject(new List<int>() { id }));
+		} else if (type.IsGenericType && type.IsAssignableTo(typeof(IEnumerable))) {
+			List<int> ids = new();
+			IEnumerable raw = (IEnumerable)value;
+			foreach (object obj in raw) {
+				GameObject target = (GameObject)obj;
+				int id = target == null || !refIDs.ContainsKey(target) ? -1 : refIDs[target];
+				ids.Add(id);
+			}
+
+			return new(name, JsonConvert.SerializeObject(ids));
+		} else {
+			throw new GameModelPersistenceException($"Gameobject reference with name {name} has a type that's not yet supported: {type.Name}.");
 		}
 	}
 
@@ -189,6 +227,7 @@ public class GameModelPersistence {
 		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized);
 		Jeep.Init(400);
 		Tourist.Init();
+		Ranger.Init();
 
 		GameScene scene = new GameScene(model);
 
@@ -208,7 +247,7 @@ public class GameModelPersistence {
 					}
 				}
 				refs.Add(node.GameObjectID, gameobject);
-				foreach (MethodInfo mi in gameobject.GetType().GetRuntimeMethods()) {
+				foreach (MethodInfo mi in gameobject.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
 					if (mi.GetCustomAttribute(typeof(PostPersistenceSetupAttribute)) != null) {
 						Dictionary<string, List<int>> refIds = new();
 						foreach (SafariSaveRefNode rn in node.Refs) {
@@ -221,12 +260,42 @@ public class GameModelPersistence {
 			}
 		}
 
+		foreach (SafariSaveStaticNode node in head.StaticNodes) {
+			Type type = Type.GetType(node.FullTypeName);
+			foreach (SafariSaveStaticProp prop in node.Props) {
+				string name = prop.PropName;
+				Type propType = Type.GetType(prop.FullTypeName);
+				object propValue = deserMI
+						.MakeGenericMethod(new[] { propType})
+						.Invoke(null, new[] { prop.PropSerialized });
+				if (prop.IsProp) {
+					type
+						.GetProperty(prop.PropName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+						.SetValue(null, propValue);
+				} else {
+					type.GetField(prop.PropName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+						.SetValue(null, propValue);
+				}
+			}
+			foreach (MethodInfo mi in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)) {
+				if (mi.GetCustomAttribute(typeof(PostPersistenceStaticSetupAttribute)) != null) {
+					Dictionary<string, List<int>> refIds = new();
+					foreach (SafariSaveRefNode rn in node.Refs) {
+						List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized);
+						refIds.Add(rn.Name, l);
+					}
+					setupMethods.Add((null, mi, refIds));
+				}
+			}
+		}
+
 		foreach ((GameObject gameobject, MethodInfo mi, Dictionary<string, List<int>> refIds) in setupMethods) {
 			Dictionary<string, List<GameObject>> refObjs = new();
 			foreach (string key in refIds.Keys) {
 				List<GameObject> current = new();
 				foreach (int i in refIds[key]) {
-					current.Add(refs[i]);
+					GameObject go = i < 0 || !refs.ContainsKey(i) ? null : refs[i];
+					current.Add(go);
 				}
 				refObjs.Add(key, current);
 			}

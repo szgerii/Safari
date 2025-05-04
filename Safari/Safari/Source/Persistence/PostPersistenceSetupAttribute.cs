@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Safari.Persistence;
 
-[AttributeUsage(AttributeTargets.Method)]	
+[AttributeUsage(AttributeTargets.Method)]
 public class PostPersistenceSetupAttribute : Attribute { }

@@ -116,6 +116,7 @@ public class GameScene : Scene {
 				// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
 				Jeep.Init(400);
 				Tourist.Init();
+				Ranger.Init();
 
 				EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
 					EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
@@ -363,6 +364,7 @@ public class GameScene : Scene {
 
 		CameraControllerCmp controllerCmp = new(bounds);
 		Camera.Active.Attach(controllerCmp);
+		Camera.Active.Zoom = CameraControllerCmp.DefaultZoom;
 
 		AddObject(Camera.Active);
 	}

@@ -2,10 +2,13 @@
 using Engine.Components;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
+using Safari.Persistence;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
 
 namespace Safari.Model.Entities;
 
@@ -14,6 +17,7 @@ public enum RangerState {
 	Chasing
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public class Ranger : Entity {
 	/// <summary>
 	/// The monthly salary of all rangers, payed in advance
@@ -32,8 +36,10 @@ public class Ranger : Entity {
 	/// The species of animals rangers should target when they
 	/// don't have a specific target (can be changed by the player)
 	/// </summary>
+	[StaticSavedProperty]
 	public static AnimalSpecies? DefaultTarget { get; set; } = null;
 
+	[JsonProperty]
 	private AnimalSpecies? targetSpecies = null;
 	/// <summary>
 	/// The species of animals this particular ranger should target <br/>
@@ -48,15 +54,18 @@ public class Ranger : Entity {
 		}
 	}
 
+	[GameobjectReferenceProperty]
 	private Entity chaseTargetBuffer = null;
 	/// <summary>
 	/// The Animal or Poacher the ranger is currently chasing
 	/// </summary>
+	[GameobjectReferenceProperty]
 	public Entity ChaseTarget { get; private set; } = null;
 
 	/// <summary>
 	/// The in-game date of the last successful animal killing
 	/// </summary>
+	[JsonProperty]
 	public DateTime LastSuccessfulHunt { get; private set; } = DateTime.MinValue;
 	/// <summary>
 	/// Whether the ranger can try to hunt for an animal again
@@ -70,17 +79,39 @@ public class Ranger : Entity {
 	/// <summary>
 	/// The state machine used for transitioning between the different ranger behavior types
 	/// </summary>
+	[JsonProperty]
 	public StateMachineCmp<RangerState> StateMachine { get; init; }
 	/// <summary>
 	/// Shorthand for StateMachine.State
 	/// </summary>
 	public RangerState State => StateMachine.CurrentState;
 
+	[JsonProperty]
 	private int lastSalaryMonth = -1;
+
+	public static void Init() {
+		DefaultTarget = null;
+	}
+
+	[JsonConstructor]
+	public Ranger() : base() {
+		SetupSprite();
+	}
 
 	public Ranger(Vector2 pos) : base(pos) {
 		DisplayName = "Ranger";
 
+		SetupSprite();
+
+		Bounds = new Vectangle(0, 0, 25, 64);
+		SightDistance = 8;
+		ReachDistance = 3;
+		NavCmp.Speed *= SPEED;
+
+		StateMachine = new(RangerState.Wandering);
+	}
+
+	private void SetupSprite() {
 		AnimatedSpriteCmp animSprite = new(Game.LoadTexture("Assets/Ranger/Walk"), 8, 2, 10);
 		animSprite.Animations["walk-right"] = new Animation(0, 8, true);
 		animSprite.Animations["walk-left"] = new Animation(1, 8, true);
@@ -91,21 +122,33 @@ public class Ranger : Entity {
 		Attach(Sprite);
 
 		animSprite.CurrentAnimation = "walk-right";
+	}
 
-		Bounds = new Vectangle(0, 0, 25, 64);
-		SightDistance = 8;
-		ReachDistance = 3;
-		NavCmp.Speed *= SPEED;
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		chaseTargetBuffer = (Entity)refObjs["chaseTargetBuffer"][0];
+		ChaseTarget = (Entity)refObjs["ChaseTarget"][0];
 
-		StateMachine = new(RangerState.Wandering);
-		Attach(StateMachine);
+		if (StateMachine.CurrentState == RangerState.Wandering) {
+			NavCmp.ReachedTarget += OnWanderingTargetReached;
+		}
 
-		LightEntityCmp lightCmp = new(GameScene.Active.Model.Level, 5);
-		Attach(lightCmp);
+		if (StateMachine.CurrentState == RangerState.Chasing) {
+			NavCmp.ReachedTarget += OnChaseTargetReached;
+			if (ChaseTarget != null) {
+				ChaseTarget.Died += OnChaseTargetDied;
+			}
+			NavCmp.TargetObject = ChaseTarget;
+		}
 	}
 
 	public override void Load() {
 		GameScene.Active.Model.RangerCount++;
+		
+		Attach(StateMachine);
+
+		LightEntityCmp lightCmp = new(GameScene.Active.Model.Level, 5);
+		Attach(lightCmp);
 
 		base.Load();
 	}

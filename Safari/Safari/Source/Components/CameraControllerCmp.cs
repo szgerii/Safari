@@ -34,8 +34,6 @@ public class CameraControllerCmp : Component, IUpdatable {
 	}
 
 	public override void Load() {
-		Camera.Zoom = DefaultZoom;
-
 		base.Load();
 	}
 
