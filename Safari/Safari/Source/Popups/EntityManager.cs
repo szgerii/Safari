@@ -283,10 +283,9 @@ class EntityManager : PopupMenu {
 
     public void Load() {
         visible = false;
-        Ranger.DefaultTarget = null;
         jeepRentFeeDisplayLabel.Text = Jeep.RentFee.ToString();
-        rangerDefaultTargetButton.ButtonParagraph.Text = "Default Target";
-        if (DefaultAnimalSelectorPopup.Showing) {
+		rangerDefaultTargetButton.ButtonParagraph.Text = Ranger.DefaultTarget == null ? "Default Target" : Ranger.DefaultTarget.Value.GetDisplayName();
+		if (DefaultAnimalSelectorPopup.Showing) {
             defaultSelector.Hide();
         }
     }

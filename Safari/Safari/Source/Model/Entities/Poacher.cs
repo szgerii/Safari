@@ -4,10 +4,13 @@ using Engine.Debug;
 using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
+using Safari.Persistence;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
 
 namespace Safari.Model.Entities;
 
@@ -23,6 +26,7 @@ public enum PoacherState {
 /// <summary>
 /// Class for poacher entities
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Poacher : Entity {
 	/// <summary>
 	/// The chance of shooting the chased animal upon reaching them (versus smuggling them out of the park)
@@ -36,6 +40,7 @@ public class Poacher : Entity {
 	/// <summary>
 	/// The poacher's state machine for handling behavior
 	/// </summary>
+	[JsonProperty]
 	public StateMachineCmp<PoacherState> StateMachine { get; init; }
 	/// <summary>
 	/// Shorthand for StateMachine.State
@@ -44,12 +49,15 @@ public class Poacher : Entity {
 	/// <summary>
 	/// The currently chased animal (or null if not chasing any right now)
 	/// </summary>
+	[GameobjectReferenceProperty]
 	public Animal ChaseTarget { get; private set; } = null;
 	/// <summary>
 	/// The animal that is currently being smuggled out of the park (or null if State != Smuggling)
 	/// </summary>
+	[GameobjectReferenceProperty]
 	public Animal CaughtAnimal { get; private set; } = null;
 
+	[JsonProperty]
 	private bool isRevealed = false;
 	public override bool Visible => isRevealed && base.Visible;
 
@@ -60,10 +68,47 @@ public class Poacher : Entity {
 	/// </summary>
 	private static bool revealAll = false;
 
+	[JsonConstructor]
+	public Poacher() : base() {
+		SetupSprite();
+	}
+
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		ChaseTarget = (Animal)refObjs["ChaseTarget"][0];
+		CaughtAnimal = (Animal)refObjs["CaughtAnimal"][0];
+
+		if (StateMachine.CurrentState == PoacherState.Chasing) {
+			NavCmp.TargetObject = ChaseTarget;
+			NavCmp.ReachedTarget += OnChaseTargetReached;
+			ChaseTarget.Died += OnChaseTargetDied;
+		}
+
+		if (StateMachine.CurrentState == PoacherState.Wandering) {
+			NavCmp.ReachedTarget += OnWanderingTargetReached;
+		}
+
+		if (StateMachine.CurrentState == PoacherState.Smuggling) {
+			NavCmp.ReachedTarget += OnEscapeReached;
+			Died += OnDiedWhileEscaping;
+		}
+	}
+
 	public Poacher(Vector2 pos) : base(pos) {
 		DisplayName = "Poacher";
 		VisibleAtNight = false;
 
+		SetupSprite();
+
+		Bounds = new Vectangle(0, 0, 32, 64);
+		SightDistance = 6;
+		ReachDistance = 2;
+		NavCmp.Speed *= SPEED;
+
+		StateMachine = new StateMachineCmp<PoacherState>(PoacherState.Wandering);
+	}
+
+	private void SetupSprite() {
 		ITexture2D walkSheet = Game.LoadTexture("Assets/Poacher/Walk");
 
 		AnimatedSpriteCmp animSprite = new(walkSheet, 7, 2, 10);
@@ -83,14 +128,6 @@ public class Poacher : Entity {
 			Targets = CollisionTags.World
 		};
 		Attach(collisionCmp);*/
-
-		Bounds = new Vectangle(0, 0, 32, 64);
-		SightDistance = 6;
-		ReachDistance = 2;
-		NavCmp.Speed *= SPEED;
-
-		StateMachine = new StateMachineCmp<PoacherState>(PoacherState.Wandering);
-		Attach(StateMachine);
 	}
 
 	static Poacher() {
@@ -107,6 +144,8 @@ public class Poacher : Entity {
 	}
 
 	public override void Load() {
+		Attach(StateMachine);
+
 		GameScene.Active.Model.PoacherCount++;
 		GameScene.Active.PreUpdate += HideOnPreUpdate;
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using System;
 
 namespace Engine.Helpers;
@@ -6,12 +7,17 @@ namespace Engine.Helpers;
 /// <summary>
 /// Floating point rectangle, based as closely as possible on MonoGame's <see cref="Rectangle"/>
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	private static Vectangle emptyVectangle = new();
 
+	[JsonProperty]
 	public float X { get; set; }
+	[JsonProperty]
 	public float Y { get; set; }
+	[JsonProperty]
 	public float Width { get; set; }
+	[JsonProperty]
 	public float Height { get; set; }
 
 	public static Vectangle Empty => emptyVectangle;

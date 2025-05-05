@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace Safari.Model.Tiles;
 /// <summary>
 /// A tile that automatically adjusts its texture based on its neighbors
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public partial class AutoTile : Tile {
 	/// <summary>
 	/// A dictionary mapping the possible bitmask values to their offsets inside the atlas texture
@@ -28,6 +30,7 @@ public partial class AutoTile : Tile {
 	/// <summary>
 	/// Whether the current texture should be recalculated on the next frame
 	/// </summary>
+	[JsonProperty]
 	public bool NeedsUpdate { get; set; } = true;
 
 	public AutoTile(ITexture2D atlasTex) : base() {

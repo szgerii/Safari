@@ -3,6 +3,9 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Engine;
 using Safari.Helpers;
+using Engine.Input;
+using Microsoft.Xna.Framework.Input;
+using Safari.Persistence;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
@@ -69,8 +72,9 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void LoadGameClicked(Entity entity) {
-        SceneManager.Load(LoadGameMenu.Instance);
-    }
+        //SceneManager.Load(LoadGameMenu.Instance);
+		new GameModelPersistence("test park").Load(0);
+	}
 
     private void SettingsClicked(Entity entity) {
         SceneManager.Load(SettingsMenu.Instance);
@@ -93,7 +97,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
 
     public override void Update(GameTime gameTime) {
         if (loadGame) {
-            SceneManager.Load(new GameScene());
+            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
             loadGame = false;
         }
     }

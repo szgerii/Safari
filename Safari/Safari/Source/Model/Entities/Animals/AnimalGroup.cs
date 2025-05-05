@@ -1,12 +1,15 @@
 ﻿using Engine;
 using Engine.Debug;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Tiles;
+using Safari.Persistence;
 using Safari.Popups;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -28,22 +31,27 @@ public enum AnimalGroupState {
 /// Every animal starts with a group of its own by default
 /// </summary>
 [SimulationActor]
+[JsonObject(MemberSerialization.OptIn)]
 public class AnimalGroup : GameObject {
 	public const int MAX_SIZE = 10;
 	private const float BASE_FORMATION_SPREAD = 30f;
 	private const float FORMATION_SPREAD_STEP = 13f;
 
+	[JsonProperty]
 	private readonly List<Vector2> knownFoodSpots = [];
+	[JsonProperty]
 	private readonly List<Vector2> knownWaterSpots = [];
 
 	/// <summary>
 	/// The species of the animals inside the group
 	/// </summary>
+	[JsonProperty]
 	public AnimalSpecies Species { get; private init; }
 	/// <summary>
 	/// The state machine that determines which activity the group is currently performing
 	/// </summary>
-	public StateMachineCmp<AnimalGroupState> StateMachine { get; private set; } = new(AnimalGroupState.Wandering);
+	[JsonProperty]
+	public StateMachineCmp<AnimalGroupState> StateMachine { get; private set; }
 	/// <summary>
 	/// Shorthand for accessing the state machine's current state
 	/// </summary>
@@ -51,6 +59,7 @@ public class AnimalGroup : GameObject {
 	/// <summary>
 	/// A list of the animals inside the group
 	/// </summary>
+	[GameobjectReferenceProperty]
 	public List<Animal> Members { get; private init; } = [];
 	/// <summary>
 	/// The size of the group
@@ -64,6 +73,7 @@ public class AnimalGroup : GameObject {
 	/// <summary>
 	/// The speed at which the animals inside the group move
 	/// </summary>
+	[JsonProperty]
 	public float Speed { get; set; } = 50f;
 
 	/// <summary>
@@ -99,24 +109,45 @@ public class AnimalGroup : GameObject {
 	/// <summary>
 	/// The navigation component of the group
 	/// </summary>
+	[JsonProperty]
 	public NavigationCmp NavCmp { get; private set; }
 
 	/// <summary>
 	/// A list of offsets used by the group members to determine their position within the formation
 	/// </summary>
+	[JsonProperty]
 	protected Vector2[] formationOffsets;
+
+	[JsonConstructor]
+	public AnimalGroup() : base(Vector2.Zero) {
+		NavCmp = new NavigationCmp(Speed);
+		StateMachine = new();
+	}
 
 	public AnimalGroup(Animal creator) : base(creator.Position) {
 		Species = creator.Species;
 		AddMember(creator);
-		OnSizeChange();
+		Game.AddObject(this);
 
 		NavCmp = new NavigationCmp(Speed);
-		Attach(NavCmp);
+		StateMachine = new(AnimalGroupState.Wandering);
+	}
 
-		Attach(StateMachine);
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		foreach (GameObject go in refObjs["Members"]) {
+			AddMember((Animal)go);
+		}
 
-		Game.AddObject(this);
+		if (StateMachine.CurrentState == AnimalGroupState.Wandering) {
+			NavCmp.ReachedTarget += OnWanderTargetReached;
+		}
+
+		if (StateMachine.CurrentState == AnimalGroupState.SeekingFood || StateMachine.CurrentState == AnimalGroupState.SeekingWater) {
+			if (!nearDestination) {
+				NavCmp.TargetInSight += OnNearDestination;
+			}
+		}
 	}
 
 	static AnimalGroup() {
@@ -140,8 +171,10 @@ public class AnimalGroup : GameObject {
 
 	public override void Load() {
 		OnSizeChange();
+		Attach(NavCmp);
+		Attach(StateMachine);
 
-		StateMachine.Transition(AnimalGroupState.Wandering);
+		OnSizeChange();
 
 		base.Load();
 	}
@@ -399,6 +432,7 @@ public class AnimalGroup : GameObject {
 		SyncToFormation();
 	}
 
+	[JsonProperty]
 	private bool nearDestination = false;
 	private void OnNearDestination(object sender, NavigationTargetEventArgs e) {
 		nearDestination = true;

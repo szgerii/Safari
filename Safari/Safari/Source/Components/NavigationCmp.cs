@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Engine.Components;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
 using System;
@@ -33,6 +34,7 @@ public class NavigationTargetEventArgs : EventArgs {
 /// Component for helping entities navigate through the game world
 /// </summary>
 [LimitCmpOwnerType(typeof(Entity), typeof(AnimalGroup))]
+[JsonObject(MemberSerialization.OptIn)]
 public class NavigationCmp : Component, IUpdatable {
 	private const float FALLBACK_REACH_THRESHOLD = 0.1f;
 	private const float FALLBACK_SIGHT_THRESHOLD = 0.2f;
@@ -43,6 +45,7 @@ public class NavigationCmp : Component, IUpdatable {
 	public event EventHandler<NavigationTargetEventArgs> ReachedTarget;
 	public event EventHandler<NavigationTargetEventArgs> TargetInSight;
 
+	[JsonProperty]
 	private Vector2? targetPosition = null;
 	/// <summary>
 	/// The position the component is approaching
@@ -93,26 +96,35 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// The speed at which the component's owner is moving
 	/// </summary>
+	[JsonProperty]
 	public float Speed { get; set; }
 	/// <summary>
 	/// Whether to stop moving after the target has been reached
 	/// </summary>
+	[JsonProperty]
 	public bool StopOnTargetReach { get; set; } = true;
 	/// <summary>
 	/// Whether the component's owner should currently be approaching their target
 	/// </summary>
+	[JsonProperty]
 	public bool Moving { get; set; } = false;
 
 	/// <summary>
 	/// Unit vector of the last direction the component was trying to move its owner in
 	/// </summary>
+	[JsonProperty]
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
+	
 	private Entity ownerEntity;
 	private CollisionCmp collCmp;
 
+	[JsonProperty]
 	public bool AccountForBounds { get; set; } = true;
 
-	public NavigationCmp(float speed = 50f) {
+	[JsonConstructor]
+	public NavigationCmp() : this(50f) { }
+
+	public NavigationCmp(float speed) {
 		Speed = speed;
 	}
 

@@ -66,6 +66,8 @@ public class EntitySpawnerTest {
 		Assert.AreEqual(1, spawner.CurrentChance);
 		Assert.IsNull(spawner.SpawnArea);
 
+		spawner.SpawnArea = new Rectangle(0, 0, 400, 400);
+
 		spawner.Update(gt);
 		Assert.AreEqual(1, spawnedCount);
 		Assert.AreEqual(model.IngameDate, spawner.LastSpawnAttempt);
@@ -102,6 +104,7 @@ public class EntitySpawnerTest {
 		GameTime gt = new();
 		goAddCount = 0;
 		EntitySpawner<DummyEntity> spawner = new(1, 1, 0.1f);
+		spawner.SpawnArea = new Rectangle(0, 0, 400, 400);
 
 		spawner.EntityLimit = 2;
 		spawner.EntityCount = () => goAddCount;

@@ -2,6 +2,7 @@
 using Engine.Components;
 using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Scenes;
 
 namespace Safari.Model.Tiles;
@@ -9,6 +10,7 @@ namespace Safari.Model.Tiles;
 /// <summary>
 /// Represents a single tile in the game world
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Tile : GameObject {
 	/// <summary>
 	/// The position of the tile inside the tilemap grid

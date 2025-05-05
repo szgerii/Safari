@@ -35,7 +35,7 @@ public class JeepTest : SimulationTest {
 
 	[TestMethod]
 	public void JeepWait() {
-		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
+		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f) { Active = false };
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 
@@ -62,10 +62,10 @@ public class JeepTest : SimulationTest {
 		Point p2 = Model.Level.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
 		Model.Level.ClearTile(p2);
 		Game.RunOneFrame();
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2	(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
 		Assert.AreEqual(JeepState.WaitingForNormalRoute, j1.StateMachine.CurrentState);
 		
@@ -84,7 +84,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 		Jeep j2 = Jeep.WaitingJeep;
 
-		j2.AddTourist(new Tourist(new(40, 40)));
+		j2.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.AreEqualBefore(JeepState.FollowingRoute , () => j2.StateMachine.CurrentState, TimeSpan.FromHours(Jeep.MAX_WAITING_HOURS));
@@ -102,13 +102,10 @@ public class JeepTest : SimulationTest {
 		Assert.AreEqual(JeepState.WaitingForTourists, j3.StateMachine.CurrentState);
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.AreEqualBefore(JeepState.FollowingRoute, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(18));
+		GameAssert.AreEqualBefore(JeepState.Parking, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(18));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
 		Assert.IsFalse(Model.IsDaytime);
-		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.AreEqualBefore(JeepState.Parking, () => j3.StateMachine.CurrentState, TimeSpan.FromHours(1));
-		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.TrueBefore(() => Model.IsDaytime, TimeSpan.FromHours(18));
@@ -127,10 +124,10 @@ public class JeepTest : SimulationTest {
 
 		Model.Level.ClearTile(p2);
 		Game.RunOneFrame();
-		j4.AddTourist(new Tourist(new(40, 40)));
-		j4.AddTourist(new Tourist(new(40, 40)));
-		j4.AddTourist(new Tourist(new(40, 40)));
-		j4.AddTourist(new Tourist(new(40, 40)));
+		j4.AddTourist(new Tourist(new Vector2(40, 40)));
+		j4.AddTourist(new Tourist(new Vector2(40, 40)));
+		j4.AddTourist(new Tourist(new Vector2	(40, 40)));
+		j4.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
 		Assert.AreEqual(JeepState.WaitingForNormalRoute, j4.StateMachine.CurrentState);
 
@@ -167,10 +164,10 @@ public class JeepTest : SimulationTest {
 		Assert.AreEqual(JeepState.WaitingForTourists, j1.StateMachine.CurrentState);
 
 		Game.RunOneFrame();
-		Tourist t1 = new Tourist(new(40, 40));
-		Tourist t2 = new Tourist(new(40, 40));
-		Tourist t3 = new Tourist(new(40, 40));
-		Tourist t4 = new Tourist(new(40, 40));
+		Tourist t1 = new Tourist(new Vector2(40, 40));
+		Tourist t2 = new Tourist(new Vector2(40, 40));
+		Tourist t3 = new Tourist(new Vector2(40, 40));
+		Tourist t4 = new Tourist(new Vector2(40, 40));
 		Engine.Game.AddObject(t1);
 		Engine.Game.AddObject(t2);
 		Engine.Game.AddObject(t3);
@@ -218,10 +215,10 @@ public class JeepTest : SimulationTest {
 		Jeep j1 = Jeep.WaitingJeep;
 		Assert.AreEqual(JeepState.WaitingForTourists, j1.StateMachine.CurrentState);
 
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
-		j1.AddTourist(new Tourist(new(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
 		Assert.AreEqual(JeepState.FollowingRoute, j1.StateMachine.CurrentState);
 

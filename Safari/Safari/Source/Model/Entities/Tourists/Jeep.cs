@@ -1,10 +1,13 @@
-﻿using Engine.Components;
+﻿using Engine;
+using Engine.Components;
 using Engine.Debug;
 using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
+using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -31,6 +34,7 @@ public enum JeepDirection {
 }
 
 [SimulationActor]
+[JsonObject(MemberSerialization.OptIn)]
 public class Jeep : Entity {
 
 	/// <summary>
@@ -46,19 +50,32 @@ public class Jeep : Entity {
 	/// </summary>
 	public const double MAX_WAITING_HOURS = 4;
 
-	private readonly List<Tourist> occupants = new List<Tourist>();
+	[GameobjectReferenceProperty]
+	private List<Tourist> occupants = new List<Tourist>();
+	[StaticSavedReference]
 	private static Queue<Jeep> garage = new Queue<Jeep>();
+	[StaticSavedProperty]
 	private static bool jeepEntering = false;
 
+	[JsonProperty]
 	private int routeIndex = 0;
+	[JsonProperty]
 	private List<Point> route = new List<Point>();
+	[JsonProperty]
 	private Point goal;
+	[JsonProperty]
 	private Point postGoal;
+	[JsonProperty]
 	private JeepState postState;
+	[JsonProperty]
 	private JeepDirection dir = JeepDirection.Right;
+	[JsonProperty]
 	private bool needEscape = false;
+	[JsonProperty]
 	private Point escapeStart;
+	[JsonProperty]
 	private DateTime lastDrop;
+	[JsonProperty]
 	private DateTime waitStart;
 
 	private const int TEXTURE_COUNT = 4;
@@ -67,11 +84,13 @@ public class Jeep : Entity {
 
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 
-	public StateMachineCmp<JeepState> StateMachine { get; private set; } = new(JeepState.Parking);
+	[JsonProperty]
+	public StateMachineCmp<JeepState> StateMachine { get; private set; }
 
 	/// <summary>
 	/// The jeep that is currently being filled with tourists (or null)
 	/// </summary>
+	[StaticSavedReference]
 	public static Jeep WaitingJeep { get; set; } = null;
 
 	/// <summary>
@@ -91,6 +110,7 @@ public class Jeep : Entity {
 	/// The amount a tourist has to pay in order to participate in the tour
 	/// A high rent fee could make some tourists dissatisfied with the ride
 	/// </summary>
+	[StaticSavedProperty]
 	public static int RentFee {
 		get; set;
 	}
@@ -100,10 +120,14 @@ public class Jeep : Entity {
 	/// </summary>
 	public static event EventHandler JeepReadyToFill;
 
+	[StaticSavedProperty]
 	private static bool someoneWaitingForJeep = false;
 
 	private static bool debugAutoFill = false;
 	private static bool debugAutoRequest = false;
+
+	[JsonProperty]
+	private int color;
 
 	static Jeep() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-jeep", () => RequestNextJeep()));
@@ -179,27 +203,63 @@ public class Jeep : Entity {
 
 	private static void DebugAdd() {
 		if (WaitingJeep != null) {
-			WaitingJeep.AddTourist(new Tourist(new(40, 40)));
+			WaitingJeep.AddTourist(new Tourist(new Vector2(40, 40)));
 		}
+	}
+
+	[JsonConstructor]
+	public Jeep(int color) : base() {
+		SetupSprite(color);
+	}
+
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		occupants = new List<Tourist>();
+		foreach (GameObject go in refObjs["occupants"]) {
+			occupants.Add((Tourist)go);
+		}
+
+		if (StateMachine.CurrentState == JeepState.Entering) {
+			NavCmp.ReachedTarget += PickUpReached;
+		}
+		if (StateMachine.CurrentState == JeepState.FollowingRoute) {
+			if (routeIndex >= route.Count) {
+				NavCmp.ReachedTarget += PostGoalReached;
+			} else {
+				NavCmp.ReachedTarget += CheckPointReached;
+			}
+		}
+	}
+
+	[PostPersistenceStaticSetup]
+	public static void PostPersistenceStaticSetup(Dictionary<string, List<GameObject>> refObjs) {
+		garage = new();
+		foreach (GameObject go in refObjs["garage"]) {
+			garage.Enqueue((Jeep)go);
+		}
+		WaitingJeep = (Jeep)refObjs["WaitingJeep"][0];
 	}
 
 	public Jeep(Vector2 pos, int color) : base(pos) {
 		DisplayName = "Jeep";
-		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 6);
-		Attach(lightCmp);
-		Sprite = new SpriteCmp(textures[color]);
-		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
-		Sprite.YSortEnabled = true;
-		UpdateSrcRec();
-		Sprite.Origin = new Vector2(32, 42); // just by the 'vibes'
+		this.color = color;
 		SightDistance = 6;
 		NavCmp.AccountForBounds = false;
 		NavCmp.Speed = 200f;
 		NavCmp.StopOnTargetReach = true;
 		ReachDistance = 0;
 		Bounds = Vectangle.Empty;
+		StateMachine = new(JeepState.Parking);
+		SetupSprite(color);
+	}
+
+	private void SetupSprite(int color) {
+		Sprite = new SpriteCmp(textures[color]);
+		Sprite.LayerDepth = Animal.ANIMAL_LAYER;
+		Sprite.YSortEnabled = true;
+		UpdateSrcRec();
+		Sprite.Origin = new Vector2(32, 42); // just by the 'vibes'
 		Attach(Sprite);
-		Attach(StateMachine);
 	}
 
 	/// <summary>
@@ -224,6 +284,11 @@ public class Jeep : Entity {
 	}
 
 	public override void Load() {
+		LightEntityCmp lightCmp = new LightEntityCmp(CurrentLevel, 6);
+		Attach(lightCmp);
+
+		Attach(StateMachine);
+
 		GameScene.Active.Model.JeepCount++;
 		CurrentLevel.Network.RoadChanged += OnRoadChanged;
 
@@ -269,8 +334,10 @@ public class Jeep : Entity {
 	private void Kill() {
 		for (int i = 0; i < 4; i++) {
 			Tourist t = RemoveFirstTourist();
-			t.TourFailed();
-			t.Die();
+			if (t != null) {
+				t.TourFailed();
+				t.Die();
+			}
 		}
 		NavCmp.Moving = false;
 		if (StateMachine.CurrentState == JeepState.FollowingRoute) {
@@ -495,8 +562,10 @@ public class Jeep : Entity {
 		if (now > lastDrop + TimeSpan.FromMinutes(2)) {
 			Tourist t = RemoveFirstTourist();
 			lastDrop = now;
-			t.TourFinished();
-			t.LeaveJeep();
+			if (t != null) {
+				t.TourFinished();
+				t.LeaveJeep();
+			}
 			if (occupants.Count <= 0) {
 				StateMachine.Transition(JeepState.WaitingForReturnRoute);
 				goal = CurrentLevel.Network.Start;

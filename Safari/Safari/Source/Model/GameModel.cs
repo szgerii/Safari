@@ -7,6 +7,7 @@ using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
 using Engine.Graphics.Stubs.Texture;
+using Newtonsoft.Json;
 
 namespace Safari.Model;
 
@@ -28,6 +29,7 @@ public enum LoseReason {
 	Animals
 }
 
+[JsonObject(MemberSerialization.OptIn)]
 public class GameModel {
 	// constants for money requirements for winning
 	public const int WIN_FUNDS_EASY = 30000;
@@ -77,12 +79,15 @@ public class GameModel {
 	public const double SUNSET_END = 0.66;
 
 	private GameSpeed prevSpeed;
+	[JsonProperty]
 	private readonly DateTime startDate;
 
 	/// <summary>
 	/// The name of the park (used when saving the park)
 	/// </summary>
+	[JsonProperty]
 	public string ParkName { get; init; }
+	[JsonProperty]
 	private int funds;
 	/// <summary>
 	/// How much money ($?) the player currently has
@@ -102,6 +107,7 @@ public class GameModel {
 	/// <summary>
 	/// The selected difficulty for this park (easy, normal or hard)
 	/// </summary>
+	[JsonProperty]
 	public GameDifficulty Difficulty { get; init; }
 
 	/// <summary>
@@ -124,6 +130,7 @@ public class GameModel {
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
 	/// </summary>
+	[JsonProperty]
 	public double CurrentTime { get; private set; } = 0.0f;
 	/// <summary>
 	/// Returns a value between 0 and 1, corresponding to the time of day
@@ -150,6 +157,7 @@ public class GameModel {
 	/// <summary>
 	/// The current game level's tilemap
 	/// </summary>
+	[JsonProperty]
 	public Level Level { get; set; }
 
 	/// <summary>
@@ -245,7 +253,7 @@ public class GameModel {
 		GameDifficulty.Normal => WIN_DAYS_NORMAL,
 		_ => WIN_DAYS_HARD,
 	};
-
+	[JsonProperty]
 	private bool winTimerRunning = false;
 	/// <summary>
 	/// Whether the win criteria is met therefore the win countdown is running
@@ -254,6 +262,7 @@ public class GameModel {
 	/// <summary>
 	/// How many days are left until winning
 	/// </summary>
+	[JsonProperty]
 	public double WinTimerDays { get; private set; } = 0.0;
 	/// <summary>
 	/// How much time is left until winning
@@ -267,6 +276,7 @@ public class GameModel {
 	/// <summary>
 	/// Stores whether this save has been won
 	/// </summary>
+	[JsonProperty]
 	public bool PostWin { get; set; } = false;
 
 	/// <summary>
@@ -340,39 +350,16 @@ public class GameModel {
 		}));
 	}
 
+	[JsonConstructor]
+	public GameModel() {
+		CheckWinLose = false;
+	}
+
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
 		this.startDate = startDate;
-
-		ITexture2D staticBG = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
-		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
-
-		Jeep.Init(400);
-		Tourist.Init();
-
-		Game.AddObject(Level);
-
-		if (!strippedInit) {
-			// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
-			EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
-				EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
-				EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
-			};
-			Game.AddObject(poacherSpawner);
-
-			Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
-				EntityLimit = 30,
-				EntityCount = () => Tourist.Queue.Count,
-				SpawnArea = new Rectangle(-64, 512, 32, 320),
-				ExtraCondition = () => IsDaytime
-			};
-			Game.AddObject(Tourist.Spawner);
-			Tourist.UpdateSpawner();
-		}
-
-		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
 
 	/// <summary>
@@ -442,7 +429,7 @@ public class GameModel {
 	}
 
 	private void WinUpdate() {
-		if (WinConCheck()) {
+		if (WinConCheck() && !PostWin) {
 			if (!winTimerRunning) {
 				WinTimerDays = WinCriteriaDays;
 				winTimerRunning = true;

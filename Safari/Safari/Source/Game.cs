@@ -48,7 +48,7 @@ public class Game : Engine.Game {
 		InputSetup();
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
-			SceneManager.Load(new GameScene());
+			SceneManager.Load(new GameScene(GameScene.Active.Model.ParkName, GameScene.Active.Model.Difficulty));
 		}));
 		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
 
@@ -106,10 +106,10 @@ public class Game : Engine.Game {
 				SceneManager.Load(MainMenu.Instance);
 				break;
 			case GameStartupMode.DemoScene:
-				SceneManager.Load(new GameScene());
+				SceneManager.Load(new GameScene("test park", GameDifficulty.Easy));
 				break;
 			case GameStartupMode.EmptyScene:
-				SceneManager.Load(new GameScene() { StrippedInit = true });
+				SceneManager.Load(new GameScene("empty", GameDifficulty.Easy) { StrippedInit = true });
 				break;
 			default:
 				throw new InvalidOperationException("Invalid game startup mode");

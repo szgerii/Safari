@@ -1,7 +1,10 @@
-﻿using Engine.Components;
+﻿using Engine;
+using Engine.Components;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
+using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -15,28 +18,48 @@ public enum TouristState {
 	InJeep
 };
 
+[JsonObject(MemberSerialization.OptIn)]
 public class Tourist : Entity {
 	public const int RATING_MEMORY = 80;
+	[StaticSavedProperty]
 	private static double[] recentRatings = new double[RATING_MEMORY];
+	[StaticSavedProperty]
 	private static int ratingCount = 0;
 	public static EntitySpawner<Tourist> Spawner { get; set; }
+	[StaticSavedReference]
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
 
-	private readonly HashSet<Animal> seenAnimals = new();
+	[GameobjectReferenceProperty]
+	private HashSet<Animal> seenAnimals = new();
+	[JsonProperty]
 	private readonly HashSet<AnimalSpecies> seenAnimalSpecies = new();
 
-
+	[JsonProperty]
 	private int targetQueueIndex = -1;
+	[JsonProperty]
 	private int queueIndex = -1;
+	[JsonProperty]
 	private int reachedQueueIndex = -1;
+	[JsonProperty]
 	private bool shouldDraw = true;
+	[JsonProperty]
 	private int payedAmount = 0;
+	[JsonProperty]
 	private double rating = 2.5f;
+	[JsonProperty]
 	private readonly int moneyThreshold;
+	[JsonProperty]
 	private readonly AnimalSpecies favSpecies;
+	[JsonProperty]
 	private readonly float xOffset;
+	[JsonProperty]
 	private bool preferStandingRight = true;
+	[JsonProperty]
 	private DateTime nextSwitch;
+	[JsonProperty]
+	private bool spriteType;
+	[JsonProperty]
+	private bool waitingForJeep = false;
 
 	/// <summary>
 	/// The animated sprite component of the ranger
@@ -46,6 +69,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// The state machine used for transitioning between the different tourist behavior types
 	/// </summary>
+	[JsonProperty]
 	public StateMachineCmp<TouristState> StateMachine { get; init; }
 
 	/// <summary>
@@ -91,6 +115,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// The jeep this tourist is assigned to
 	/// </summary>
+	[GameobjectReferenceProperty]
 	public Jeep Vehicle { get; set; }
 
 	public static void Init() {
@@ -122,10 +147,58 @@ public class Tourist : Entity {
 		Spawner.Frequency = 1.0f / (SpawnRate);
 	}
 
+	[JsonConstructor]
+	public Tourist(bool spriteType) : base() {
+		SetupSprite(spriteType);
+	}
+
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		seenAnimals = new();
+		foreach (GameObject go in refObjs["seenAnimals"]) {
+			seenAnimals.Add((Animal)go);
+		}
+		Vehicle = (Jeep)refObjs["Vehicle"][0];
+
+		if (StateMachine.CurrentState == TouristState.Entering || StateMachine.CurrentState == TouristState.InQueue) {
+			NavCmp.ReachedTarget += ReachedQueueSpot;
+		}
+		if (StateMachine.CurrentState == TouristState.Leaving) {
+			NavCmp.ReachedTarget += LeftPark;
+		}
+		if (waitingForJeep) {
+			Jeep.JeepReadyToFill += OnReadyToFill;
+		}
+	}
+
+	[PostPersistenceStaticSetup]
+	public static void PostPersistenceStaticSetup(Dictionary<string, List<GameObject>> refObjs) {
+		Queue = new();
+		foreach (GameObject go in refObjs["Queue"]) {
+			Queue.Add((Tourist)go);
+		}
+	}
+
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";
+		spriteType = Game.Random.Next(2) == 1;
+		SetupSprite(spriteType);
+		SightDistance = Game.Random.Next(4, 8);
+		var values = Enum.GetValues(typeof(AnimalSpecies));
+		favSpecies = (AnimalSpecies)values.GetValue(Game.Random.Next(values.Length));
+		moneyThreshold = Game.Random.Next(5, 11) * 100;
+		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
+		NavCmp.AccountForBounds = false;
+		NavCmp.Speed = 60f;
+		NavCmp.StopOnTargetReach = true;
+		ReachDistance = 0;
+
+		StateMachine = new StateMachineCmp<TouristState>(TouristState.Entering);
+	}
+
+	private void SetupSprite(bool spriteType) {
 		AnimatedSpriteCmp animSprite;
-		if (Game.Random.Next(2) == 1) {
+		if (spriteType) {
 			animSprite = new(Game.LoadTexture("Assets/Tourist/Man/Walk"), 10, 2, 8);
 			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
@@ -143,24 +216,13 @@ public class Tourist : Entity {
 		Sprite.YSortEnabled = true;
 		Sprite.YSortOffset = 64;
 		Sprite.Origin = new Vector2(16, 64); // just by the 'vibes'
-		SightDistance = Game.Random.Next(4, 8);
-		var values = Enum.GetValues(typeof(AnimalSpecies));
-		favSpecies = (AnimalSpecies)values.GetValue(Game.Random.Next(values.Length));
-		moneyThreshold = Game.Random.Next(5, 11) * 100;
 		Attach(Sprite);
 		animSprite.CurrentAnimation = "idle-right";
-		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
-
-		NavCmp.AccountForBounds = false;
-		NavCmp.Speed = 60f;
-		NavCmp.StopOnTargetReach = true;
-		ReachDistance = 0;
-
-		StateMachine = new StateMachineCmp<TouristState>(TouristState.Entering);
-		Attach(StateMachine);
 	}
 
 	public override void Load() {
+		Attach(StateMachine);
+
 		GameScene.Active.Model.TouristCount++;
 
 		base.Load();
@@ -218,13 +280,13 @@ public class Tourist : Entity {
 	private void ReachedQueueSpot(object sender, NavigationTargetEventArgs e) {
 		reachedQueueIndex = targetQueueIndex;
 		targetQueueIndex = -1;
-		NavCmp.ReachedTarget -= ReachedQueueSpot;
 		if (StateMachine.CurrentState != TouristState.InQueue) {
 			StateMachine.Transition(TouristState.InQueue);
 		}
 		if (reachedQueueIndex == 0) {
 			if (!TryEntering()) {
 				Jeep.JeepReadyToFill += OnReadyToFill;
+				waitingForJeep = true;
 				Jeep.RequestNextJeep();
 			}
 		}
@@ -245,6 +307,7 @@ public class Tourist : Entity {
 			Vehicle = jeep;
 			StateMachine.Transition(TouristState.InJeep);
 			Jeep.JeepReadyToFill -= OnReadyToFill;
+			waitingForJeep = false;
 			return true;
 		}
 		return false;
@@ -257,7 +320,6 @@ public class Tourist : Entity {
 			NavCmp.TargetPosition = GetQueueSpot(targetQueueIndex);
 			NavCmp.StopOnTargetReach = true;
 			NavCmp.Moving = true;
-			NavCmp.ReachedTarget += ReachedQueueSpot;
 		}
 		
 		DateTime now = GameScene.Active.Model.IngameDate;

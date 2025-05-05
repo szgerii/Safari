@@ -387,8 +387,8 @@ public static class MapBuilder {
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
 	/// <param name="strippedInit">Whether to skip placing down animals/plants/jeeps/etc</param>
-	public static void BuildStartingMap(Level level, bool strippedInit = false) {
-		// road placement
+	public static void BuildStartingMap(Level level, bool strippedInit = false, bool loadInit = false) {
+		// entrance / exit placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
 		Point current = new Point(-1, level.Network.Start.Y);
@@ -396,23 +396,16 @@ public static class MapBuilder {
 		Jeep.PickUpSpot = level.Network.Start - new Point(2, 0);
 		Jeep.DropOffSpot = level.Network.End - new Point(0, 2);
 		Tourist.PickupSpot = Jeep.PickUpSpot - new Point(0, 1);
-		while (current.X < level.Network.End.X) {
+		while (current.X < level.Network.Start.X - 1) {
 			current.X++;
 			Road r = new Road();
-			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
-			} else {
-				level.SetTile(current, r);
-			}
+			level.SetTile(current, r);
 		}
-		while (current.Y > level.Network.End.Y - 2) {
-			current.Y--;
+		current = new Point(level.Network.End.X, -1);
+		while (current.Y < level.Network.End.Y - 1) {
+			current.Y++;
 			Road r = new Road();
-			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
-			} else {
-				level.SetTile(current, r);
-			}
+			level.SetTile(current, r);
 		}
 
 		// fence placement
@@ -443,8 +436,28 @@ public static class MapBuilder {
 			y--;
 		}
 
-		if (strippedInit) return;
+		if (!loadInit) {
+			// starting road
+			current = level.Network.Start;
+			while (current.X < level.Network.End.X - 1) {
+				current.X++;
+				Road r = new Road();
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			}
+			current = level.Network.End;
+			while (current.Y < level.Network.Start.Y) {
+				current.Y++;
+				Road r = new Road();
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			}
+		}
 
+		if (!strippedInit && !loadInit) {
+			AddStartingObjects(level);
+		}
+	}
+
+	private static void AddStartingObjects(Level level) {
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {
 			level.ConstructionHelperCmp.InstaBuild(p, new Water());

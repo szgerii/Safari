@@ -1,14 +1,18 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Debug;
 using System;
 
 namespace Engine.Objects;
 
+[JsonObject(MemberSerialization.OptIn)]
 public class Camera : GameObject {
 	public static Camera Active { get; set; }
 
+	[JsonProperty]
 	public float Zoom { get; set; } = 1.0f;
 
+	[JsonProperty]
 	private float rotation = 0.0f;
 	public float Rotation {
 		get => rotation;
@@ -24,6 +28,7 @@ public class Camera : GameObject {
 	public int ScreenWidth => ScreenSize.X;
 	public int ScreenHeight => ScreenSize.Y;
 
+	[JsonConstructor]
 	public Camera(Vector2? position = null) : base(position ?? Vector2.Zero) { }
 
 	public override void Update(GameTime gameTime) {

@@ -1,9 +1,12 @@
 using Engine.Objects;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 
 namespace Engine;
 
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class GameObject : IUpdatable, IDrawable {
+	[JsonProperty]
 	public Vector2 Position { get; set; }
 	/// <summary>
 	/// The position of the object relative to the screen

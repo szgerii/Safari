@@ -1,21 +1,26 @@
 ﻿using Engine;
+using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Input;
+using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
 /// <summary>
 /// Stores the static parts of the game world
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Level : GameObject {
 	public static int PLAY_AREA_CUTOFF_X { get; set; } = 8;
 	public static int PLAY_AREA_CUTOFF_Y { get; set; } = 8;
@@ -27,14 +32,17 @@ public class Level : GameObject {
 	/// <summary>
 	/// The dimension of a single cell inside the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int TileSize { get; init; }
 	/// <summary>
 	/// The number of cells that make up a row in the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int MapWidth { get; init; }
 	/// <summary>
 	/// The number of cells that make up a column in the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int MapHeight { get; init; }
 
 	public Rectangle PlayAreaBounds => new(new Point(PLAY_AREA_CUTOFF_X * TileSize, PLAY_AREA_CUTOFF_Y * TileSize), new Point((MapWidth - (2 * PLAY_AREA_CUTOFF_X)) * TileSize, (MapHeight - (2 * PLAY_AREA_CUTOFF_X)) * TileSize));
@@ -56,6 +64,26 @@ public class Level : GameObject {
 	private readonly Tile[,] tiles;
 
 	private readonly ITexture2D debugGridTex;
+
+	[JsonConstructor]
+	public Level(int MapWidth, int MapHeight, int TileSize) : base(Vector2.Zero) {
+		this.MapWidth = MapWidth;
+		this.MapHeight = MapHeight;
+		this.TileSize = TileSize;
+		tiles = new Tile[MapWidth, MapHeight];
+		ITexture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
+		ITexture2D[] mergeArray = new ITexture2D[MapWidth * MapHeight];
+		for (int i = 0; i < mergeArray.Length; i++) {
+			mergeArray[i] = gridCellTex;
+		}
+		debugGridTex = Utils.CreateAtlas(mergeArray, MapWidth);
+		LightManager = new LightManager(MapWidth, MapHeight, TileSize);
+		Point start = new Point(PLAY_AREA_CUTOFF_X, MapHeight - PLAY_AREA_CUTOFF_Y - 8);
+		Point end = new Point(MapWidth - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
+		Network = new RoadNetwork(MapWidth, MapHeight, start, end);
+		ConstructionHelperCmp = new ConstructionHelperCmp(MapWidth, MapHeight);
+		Attach(ConstructionHelperCmp);
+	}
 
 	public Level(int tileSize, int width, int height, ITexture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
@@ -168,7 +196,7 @@ public class Level : GameObject {
 			LightManager.AddLightSource(x, y, tile.LightRange);
 		}
 
-		if (!tile.Loaded) {
+		if (!tile.Loaded && SceneManager.Active is GameScene) {
 			Game.AddObject(tile);
 		}
 
@@ -249,7 +277,7 @@ public class Level : GameObject {
 	/// <returns>The random position</returns>
 	public Vector2 GetRandomPosition(bool playAreaOnly = true) {
 		int minX, maxX, minY, maxY;
-		
+
 		if (playAreaOnly) {
 			minX = PLAY_AREA_CUTOFF_X * TileSize;
 			maxX = (MapWidth - PLAY_AREA_CUTOFF_X - 1) * TileSize;
@@ -275,6 +303,8 @@ public class Level : GameObject {
 				Game.AddObject(tile);
 			}
 		}
+
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", PostDraw, GameLoopStage.POST_DRAW));
 
 		base.Load();
 	}
