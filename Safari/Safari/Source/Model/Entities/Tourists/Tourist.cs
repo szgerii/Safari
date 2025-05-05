@@ -30,7 +30,7 @@ public class Tourist : Entity {
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
 
 	[GameobjectReferenceProperty]
-	private readonly HashSet<Animal> seenAnimals = new();
+	private HashSet<Animal> seenAnimals = new();
 	[JsonProperty]
 	private readonly HashSet<AnimalSpecies> seenAnimalSpecies = new();
 

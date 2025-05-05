@@ -51,7 +51,7 @@ public class Jeep : Entity {
 	public const double MAX_WAITING_HOURS = 4;
 
 	[GameobjectReferenceProperty]
-	private readonly List<Tourist> occupants = new List<Tourist>();
+	private List<Tourist> occupants = new List<Tourist>();
 	[StaticSavedReference]
 	private static Queue<Jeep> garage = new Queue<Jeep>();
 	[StaticSavedProperty]
