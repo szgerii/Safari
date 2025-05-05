@@ -37,7 +37,7 @@ public class InitializationRule {
 public class GameModelPersistence {
 	public const int MAX_SLOTS = 5;
 	public const string SAVE_PATH = "saves";
-	public static readonly List<Type> GameObjectTypes = new List<Type>() {
+	public static List<Type> GameObjectTypes { get; set; } = new List<Type>() {
 		typeof(Camera),
 		typeof(EntitySpawner<Tourist>), typeof(EntitySpawner<Poacher>),
 		typeof(Road), typeof(Water), typeof(Grass),
@@ -48,10 +48,10 @@ public class GameModelPersistence {
 		typeof(Poacher), typeof(Ranger),
 		typeof(Jeep), typeof(Tourist)
 	};
-	public static readonly List<Type> StaticTypes = new List<Type>() {
+	public static List<Type> StaticTypes { get; set; } = new List<Type>() {
 		typeof(Ranger), typeof(Jeep), typeof(Tourist)
 	};
-	public static List<InitializationRule> Rules = new List<InitializationRule>() {
+	public static List<InitializationRule> Rules { get; set; } = new List<InitializationRule>() {
 		// camera initializer
 		new((obj, scene) => {
 			Camera camera = obj as Camera;
@@ -122,9 +122,7 @@ public class GameModelPersistence {
 					SafariSaveHead head = JsonConvert.DeserializeObject<SafariSaveHead>(sr.ReadToEnd());
 					Saves.Add(head);
 				}
-			} catch (Exception e) {
-				
-			}
+			} catch { }
 		}
 	}
 
