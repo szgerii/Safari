@@ -127,6 +127,7 @@ public class AnimalGroup : GameObject {
 	public AnimalGroup(Animal creator) : base(creator.Position) {
 		Species = creator.Species;
 		AddMember(creator);
+		Game.AddObject(this);
 
 		NavCmp = new NavigationCmp(Speed);
 		StateMachine = new(AnimalGroupState.Wandering);
