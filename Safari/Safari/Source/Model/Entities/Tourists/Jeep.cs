@@ -562,8 +562,10 @@ public class Jeep : Entity {
 		if (now > lastDrop + TimeSpan.FromMinutes(2)) {
 			Tourist t = RemoveFirstTourist();
 			lastDrop = now;
-			t.TourFinished();
-			t.LeaveJeep();
+			if (t != null) {
+				t.TourFinished();
+				t.LeaveJeep();
+			}
 			if (occupants.Count <= 0) {
 				StateMachine.Transition(JeepState.WaitingForReturnRoute);
 				goal = CurrentLevel.Network.Start;

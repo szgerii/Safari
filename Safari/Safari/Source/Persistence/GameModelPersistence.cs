@@ -67,6 +67,7 @@ public class GameModelPersistence {
 			EntitySpawner<Tourist> spawner = obj as EntitySpawner<Tourist>;
 			spawner.EntityCount = () => Tourist.Queue.Count;
 			spawner.ExtraCondition = () => GameScene.Active.Model.IsDaytime;
+			Tourist.Spawner = spawner;
 			scene.AddObject(spawner);
 		}, (obj, scene) => obj is EntitySpawner<Tourist>),
 		// poacher spawner initializer
@@ -226,6 +227,7 @@ public class GameModelPersistence {
 	public bool Load(int slot) {
 		SafariSaveHead head = Saves[slot];
 		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized);
+		
 		Jeep.Init(400);
 		Tourist.Init();
 		Ranger.Init();

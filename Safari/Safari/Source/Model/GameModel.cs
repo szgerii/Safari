@@ -87,12 +87,12 @@ public class GameModel {
 	/// </summary>
 	[JsonProperty]
 	public string ParkName { get; init; }
+	[JsonProperty]
 	private int funds;
 	/// <summary>
 	/// How much money ($?) the player currently has
 	/// Reaching 0 will result in an instant game over
 	/// </summary>
-	[JsonProperty]
 	public int Funds {
 		get => funds;
 		set {
@@ -351,7 +351,9 @@ public class GameModel {
 	}
 
 	[JsonConstructor]
-	public GameModel() { }
+	public GameModel() {
+		CheckWinLose = false;
+	}
 
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
 		ParkName = parkName;

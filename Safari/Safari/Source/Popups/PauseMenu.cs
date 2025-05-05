@@ -84,12 +84,18 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
     private void SaveButtonClicked(Entity entity) {
         GameModel model = GameScene.Active.Model;
         new GameModelPersistence(model.ParkName).Save(model);
-        new AlertMenu("Feature", "This feature is currently WIP, check back another time").Show();
+        new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!").Show();
     }
 
     private void SaveAndExitButtonClicked(Entity entity) {
-        TogglePauseMenu();
-        SceneManager.Load(MainMenu.Instance);
+		GameModel model = GameScene.Active.Model;
+		new GameModelPersistence(model.ParkName).Save(model);
+		var am = new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!", "Return to main menu");
+        am.Chosen += (object _, bool _) => {
+			TogglePauseMenu();
+			SceneManager.Load(MainMenu.Instance);
+		};
+        am.Show();
     }
 
     private void ExitButtonClicked(Entity entity) {

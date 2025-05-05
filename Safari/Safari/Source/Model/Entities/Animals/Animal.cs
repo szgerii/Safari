@@ -280,6 +280,11 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Update(GameTime gameTime) {
+		if (Group == null) {
+			Group = new AnimalGroup(this);
+			Game.AddObject(Group);
+		}
+
 		if (IsCaught) return;
 
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {

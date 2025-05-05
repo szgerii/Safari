@@ -180,6 +180,8 @@ public class GameScene : Scene {
 			Statusbar.Instance.Load();
 			EntityManager.Instance.Load();
 		}
+
+		model.CheckWinLose = true;
 	}
 
     public override void Update(GameTime gameTime) {
