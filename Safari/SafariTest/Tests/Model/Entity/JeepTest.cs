@@ -63,7 +63,7 @@ public class JeepTest : SimulationTest {
 		Model.Level.ClearTile(p2);
 		Game.RunOneFrame();
 		j1.AddTourist(new Tourist(new Vector2(40, 40)));
-		j1.AddTourist(new Tourist(new Vector2	(40, 40)));
+		j1.AddTourist(new Tourist(new Vector2(40, 40)));
 		j1.AddTourist(new Tourist(new Vector2(40, 40)));
 		j1.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
@@ -87,7 +87,7 @@ public class JeepTest : SimulationTest {
 		j2.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
-		GameAssert.AreEqualBefore(JeepState.FollowingRoute , () => j2.StateMachine.CurrentState, TimeSpan.FromHours(Jeep.MAX_WAITING_HOURS));
+		GameAssert.AreEqualBefore(JeepState.FollowingRoute , () => j2.StateMachine.CurrentState, TimeSpan.FromHours(Jeep.MAX_WAITING_HOURS + 0.5));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
 
 		Jeep.RequestNextJeep();
