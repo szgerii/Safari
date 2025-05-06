@@ -45,6 +45,11 @@ public class RangerTest : SimulationTest {
 
 		ranger.TargetSpecies = null;
 		Assert.AreEqual(AnimalSpecies.Lion, ranger.TargetSpecies);
+
+		ranger.Fire();
+		Assert.IsTrue(ranger.IsDead);
+		RunOneFrame();
+		CollectionAssert.DoesNotContain(GameScene.Active.GameObjects, ranger);
 	}
 
 	[TestMethod("Salary Test")]
@@ -174,7 +179,5 @@ public class RangerTest : SimulationTest {
 		Assert.AreEqual(poacher2, ranger.ChaseTarget);
 		Assert.AreEqual(poacher2, ranger.NavCmp.TargetObject);
 		Assert.IsTrue(ranger.NavCmp.Moving);
-
-		GameScene.Active.Update(unitGT);
 	}
 }
