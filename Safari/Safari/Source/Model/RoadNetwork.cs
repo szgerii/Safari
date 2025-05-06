@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Safari.Model;
@@ -129,6 +130,7 @@ public class RoadNetwork {
 		}, GameLoopStage.POST_DRAW));
 	}
 
+	[ExcludeFromCodeCoverage]
 	private static void DrawSegment(Point a, Point b, Level level) {
 		int width2 = 6;
 		Point middleA = new Point(a.X * level.TileSize, a.Y * level.TileSize);

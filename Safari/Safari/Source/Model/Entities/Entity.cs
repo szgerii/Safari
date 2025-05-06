@@ -14,6 +14,7 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities;
 
@@ -244,6 +245,7 @@ public abstract class Entity : GameObject, ISpatial {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (!Visible) {
 			return;
@@ -264,6 +266,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// Draws the bounds of the entity's vision and reach to the screen (debug feature)
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
+	[ExcludeFromCodeCoverage]
 	public void DrawInteractBounds(GameTime gameTime) {
 		if (SightArea.Width != 0 && SightArea.Height != 0) {
 			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size.ToPoint()) {

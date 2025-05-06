@@ -13,6 +13,7 @@ using Engine.Helpers;
 using Engine.Graphics.Stubs.Texture;
 using Newtonsoft.Json;
 using Safari.Persistence;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -31,11 +32,14 @@ public abstract class Animal : Entity {
 	protected const int ANIMATION_SPEED = 7;
 
 	/// <summary>
-	/// The level of hunger at which an animal will become hungry
+	/// The level of hunger at which a herbivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_HERB = 50;
 	private const float INITIAL_HUNGER_DECAY_HERB = 0.1f;
-	private const int HUNGER_TRESHOLD_CARN = 35;
+	/// <summary>
+	/// The level of hunger at which a carnivorous animal will become hungry
+	/// </summary>
+	private const int HUNGER_THRESHOLD_CARN = 35;
 	private const float INITIAL_HUNGER_DECAY_CARN = 0.05f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
@@ -49,10 +53,20 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The number of days an animal can live
 	/// </summary>
-	private const int MAX_AGE = 50;
+	public const int MAX_AGE = 50;
+	/// <summary>
+	/// The age (in days) after which the animal is considered mature and is allowed to mate
+	/// </summary>
+	public const int MATURE_AGE = 12;
 
-	private const float FEEDING_SPEED = 10f;
-	private const float DRINKING_SPEED = 10f;
+	/// <summary>
+	/// The amount of hunger level that is restored in a (real) second
+	/// </summary>
+	public const float FEEDING_SPEED = 10f;
+	/// <summary>
+	/// The amount of thirst level that is restored in a (real) second
+	/// </summary>
+	public const float DRINKING_SPEED = 10f;
 
 	private const int INDICATOR_HEIGHT = 8;
 
@@ -71,12 +85,12 @@ public abstract class Animal : Entity {
 	public event EventHandler GotThirsty;
 
 	/// <summary>
-	/// Represents how hungry the animal currently is (goes down with time)s
+	/// Represents how hungry the animal currently is (goes down with time)
 	/// </summary>
 	[JsonProperty]
 	public float HungerLevel { get; protected set; } = 100f;
 	/// <summary>
-	/// Represents how thirsty the animal currently is (goes down with time)s
+	/// Represents how thirsty the animal currently is (goes down with time)
 	/// </summary>
 	[JsonProperty]
 	public float ThirstLevel { get; protected set; } = 100f;
@@ -93,7 +107,7 @@ public abstract class Animal : Entity {
 	/// Whether the animal is currently hungry
 	/// (i.e. hunger level has fallen under the hunger threshold)
 	/// </summary>
-	public bool IsHungry => HungerLevel < (IsCarnivorous ? HUNGER_TRESHOLD_CARN : HUNGER_THRESHOLD_HERB);
+	public bool IsHungry => HungerLevel < (IsCarnivorous ? HUNGER_THRESHOLD_CARN : HUNGER_THRESHOLD_HERB);
 	/// <summary>
 	/// Whether the animal is currently thirsty
 	/// (i.e. thirst level has fallen under the thirst threshold)
@@ -281,11 +295,6 @@ public abstract class Animal : Entity {
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
 		
-		if (Group == null) {
-			Group = new AnimalGroup(this);
-			Game.AddObject(Group);
-		}
-
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
@@ -324,6 +333,7 @@ public abstract class Animal : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (IsCaught) return;
 
@@ -410,6 +420,7 @@ public abstract class Animal : Entity {
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
+	[ExcludeFromCodeCoverage]
 	public void DrawIndicators(GameTime gameTime) {
 		if (IsCaught) return;
 

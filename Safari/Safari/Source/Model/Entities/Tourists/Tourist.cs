@@ -8,6 +8,7 @@ using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities.Tourists;
 
@@ -260,6 +261,7 @@ public class Tourist : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (shouldDraw) {
 			base.Draw(gameTime);

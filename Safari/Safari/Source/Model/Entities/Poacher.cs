@@ -11,6 +11,7 @@ using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities;
 
@@ -172,6 +173,7 @@ public class Poacher : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (revealAll) Sprite.Visible = true;
 
