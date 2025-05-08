@@ -38,6 +38,12 @@ public class Game : Engine.Game {
 	protected override void Initialize() {
 		BaseResolution = new Point(1920, 1080);
 
+		// Set DM constraint
+		DisplayManager.MAX_WIDTH = 1920;
+		DisplayManager.MAX_HEIGHT = 1080;
+		DisplayManager.MIN_WIDTH = 1000;
+		DisplayManager.MIN_HEIGHT = 680;
+
 		base.Initialize();
 
 		if (!IsHeadless) {
@@ -104,6 +110,7 @@ public class Game : Engine.Game {
 		switch (finalStartupMode) {
 			case GameStartupMode.MainMenu:
 				SceneManager.Load(MainMenu.Instance);
+				SafariSettings.Init();
 				break;
 			case GameStartupMode.DemoScene:
 				SceneManager.Load(new GameScene("test park", GameDifficulty.Easy));

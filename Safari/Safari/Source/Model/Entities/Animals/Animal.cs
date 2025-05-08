@@ -282,8 +282,8 @@ public abstract class Animal : Entity {
 		if (IsCaught) return;
 		
 		if (Group == null) {
-			Group = new AnimalGroup(this);
-			Game.AddObject(Group);
+			// shouldnt ever really happen, but just to be safe:
+			return;
 		}
 
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
