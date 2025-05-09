@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Engine.Graphics;
 
@@ -29,10 +28,10 @@ public static class DisplayManager {
 
 	// By default: include resolutions between 480p 4:3 and 4k 21:9
 	// Change these BEFORE calling DM Init to limit the available resolutions
-	public static int MIN_HEIGHT = 480;
-	public static int MIN_WIDTH = 640;
-	public static int MAX_WIDTH = 5120;
-	public static int MAX_HEIGHT = 2160;
+	public static int MIN_HEIGHT { get; set; } = 480;
+	public static int MIN_WIDTH { get; set; } = 640;
+	public static int MAX_WIDTH { get; set; } = 5120;
+	public static int MAX_HEIGHT { get; set; } = 2160;
 
 	public static void Init(WindowType windowType = WindowType.WINDOWED) {
 		SupportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes

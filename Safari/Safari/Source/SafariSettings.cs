@@ -3,10 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Safari.Components;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Safari;
 
@@ -16,7 +13,7 @@ public class SafariSettings
     private static string path = "settings.json";
 	#region RESOLUTION
 	public static List<(int, int)> ResolutionOptions { get; private set; } = new();
-    public static (int, int) DefaultResolution = (1280, 720);
+    public static (int, int) DefaultResolution { get; set; } = (1280, 720);
 
     private (int, int) resolution;
     [JsonProperty]
@@ -73,7 +70,7 @@ public class SafariSettings
     #endregion
 
     #region WINDOW_TYPE
-    public static WindowType DefaultWindowType;
+    public static WindowType DefaultWindowType { get; set; }
 
     /// <summary>
     /// The type of the window (borderless, fullscreen or windowed)
