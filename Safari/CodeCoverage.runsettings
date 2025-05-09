@@ -8,6 +8,7 @@
 					<Format>cobertura</Format>
 
 					<Include>[Safari]Safari.Model*</Include>
+					<ExcludeByAttribute>Obsolete, ExcludeFromCodeCoverage, JsonConstructor, PostPersistenceSetup</ExcludeByAttribute>
 				</Configuration>
 			</DataCollector>
 		</DataCollectors>

@@ -377,12 +377,15 @@ public class GameScene : Scene {
 			LoseReason.Animals => "All of your animals have died.",
 			_ => ""
 		};
-		AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
-		menu.Chosen += (object sender, bool e) => {
-			SceneManager.Load(MainMenu.Instance);
-		};
-		model.Pause();
-		menu.Show();
+
+		if (Game.CanDraw) {
+			AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
+			menu.Chosen += (object sender, bool e) => {
+				SceneManager.Load(MainMenu.Instance);
+			};
+			model.Pause();
+			menu.Show();
+		}
 	}
 
 	private void OnGameWon(object sender, EventArgs e) {
@@ -391,16 +394,19 @@ public class GameScene : Scene {
 			GameDifficulty.Normal => "normal",
 			_ => "hard"
 		};
-		AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
-		menu.Chosen += (object sender, bool e) => {
-			if (e) {
-				SceneManager.Load(MainMenu.Instance);
-			} else {
-				model.PostWin = true;
-				model.Resume();
-			}
-		};
-		model.Pause();
-		menu.Show();
+
+		if (Game.CanDraw) {
+			AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
+			menu.Chosen += (object sender, bool e) => {
+				if (e) {
+					SceneManager.Load(MainMenu.Instance);
+				} else {
+					model.PostWin = true;
+					model.Resume();
+				}
+			};
+			model.Pause();
+			menu.Show();
+		}
 	}
 }

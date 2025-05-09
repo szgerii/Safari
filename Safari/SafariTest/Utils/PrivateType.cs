@@ -29,7 +29,40 @@ internal class PrivateType {
 		if (prop == null) {
 			throw new ArgumentException($"Unknown static property '{propName}' in class '{Type}'");
 		}
-		
+
 		prop.SetValue(null, value);
+	}
+
+	public object? GetProperty(string propName) {
+		PropertyInfo? prop = Type.GetProperty(propName, BindingFlags.NonPublic | BindingFlags.Static) ??
+							 Type.GetProperty(propName, BindingFlags.Public | BindingFlags.Static);
+
+		if (prop == null) {
+			throw new ArgumentException($"Unknown static property '{propName}' in class '{Type}'");
+		}
+
+		return prop.GetValue(null);
+	}
+
+	public void SetField(string propName, object? value) {
+		FieldInfo? field = Type.GetField(propName, BindingFlags.NonPublic | BindingFlags.Static) ??
+						  Type.GetField(propName, BindingFlags.Public | BindingFlags.Static);
+
+		if (field == null) {
+			throw new ArgumentException($"Unknown static field '{propName}' in class '{Type}'");
+		}
+
+		field.SetValue(null, value);
+	}
+
+	public object? GetField(string propName) {
+		FieldInfo? field = Type.GetField(propName, BindingFlags.NonPublic | BindingFlags.Static) ??
+						  Type.GetField(propName, BindingFlags.Public | BindingFlags.Static);
+
+		if (field == null) {
+			throw new ArgumentException($"Unknown static field '{propName}' in class '{Type}'");
+		}
+
+		return field.GetValue(null);
 	}
 }

@@ -9,6 +9,7 @@ using Safari.Popups;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Safari.Model.Entities.Animals;
@@ -134,7 +135,7 @@ public class AnimalGroup : GameObject {
 	}
 
 	[PostPersistenceSetup]
-	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+	public void PostPersistenceSetup(Dictionary<string, List<GameObject>> refObjs) {
 		foreach (GameObject go in refObjs["Members"]) {
 			AddMember((Animal)go);
 		}
@@ -185,7 +186,7 @@ public class AnimalGroup : GameObject {
 	/// <param name="other">The other group in the merge</param>
 	/// <returns>Whether a merge is possible</returns>
 	public bool CanMergeWith(AnimalGroup other) {
-		return other.Species == Species && (Size + other.Size) <= MAX_SIZE;
+		return other.Species == Species && (Size + other.Size) <= MAX_SIZE && this != other;
 	}
 
 	/// <summary>
