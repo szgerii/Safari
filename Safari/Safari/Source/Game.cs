@@ -16,6 +16,7 @@ using Safari.Scenes.Menus;
 using System.Reflection;
 using System.Linq;
 using Safari.Helpers;
+using System.IO;
 
 namespace Safari;
 
@@ -35,6 +36,11 @@ public class Game : Engine.Game {
 	/// <param name="headless">Whether to start the game without any graphics (requires the SDL_VIDEODRIVER env var to be set to 'dummy' to function properly)</param>
 	public Game(bool headless = false) : base(headless) { }
 
+	/// <summary>
+	/// The path in which the game can save persisted data
+	/// </summary>
+	public static string SafariPath { get; private set; } = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Safari");
+
 	protected override void Initialize() {
 		BaseResolution = new Point(1920, 1080);
 
@@ -49,6 +55,7 @@ public class Game : Engine.Game {
 		if (!IsHeadless) {
 			// DisplayManager.SetTargetFPS(90, false);
 			DisplayManager.SetVSync(true, true);
+			Directory.CreateDirectory(SafariPath);
 		}
 
 		InputSetup();

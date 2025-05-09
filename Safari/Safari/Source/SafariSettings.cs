@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Safari.Components;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,7 +11,7 @@ namespace Safari;
 [JsonObject(MemberSerialization.OptIn)]
 public class SafariSettings
 {
-    private static string path = "settings.json";
+    private static string path = Path.Join(Game.SafariPath, "settings.json");
 	#region RESOLUTION
 	public static List<(int, int)> ResolutionOptions { get; private set; } = new();
     public static (int, int) DefaultResolution { get; set; } = (1280, 720);
