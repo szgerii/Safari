@@ -14,7 +14,7 @@ public abstract class SimulationTest {
 
 	[TestInitialize]
 	public void StartGame() {
-		Game = new(true) { StartupMode = Safari.GameStartupMode.EmptyScene };
+		Game = new(headless: true) { StartupMode = Safari.GameStartupMode.EmptyScene };
 		GameAssert.GameInstance = Game;
 
 		RunOneFrame();

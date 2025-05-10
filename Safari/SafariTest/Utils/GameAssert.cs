@@ -264,7 +264,7 @@ internal static class GameAssert {
 
 		RunInstanceFor(n, (int idx) => {
 			if (getValue() != null) {
-				string msg = 
+				string msg =
 					$"Actual value was not null after {idx} frames (expected: {n} frames)\n" +
 					$"Actual (after failed frame): {getValue()}";
 
@@ -274,7 +274,7 @@ internal static class GameAssert {
 			return null;
 		});
 	}
-	
+
 	/// <summary>
 	/// Tests whether a value stays not null for the next n frames, and throws an exception if it doesn't
 	/// </summary>
@@ -618,10 +618,10 @@ internal static class GameAssert {
 	#endregion
 
 	#region RunInstanceFor
-	private delegate int? RunCycleIteraion(int frameIdx);
+	private delegate int? RunCycleIteration(int frameIdx);
 	private delegate int? RunCycleIteraionNoArgs();
 
-	private static int RunInstanceFor(int n, RunCycleIteraion iteration) {
+	private static int RunInstanceFor(int n, RunCycleIteration iteration) {
 		AssertGameInstanceNotNull();
 
 		for (int i = 1; i <= n; i++) {
@@ -641,7 +641,7 @@ internal static class GameAssert {
 		return RunInstanceFor(n, (int _) => iteration());
 	}
 
-	private static int RunInstanceUntil(DateTime endDate, RunCycleIteraion iteration, int maxFrames) {
+	private static int RunInstanceUntil(DateTime endDate, RunCycleIteration iteration, int maxFrames) {
 		AssertGameInstanceNotNull();
 
 		DateTime currentDate = GameScene.Active.Model.IngameDate;
@@ -650,16 +650,19 @@ internal static class GameAssert {
 			RanFrame?.Invoke(null, EventArgs.Empty);
 			currentDate = GameScene.Active.Model.IngameDate;
 
-			int? result = iteration(i);
-			if (result != null) {
-				return (int)result;
+			if (currentDate <= endDate) {
+				int? result = iteration(i);
+
+				if (result != null) {
+					return (int)result;
+				}
 			}
 		}
 
 		return -1;
 	}
 
-	private static int RunInstanceUntil(DateTime endDate, RunCycleIteraion iteration)
+	private static int RunInstanceUntil(DateTime endDate, RunCycleIteration iteration)
 		=> RunInstanceUntil(endDate, iteration, DefaultFrameLimit);
 
 	private static int RunInstanceUntil(DateTime endDate, RunCycleIteraionNoArgs iteration, int maxFrames)

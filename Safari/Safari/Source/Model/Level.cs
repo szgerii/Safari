@@ -13,6 +13,7 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Safari.Model;
@@ -325,6 +326,7 @@ public class Level : GameObject {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
 			Game.SpriteBatch.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
@@ -332,6 +334,7 @@ public class Level : GameObject {
 		base.Draw(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public void PostDraw(object _, GameTime gameTime) {
 		Game.SpriteBatch.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 	}

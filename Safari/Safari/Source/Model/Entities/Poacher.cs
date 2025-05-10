@@ -11,6 +11,8 @@ using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Safari.Model.Entities;
 
@@ -172,6 +174,7 @@ public class Poacher : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (revealAll) Sprite.Visible = true;
 
@@ -348,6 +351,7 @@ public class Poacher : Entity {
 
 	private void OnDiedWhileEscaping(object sender, EventArgs e) {
 		CaughtAnimal.Release(Position);
+		CaughtAnimal = null;
 	}
 
 	private void OnEscapeReached(object sender, NavigationTargetEventArgs e) {

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model;
 
@@ -34,6 +35,7 @@ public class LightManager : IPostProcessPass {
 		this.lightMap = new int[width, height];
 	}
 
+	[ExcludeFromCodeCoverage]
 	public void PreDraw(GameTime gameTime) {
 		EnsureCorrectRT();
 		GraphicsDevice device = Game.Graphics.GraphicsDevice;

@@ -4,6 +4,7 @@ using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Safari.Scenes;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Tiles;
 
@@ -113,6 +114,7 @@ public abstract class Tile : GameObject {
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, src);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public void DrawPreviewAt(Vector2 worldPos, bool canDraw) {
 		Vector2 pos = new Vector2(Utils.Round(worldPos.X), Utils.Round(worldPos.Y));
 		if (this is AutoTile auto) {

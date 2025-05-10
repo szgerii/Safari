@@ -109,6 +109,8 @@ public class Ranger : Entity {
 		NavCmp.Speed *= SPEED;
 
 		StateMachine = new(RangerState.Wandering);
+
+		TryGetPaid();
 	}
 
 	private void SetupSprite() {
@@ -160,13 +162,7 @@ public class Ranger : Entity {
 	}
 
 	public override void Update(GameTime gameTime) {
-		DateTime date = GameScene.Active.Model.IngameDate;
-		if (lastSalaryMonth != date.Month) {
-			int monthDays = DateTime.DaysInMonth(date.Year, date.Month);
-			float salaryRatio = (float)(monthDays - date.Day + 1) / monthDays;
-			GameScene.Active.Model.Funds -= (int)(SALARY * salaryRatio);
-			lastSalaryMonth = date.Month;
-		}
+		TryGetPaid();
 
 		if (NavCmp.LastIntendedDelta != Vector2.Zero) {
 			bool right = NavCmp.LastIntendedDelta.X > -0.075f;
@@ -274,12 +270,23 @@ public class Ranger : Entity {
 			return;
 		}
 
-		if (ChaseTarget is Poacher) return;
-
 		foreach (Entity entity in GetEntitiesInSight()) {
 			if (entity.IsDead || this == entity) continue;
 
-			if (entity is Poacher && ChaseTarget is not Animal) {
+			// chasing animal - saw poacher -> always
+			// chasing poacher - saw poacher -> if seen poacher is closer
+			bool shouldSwitch = 
+				(entity is Poacher && (
+				ChaseTarget is Animal || 
+				(ChaseTarget is Poacher &&
+					(
+						Vector2.DistanceSquared(CenterPosition, ChaseTarget.CenterPosition) >
+						Vector2.DistanceSquared(CenterPosition, entity.CenterPosition)
+					)
+				)
+			));
+
+			if (shouldSwitch) {
 				chaseTargetBuffer = entity;
 				StateMachine.Transition(RangerState.Chasing);
 				break;
@@ -321,5 +328,16 @@ public class Ranger : Entity {
 		}
 
 		StateMachine.Transition(RangerState.Wandering);
+	}
+
+	private void TryGetPaid() {
+		DateTime date = GameScene.Active.Model.IngameDate;
+
+		if (lastSalaryMonth != date.Month) {
+			int monthDays = DateTime.DaysInMonth(date.Year, date.Month);
+			float salaryRatio = (float)(monthDays - date.Day + 1) / monthDays;
+			GameScene.Active.Model.Funds -= (int)(SALARY * salaryRatio);
+			lastSalaryMonth = date.Month;
+		}
 	}
 }
