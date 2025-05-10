@@ -12,6 +12,8 @@ public class DebugMode {
 	public static List<ExecutedDebugFeature> ExecutedFeatures { get; } = new();
 	public static List<LoopedDebugFeature> LoopedFeatures { get; } = new();
 
+	private readonly static Dictionary<string, bool> flags = [];
+
 	public static void Enable() {
 		foreach (LoopedDebugFeature feature in LoopedFeatures) {
 			if (feature.Enabled && feature.Handler != null) {
@@ -74,6 +76,14 @@ public class DebugMode {
 	}
 
 	public static bool IsLoopedFeatureEnabled(string name) => GetLoopedFeature(name).Enabled;
+
+	public static void SetFlag(string name, bool value) => flags[name] = value;
+	public static bool IsFlagActive(string name) => flags.TryGetValue(name, out bool result) && result;
+	public static bool HasFlagBeenSet(string name) => flags.ContainsKey(name);
+
+	public static void EnableFlag(string name) => SetFlag(name, true);
+	public static void DisableFlag(string name) => SetFlag(name, false);
+	public static void ToggleFlag(string name) => SetFlag(name, !IsFlagActive(name));
 
 	private static LoopedDebugFeature GetLoopedFeature(string name) {
 		LoopedDebugFeature feature = null;

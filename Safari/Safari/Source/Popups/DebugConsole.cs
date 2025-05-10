@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Helpers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Safari.Popups;
@@ -125,11 +126,11 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
             return;
         }
 
-        if (input.Value[input.Value.Length - 1] != '\n' && input.Value[input.Value.Length - 1] != '\r') {
+        if (!input.Value.Contains('\n') && !input.Value.Contains('\r')) {
             return;
         }
 
-        string consoleInput = input.Value.TrimEnd('\r', '\n').ToLower();
+        string consoleInput = input.Value.Replace("\n", "").Replace("\r", "").ToLower();
 
         Write(consoleInput);
 
@@ -155,6 +156,8 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
 
     //checks if the input is a custom debug console command and runs it if yes
     private bool RunDebugCustomCommands(string input) {
+        if (TryRunFlagCommand(input)) return true;
+
         switch (input) {
             case "help":
                 Help();
@@ -261,6 +264,70 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
         Info("help");
         Info("clear");
     }
+
+    private bool TryRunFlagCommand(string input) {
+        string[] inputArgs = input
+            .Split(' ')
+            .Select(arg => arg.Trim())
+            .Where(arg => arg != "")
+            .ToArray();
+
+        if (inputArgs.Length == 0) return false;
+
+        if (inputArgs.Length != 2) {
+            switch (inputArgs[0]) {
+                case "enable":
+                    Error("Usage: enable <flag>");
+                    return true;
+
+                case "disable":
+                    Error("Usage: disable <flag>");
+                    return true;
+
+                case "toggle":
+                    Error("Usage: toggle <flag>");
+                    return true;
+
+                case "flagval":
+                    Error("Usage: flagval <flag>");
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        switch (inputArgs[0]) {
+            case "enable":
+                DebugMode.EnableFlag(inputArgs[1]);
+                Confirm($"Successfully enabled flag '{inputArgs[1]}'");
+                return true;
+
+            case "disable":
+                DebugMode.DisableFlag(inputArgs[1]);
+                Confirm($"Successfully disabled flag '{inputArgs[1]}'");
+                return true;
+
+            case "toggle":
+                DebugMode.ToggleFlag(inputArgs[1]);
+                Confirm($"Successfully toggled flag '{inputArgs[1]}' to {DebugMode.IsFlagActive(inputArgs[1])}");
+                return true;
+
+            case "flagval":
+                bool defined = DebugMode.HasFlagBeenSet(inputArgs[1]);
+                if (defined) {
+                    Confirm($"Flag value of '{inputArgs[1]}': {DebugMode.IsFlagActive(inputArgs[1])}");
+                } else {
+                    Confirm($"Flag '{inputArgs[1]}' hasn't been defined yet");
+                }
+                
+                return true;
+
+            default:
+                return false;
+        }
+
+	}
 
     //Scrolls the text log to the bottom.
     private void ScrollConsoleDown() {
