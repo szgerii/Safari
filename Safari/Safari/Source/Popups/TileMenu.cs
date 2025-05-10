@@ -244,7 +244,6 @@ public class TileMenu : CategoryMenu, IUpdatable {
     }
 
     private void BuildTile() {
-        DebugConsole.Instance.Write("asd");
         if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
             Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level.TileSize).ToPoint();
             if (GameScene.Active.MouseMode == MouseMode.Build) {

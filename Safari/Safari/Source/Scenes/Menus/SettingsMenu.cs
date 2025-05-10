@@ -44,7 +44,12 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     private Panel cameraSpeedPanel;
     private Label cameraSpeedText;
     private Slider cameraSpeedSlider;
-    private float cameraStoredValue;
+    private float cameraSpeedStoredValue;
+
+    private Panel cameraAccelPanel;
+    private Label cameraAccelText;
+    private Slider cameraAccelSlider;
+    private float cameraAccelStoredValue;
 
     private Panel resolutionPanel;
     private Label resolutionText;
@@ -83,17 +88,18 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         title = new Header("Safari", Anchor.TopCenter);
         panel.AddChild(title);
 
-        settingsPanel = new Panel(new Vector2(0, 0.8f), PanelSkin.None, Anchor.TopCenter);
+        settingsPanel = new Panel(new Vector2(0, 0.85f), PanelSkin.None, Anchor.TopCenter);
+        settingsPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
 
         #region FPS
         //FPS Settings
         fpsPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         fpsPanel.Padding = new Vector2(0);
 
-        fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.5f, -1));
+        fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.45f, -1));
         fpsText.Padding = new Vector2(10);
 
-        fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
+        fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
         fpsSlider.Value = SafariSettings.Instance.Fps == 0 ? 91 : SafariSettings.Instance.Fps;
 
         fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
@@ -116,7 +122,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         vsyncText = new Label("VSync:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         vsyncText.Padding = new Vector2(10);
 
-        vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50));
+        vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50), new Vector2(20, 0));
         vsyncButton.ToggleMode = true;
         vsyncButton.Checked = SafariSettings.Instance.VSync;
         vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
@@ -138,7 +144,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeText = new Label("Window mode: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         screenTypeText.Padding = new Vector2(10);
 
-        screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight);
+        screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight, new Vector2(20, 0));
         screenTypeButtonPanel.Padding = new Vector2(0, 0.25f);
 
         screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0.5f));
@@ -194,24 +200,47 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         cameraSpeedText = new Label("Camera speed: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         cameraSpeedText.Padding = new Vector2(10);
 
-        cameraStoredValue = SafariSettings.Instance.CameraSpeed;
+        cameraSpeedStoredValue = SafariSettings.Instance.CameraSpeed;
 
-        cameraSpeedSlider = new Slider(50, 300, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
-        cameraSpeedSlider.Value = (int)CameraControllerCmp.DefaultScrollSpeed;
-        cameraSpeedText.Text = "Camera speed: " + (float)cameraSpeedSlider.Value / 100f;
+        cameraSpeedSlider = new Slider((int)SafariSettings.CAMERA_SPEED_MIN, (int)SafariSettings.CAMERA_SPEED_MAX, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
+        cameraSpeedSlider.Value = (int)SafariSettings.Instance.CameraSpeed;
+        cameraSpeedText.Text = "Camera speed: " + cameraSpeedSlider.Value / 100f;
         cameraSpeedSlider.OnValueChange = (Entity entity) => {
-            cameraSpeedText.Text = "Camera speed: " + (float)cameraSpeedSlider.Value / 100f;
-            cameraStoredValue = (float)cameraSpeedSlider.Value;
+            cameraSpeedText.Text = "Camera speed: " + cameraSpeedSlider.Value / 100f;
+            cameraSpeedStoredValue = cameraSpeedSlider.Value;
         };
 
         cameraSpeedPanel.AddChild(cameraSpeedText);
         cameraSpeedPanel.AddChild(cameraSpeedSlider);
         settingsPanel.AddChild(cameraSpeedPanel);
-        #endregion
+		#endregion
 
-        #region RESOLUTION
-        //RESOLUTION Settings
-        resolutionPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+		#region CAMERA_ACCELERATION
+		//CAMERA ACCELERATION Settings
+		cameraAccelPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+		cameraAccelPanel.Padding = new Vector2(0);
+
+		cameraAccelText = new Label("Camera speed: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
+		cameraAccelText.Padding = new Vector2(10);
+
+		cameraAccelStoredValue = SafariSettings.Instance.CameraAcceleration;
+
+		cameraAccelSlider = new Slider((int)SafariSettings.CAMERA_ACCEL_MIN, (int)SafariSettings.CAMERA_ACCEL_MAX, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
+		cameraAccelSlider.Value = (int)SafariSettings.Instance.CameraAcceleration;
+		cameraAccelText.Text = "Camera acceleration: " + (cameraAccelSlider.Value == 0 ? "OFF" : cameraAccelSlider.Value / 100f);
+		cameraAccelSlider.OnValueChange = (Entity entity) => {
+			cameraAccelText.Text = "Camera acceleration: " + (cameraAccelSlider.Value == 0 ? "OFF" : cameraAccelSlider.Value / 100f);
+			cameraAccelStoredValue = cameraAccelSlider.Value;
+		};
+
+		cameraAccelPanel.AddChild(cameraAccelText);
+		cameraAccelPanel.AddChild(cameraAccelSlider);
+		settingsPanel.AddChild(cameraAccelPanel);
+		#endregion
+
+		#region RESOLUTION
+		//RESOLUTION Settings
+		resolutionPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         resolutionPanel.Padding = new Vector2(0);
 
         resolutionText = new Label("Resolution: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
@@ -277,8 +306,8 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     }
 
     private void SaveChangesButtonClicked(Entity entity) {
-        CameraControllerCmp.DefaultScrollSpeed = cameraStoredValue;
-        SafariSettings.Instance.CameraSpeed = cameraStoredValue;
+        SafariSettings.Instance.CameraSpeed = cameraSpeedStoredValue;
+        SafariSettings.Instance.CameraAcceleration = cameraAccelStoredValue;
         SafariSettings.Instance.Resolution = selectedResolution;
         SafariSettings.Instance.VSync = vsyncButton.Checked;
         SafariSettings.Instance.Fps = fpsSlider.Value == 91 ? 0 : fpsSlider.Value;
@@ -288,7 +317,8 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     }
 
     private void MenuAndDiscardButtonClicked(Entity entity) {
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraSpeedStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraAccelStoredValue = CameraControllerCmp.DefaultAcceleration;
         DisplayManager.DiscardChanges();
         SceneManager.Load(MainMenu.Instance);
     }
@@ -299,6 +329,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         vsyncText.Scale = Scale;
         screenTypeText.Scale = Scale;
         cameraSpeedText.Scale = Scale;
+        cameraAccelText.Scale = Scale;
         resolutionText.Scale = Scale;
         resolutionsDisplay.Scale = Scale;
 
@@ -325,7 +356,11 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         cameraSpeedPanel = null;
         cameraSpeedText = null;
         cameraSpeedSlider = null;
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraSpeedStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraAccelPanel = null;
+        cameraAccelText = null;
+        cameraAccelSlider = null;
+        cameraAccelStoredValue = CameraControllerCmp.DefaultAcceleration;
         resolutionPanel = null;
         resolutionText = null;
         resolutionChangePanel = null;

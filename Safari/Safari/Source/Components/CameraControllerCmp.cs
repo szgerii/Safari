@@ -1,17 +1,24 @@
 ﻿using Engine;
+using Engine.Debug;
 using Engine.Input;
 using Engine.Objects;
 using Microsoft.Xna.Framework;
 using Safari.Debug;
+using Safari.Scenes;
 using System;
 
 namespace Safari.Components;
 
 public class CameraControllerCmp : Component, IUpdatable {
-	public static float DefaultScrollSpeed { get; set; } = 100f;
+	public static float DefaultScrollSpeed { get; set; } = 200f;
+	public static float DefaultAcceleration { get; set; } = 23f;
 	public static float DefaultZoom { get; set; } = 2;
 
-    public float ScrollSpeed { get; set; } = 100f;
+    public float ScrollSpeed { get; set; } = DefaultScrollSpeed;
+	public float ScrollAcceleration { get; set; } = DefaultAcceleration;
+	public float ScrollDeceleration { get; set; } = 100f;
+
+	private Vector2 currentSpeed = Vector2.Zero;
 
 	public float ZoomSpeed { get; set; } = 0.05f;
 	public float MinZoom { get; set; } = 0.55f;
@@ -22,15 +29,13 @@ public class CameraControllerCmp : Component, IUpdatable {
 
 	public Rectangle? Bounds { get; set; } = null;
 
-	public bool ShowDebugInfo { get; set; } = false;
-
+	private bool canEnterDragMode = false;
 	private Camera Camera => Owner as Camera;
 
 	public CameraControllerCmp() { }
 
 	public CameraControllerCmp(Rectangle bounds) {
 		Bounds = bounds;
-		ScrollSpeed = CameraControllerCmp.DefaultScrollSpeed;
 	}
 
 	public override void Load() {
@@ -38,15 +43,28 @@ public class CameraControllerCmp : Component, IUpdatable {
 	}
 
 	public void Update(GameTime gameTime) {
+		Mouse mouse = InputManager.Mouse;
+		if (mouse.JustPressed(MouseButtons.LeftButton) && !GameScene.Active.InMaskedArea(mouse.Location) && GameScene.Active.MouseMode == MouseMode.Inspect) {
+			canEnterDragMode = true;
+		} else if (mouse.IsUp(MouseButtons.LeftButton)) {
+			canEnterDragMode = false;
+			GameScene.Active.MouseDragLock = false;
+		}
+
 		Vector2 prevPos = Owner.Position;
 
 		// pos
-		Vector2 posDelta = GetInputPan(gameTime);
-		Owner.Position += posDelta;
-		Owner.Position = Utils.Round(Owner.Position).ToVector2();
+		CalcInputPan();
+		Owner.Position += currentSpeed * (GameScene.Active.MouseDragLock ? 1f : (float)gameTime.ElapsedGameTime.TotalSeconds);
+		if (prevPos != Utils.Round(Owner.Position).ToVector2()) {
+			Owner.Position = Utils.Round(Owner.Position).ToVector2();
+		}
+
+		if (Owner.Position == prevPos) {
+			currentSpeed = Vector2.Zero;
+		}
 
 		// zoom
-		float prevZoom = Camera.Zoom;
 		Camera.Zoom += GetInputZoom(gameTime);
 		Camera.Zoom = Math.Clamp(Camera.Zoom, MinZoom, MaxZoom);
 
@@ -55,21 +73,10 @@ public class CameraControllerCmp : Component, IUpdatable {
 		}
 
 		// clamp pos
-		if (Bounds != null) {
-			Rectangle bounds = Bounds.Value;
+		ClampToBounds();
 
-			float camScale = 1f / Camera.Zoom;
-			int realWidth = Utils.Round(bounds.Width - Camera.ScreenWidth * camScale);
-			int realHeight = Utils.Round(bounds.Height - Camera.ScreenHeight * camScale);
-
-			Point realSize = new Point(realWidth, realHeight);
-			Rectangle realBounds = new Rectangle(bounds.Location, realSize);
-
-			Owner.Position = realBounds.Clamp(Owner.Position);
-		}
-
-		if (ShowDebugInfo) {
-			DebugInfoManager.AddInfo("cam applied delta", posDelta.Format(), DebugInfoPosition.BottomRight);
+		if (DebugMode.IsFlagActive("cam-delta-stats")) {
+			DebugInfoManager.AddInfo("cam applied delta", currentSpeed.Format(), DebugInfoPosition.BottomRight);
 			DebugInfoManager.AddInfo("cam real delta", (Owner.Position - prevPos).Format(), DebugInfoPosition.BottomRight);
 		}
 	}
@@ -77,9 +84,29 @@ public class CameraControllerCmp : Component, IUpdatable {
 	/// <summary>
 	/// Calculates the camera movement delta vector based on the currently pressed inputs
 	/// </summary>
-	/// <param name="gameTime">The current game time</param>
 	/// <returns>The result vector</returns>
-	private Vector2 GetInputPan(GameTime gameTime) {
+	private void CalcInputPan() {
+		bool mouseMovementOverThreshold = InputManager.Mouse.Movement.LengthSquared() >= 1f;
+
+		if (canEnterDragMode && mouseMovementOverThreshold) {
+			GameScene.Active.MouseDragLock = true;
+		}
+
+		if (GameScene.Active.MouseDragLock) {
+			if (mouseMovementOverThreshold) {
+				float xDiff = Camera.RealViewportSize.X / (Game.RenderTarget.Width * Game.RenderTargetScale);
+				float yDiff = Camera.RealViewportSize.Y / (Game.RenderTarget.Height * Game.RenderTargetScale);
+
+				currentSpeed = -InputManager.Mouse.Movement * new Vector2(xDiff, yDiff);
+			} else {
+				currentSpeed = Vector2.Zero;
+			}
+
+			return;
+		}
+
+		GameScene.Active.MouseDragLock = false;
+
 		Vector2 delta = Vector2.Zero;
 
 		// delta unit is 3 for axis aligned movement, 2 for diagonal
@@ -99,21 +126,72 @@ public class CameraControllerCmp : Component, IUpdatable {
 			delta.Y += 3;
 		}
 
+		bool noUserDelta = delta == Vector2.Zero;
+
 		if (delta.X != 0 && delta.Y != 0) {
 			delta.X = Math.Sign(delta.X) * 2;
 			delta.Y = Math.Sign(delta.Y) * 2;
 		}
 
-		delta *= ScrollSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+		float speedMultiplier = InputManager.Actions.IsDown("fast-mod") ? FastModifier :
+								InputManager.Actions.IsDown("slow-mod") ? SlowModifier : 1f;
 
-		if (InputManager.Actions.IsDown("fast-mod")) {
-			delta *= FastModifier;
-		}
-		if (InputManager.Actions.IsDown("slow-mod")) {
-			delta *= SlowModifier;
-		}
+		if (ScrollAcceleration > 0 && (currentSpeed != Vector2.Zero || delta != Vector2.Zero)) {
+			// acceleration enabled
 
-		return delta;
+			// apply deceleration to stale components
+			// same 3-2 unit system as above
+
+			if (delta.X == 0 && Math.Abs(currentSpeed.X) < 0.5f) {
+				currentSpeed.X = 0f;
+			}
+
+			if (delta.Y == 0 && Math.Abs(currentSpeed.Y) < 0.5f) {
+				currentSpeed.Y = 0f;
+			}
+
+			int sx = Math.Sign(currentSpeed.X);
+			int sy = Math.Sign(currentSpeed.Y);
+			if (delta.X == 0 && delta.Y == 0) {
+				delta.X = -Math.Sign(currentSpeed.X) * 2;
+				delta.Y = -Math.Sign(currentSpeed.Y) * 2;
+			} else {
+				if (delta.X == 0) {
+					delta.X = -Math.Sign(currentSpeed.X) * 3;
+				}
+
+				if (delta.Y == 0) {
+					delta.Y = -Math.Sign(currentSpeed.Y) * 3;
+				}
+			}
+
+			// apply acceleration/deceleration to delta
+			currentSpeed += delta * ScrollAcceleration;
+
+			if (noUserDelta) {
+				if (sx != Math.Sign(currentSpeed.X)) {
+					currentSpeed.X = 0;
+					delta.X = 0;
+				}
+
+				if (sy != Math.Sign(currentSpeed.Y)) {
+					currentSpeed.Y = 0;
+					delta.Y = 0;
+				}
+			}
+
+			if (currentSpeed.Length() > 5 * ScrollSpeed * speedMultiplier) {
+				currentSpeed = Vector2.Normalize(currentSpeed) * 5 * ScrollSpeed * speedMultiplier;
+			}
+		} else {
+			// acceleration disabled
+
+			if (delta != Vector2.Zero) {
+				currentSpeed = delta * ScrollSpeed * speedMultiplier;
+			} else {
+				currentSpeed = Vector2.Zero;
+			}
+		}
 	}
 
 	/// <summary>
@@ -133,7 +211,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 			}
 		}
 
-		scaleDelta *= ZoomSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+		scaleDelta *= ZoomSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds * Camera.Zoom;
 
 		if (InputManager.Actions.IsDown("fast-mod")) {
 			scaleDelta *= FastModifier;
@@ -145,15 +223,31 @@ public class CameraControllerCmp : Component, IUpdatable {
 		return scaleDelta;
 	}
 
+	/// <summary>
+	/// Centers the camera onto a given position
+	/// </summary>
+	/// <param name="position"></param>
 	public void CenterOnPosition(Vector2 position) {
-		Vector2 camPos = position;
+		Owner.Position = position;
 
-		camPos -= Camera.ScreenSize.ToVector2() * (1f / Camera.Zoom) / 2;
+		ClampToBounds();
+	}
 
-		if (Bounds != null) {
-			camPos = Bounds.Value.Clamp(camPos);
-		}
+	/// <summary>
+	/// Ensures that the camera is inside the bounds of the controller
+	/// </summary>
+	private void ClampToBounds() {
+		if (Bounds == null) return;
 
-		Owner.Position = camPos;
+		Rectangle bounds = Bounds.Value;
+
+		float camScale = 1f / Camera.Zoom;
+		int realWidth = Utils.Round(bounds.Width - Camera.ScreenWidth * camScale);
+		int realHeight = Utils.Round(bounds.Height - Camera.ScreenHeight * camScale);
+
+		Point realSize = new Point(realWidth, realHeight);
+		Rectangle realBounds = new Rectangle(bounds.Location + (Camera.RealViewportSize / 2f).ToPoint(), realSize);
+
+		Owner.Position = realBounds.Clamp(Owner.Position);
 	}
 }

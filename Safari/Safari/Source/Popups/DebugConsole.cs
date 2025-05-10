@@ -320,7 +320,7 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
                 } else {
                     Confirm($"Flag '{inputArgs[1]}' hasn't been defined yet");
                 }
-                
+
                 return true;
 
             default:

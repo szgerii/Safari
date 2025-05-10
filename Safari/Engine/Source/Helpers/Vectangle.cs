@@ -236,6 +236,25 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 
 		return result;
 	}
+
+	/// <summary>
+	/// Clamps a position into the bounds defined by this Vectangle
+	/// </summary>
+	/// <param name="pos">The floating-point position to clamp</param>
+	/// <returns>The clamped Vector2</returns>
+	public readonly Vector2 Clamp(Vector2 pos) {
+		pos.X = Math.Clamp(pos.X, Left, Right);
+		pos.Y = Math.Clamp(pos.Y, Top, Bottom);
+
+		return pos;
+	}
+
+	/// <summary>
+	/// Clamps a position into the bounds defined by this Vectangle
+	/// </summary>
+	/// <param name="pos">The int-based position to clamp</param>
+	/// <returns>The clamped Point</returns>
+	public readonly Point Clamp(Point pos) => Clamp(pos.ToVector2()).ToPoint();
 }
 
 // Rectangle extensions for dealing with Vectangles

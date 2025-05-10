@@ -36,6 +36,10 @@ public class GameScene : Scene {
 
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
 	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
+	/// <summary>
+	/// Indicates whether the mouse is currently being used for camera dragging
+	/// </summary>
+	public bool MouseDragLock { get; set; } = false;
 
 	/// <summary>
 	/// Whether to skip placing the demo animals/plants/etc on the map
@@ -244,7 +248,7 @@ public class GameScene : Scene {
 	}
 
 	public void UpdateInspect() {
-		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
+		if (InputManager.Mouse.JustReleased(MouseButtons.LeftButton) && !MouseDragLock) {
 			Entity entity = Entity.GetEntityOnMouse();
 			if (entity != null && entity is Ranger ranger) {
 				EntityControllerMenu controller = new RangerControllerMenu(ranger);
@@ -294,7 +298,7 @@ public class GameScene : Scene {
 		return !Model.Level.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
 	}
 
-	private bool InMaskedArea(Point position) {
+	public bool InMaskedArea(Point position) {
 		foreach (Rectangle area in MaskedAreas) {
 			if (area.Contains(position)) {
 				return true;

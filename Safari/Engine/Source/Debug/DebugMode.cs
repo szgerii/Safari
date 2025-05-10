@@ -34,8 +34,14 @@ public class DebugMode {
 		Enabled = false;
 	}
 
-	public static void AddFeature(ExecutedDebugFeature feature) => ExecutedFeatures.Add(feature);
-	public static void AddFeature(LoopedDebugFeature feature) => LoopedFeatures.Add(feature);
+	public static void AddFeature(ExecutedDebugFeature feature) {
+		ExecutedFeatures.RemoveAll(f => f.Name == feature.Name);
+		ExecutedFeatures.Add(feature);
+	}
+	public static void AddFeature(LoopedDebugFeature feature) {
+		LoopedFeatures.RemoveAll(f => f.Name == feature.Name);
+		LoopedFeatures.Add(feature);
+	}
 
 	public static bool HasFeature(string name) => HasExecutedFeature(name) || HasLoopedFeature(name);
 	public static bool HasExecutedFeature(string name) => ExecutedFeatures.Any(e => e.Name == name);
