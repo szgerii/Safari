@@ -81,27 +81,42 @@ public class SafariSettings
     #endregion
 
     #region CAMERA_SPEED
-    public const float CAMERA_SPEED_DEFAULT = 100f;
+    public const float CAMERA_SPEED_DEFAULT = 200f;
     public const float CAMERA_SPEED_MIN = 50f;
-    public const float CAMERA_SPEED_MAX = 300f;
+    public const float CAMERA_SPEED_MAX = 400f;
 
     private float cameraSpeed;
     /// <summary>
     /// The speed of the main camera
     /// </summary>
     [JsonProperty]
-    public float CameraSpeed
-    {
+    public float CameraSpeed {
         get => cameraSpeed;
-        set
-        {
-            if (value < CAMERA_SPEED_MIN || value > CAMERA_SPEED_MAX)
-            {
+        set {
+            if (value < CAMERA_SPEED_MIN || value > CAMERA_SPEED_MAX) {
                 cameraSpeed = CAMERA_SPEED_DEFAULT;
-            }
-            else
-            {
+            } else {
                 cameraSpeed = value;
+            }
+        }
+    }
+
+	public const float CAMERA_ACCEL_DEFAULT = 23f;
+	public const float CAMERA_ACCEL_MIN = 0f;
+	public const float CAMERA_ACCEL_MAX = 100f;
+
+	private float cameraAcceleration;
+    /// <summary>
+    ///  The acceleration of the main camera
+    /// </summary>
+    [JsonProperty]
+    public float CameraAcceleration {
+        get => cameraAcceleration;
+        set {
+            if (value < CAMERA_ACCEL_MIN || value > CAMERA_ACCEL_MAX) {
+                cameraAcceleration = CAMERA_ACCEL_DEFAULT;
+            } else {
+                cameraAcceleration = value;
             }
         }
     }
@@ -139,6 +154,7 @@ public class SafariSettings
         Fps = FPS_DEFAULT;
         VSync = VSYNC_DEFAULT;
         CameraSpeed = CAMERA_SPEED_DEFAULT;
+        CameraAcceleration = CAMERA_ACCEL_DEFAULT;
     }
 
     public void Apply() {
@@ -147,6 +163,7 @@ public class SafariSettings
         DisplayManager.SetVSync(VSync, false);
         DisplayManager.SetWindowType(WindowType, false);
 		CameraControllerCmp.DefaultScrollSpeed = cameraSpeed;
+		CameraControllerCmp.DefaultAcceleration = cameraAcceleration;
 
         DisplayManager.ApplyChanges();
 

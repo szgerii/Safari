@@ -80,11 +80,15 @@ public class Game : Engine.Game {
 		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-fullscreen", () => {
 			if (DisplayManager.WindowType == WindowType.FULL_SCREEN) {
 				DisplayManager.SetWindowType(WindowType.WINDOWED, false);
-				DisplayManager.SetResolution(1280, 720, false);
+				DisplayManager.SetResolution(SafariSettings.DefaultResolution.Item1, SafariSettings.DefaultResolution.Item2, false);
 			} else {
 				DisplayManager.SetWindowType(WindowType.FULL_SCREEN, false);
 				DisplayMode nativeRes = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
-				DisplayManager.SetResolution(nativeRes.Width, nativeRes.Height, false);
+				if (DisplayManager.IsSupported(nativeRes.Width, nativeRes.Height)) {
+					DisplayManager.SetResolution(nativeRes.Width, nativeRes.Height, false);
+				} else {
+					DisplayManager.SetResolution(1920, 1080, false);
+				}
 			}
 			DisplayManager.ApplyChanges();
 		}));
@@ -175,7 +179,7 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 
 			DebugInfoManager.AddInfo("FPS (Update)", $"{updateFPS.Average:0}", DebugInfoPosition.TopRight);
-		
+
 			if (SceneManager.Active is GameScene) {
 				GameScene.Active.Model.PrintModelDebugInfos();
 			}

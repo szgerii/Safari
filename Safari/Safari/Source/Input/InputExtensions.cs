@@ -39,7 +39,7 @@ public static class InputExtensions {
 
         result -= rtOffset;
         result /= rtScale * Camera.Active.Zoom;
-        result += Camera.Active.Position;
+        result += Camera.Active.Position - (Camera.Active.RealViewportSize / 2f);
 
         return result;
     }
