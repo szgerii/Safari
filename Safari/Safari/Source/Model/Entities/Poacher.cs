@@ -174,13 +174,6 @@ public class Poacher : Entity {
 		base.Update(gameTime);
 	}
 
-	[ExcludeFromCodeCoverage]
-	public override void Draw(GameTime gameTime) {
-		if (revealAll) Sprite.Visible = true;
-
-		base.Draw(gameTime);
-	}
-
 	public override string ToString() {
 		string target;
 		target = State switch {
@@ -375,6 +368,14 @@ public class Poacher : Entity {
 	}
 
 	private void HideOnPreUpdate(object sender, GameTime e) {
-		isRevealed = false;
+		// keep last state during pause
+		if (GameScene.Active.Model.GameSpeed != GameSpeed.Paused) {
+			isRevealed = false;
+		}
+
+		// force reveal
+		if (revealAll) {
+			isRevealed = true;
+		}
 	}
 }
