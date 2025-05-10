@@ -57,11 +57,12 @@ public class Camera : GameObject {
 			int tileSize = GameScene.Active.Model.Level.TileSize;
 			tex ??= Utils.GenerateTexture(tileSize, tileSize, Color.Red, true);
 
+			int halfTileSize = Utils.Round(tileSize / 2f);
 			Vectangle destRect = new Vectangle(RealViewportBounds.Center, new Vector2(tileSize));
-			destRect.Offset(-tileSize / 2, -tileSize / 2);
+			destRect.Offset(-halfTileSize, -halfTileSize);
 			Game.SpriteBatch.Draw(tex.ToTexture2D(), (Rectangle)destRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 			destRect = new Vectangle(InputManager.Mouse.GetWorldPos(), new Vector2(tileSize));
-			destRect.Offset(-tileSize / 2, -tileSize / 2);
+			destRect.Offset(-halfTileSize, -halfTileSize);
 			Game.SpriteBatch.Draw(tex.ToTexture2D(), (Rectangle)destRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 

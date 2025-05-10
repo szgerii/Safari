@@ -43,6 +43,10 @@ public class CameraControllerCmp : Component, IUpdatable {
 	}
 
 	public void Update(GameTime gameTime) {
+		if (!Game.CanDraw) {
+			return;
+		}
+
 		Mouse mouse = InputManager.Mouse;
 		if (mouse.JustPressed(MouseButtons.LeftButton) && !GameScene.Active.InMaskedArea(mouse.Location) && GameScene.Active.MouseMode == MouseMode.Inspect) {
 			canEnterDragMode = true;
