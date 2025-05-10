@@ -42,7 +42,7 @@ public class LightEntityCmp : Component, IUpdatable {
 		} else {
 			if (old_map_pos != map_pos) {
 				if (!level.IsOutOfBounds(old_map_pos.Value.X, old_map_pos.Value.Y)) {
-					level.LightManager.RemoveLightsource((Point)old_map_pos, range);
+					level.LightManager.RemoveLightSource((Point)old_map_pos, range);
 				}
 				if (!level.IsOutOfBounds(map_pos.X, map_pos.Y)) {
 					level.LightManager.AddLightSource(map_pos, range);
