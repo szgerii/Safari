@@ -25,8 +25,18 @@ public static class DisplayManager {
 	private static GameWindow Window => Game.Window;
 	public static List<DisplayMode> SupportedResolutions { get; private set; }
 
+
+	// By default: include resolutions between 480p 4:3 and 4k 21:9
+	// Change these BEFORE calling DM Init to limit the available resolutions
+	public static int MIN_HEIGHT { get; set; } = 480;
+	public static int MIN_WIDTH { get; set; } = 640;
+	public static int MAX_WIDTH { get; set; } = 5120;
+	public static int MAX_HEIGHT { get; set; } = 2160;
+
 	public static void Init(WindowType windowType = WindowType.WINDOWED) {
-		SupportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes.ToList();
+		SupportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes
+			.Where((dm) => dm.Width >= MIN_WIDTH && dm.Height >= MIN_HEIGHT && dm.Width <= MAX_WIDTH && dm.Height <= MAX_HEIGHT)
+			.ToList();
 		SetResolution(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode, false);
 
 		VSync = true;

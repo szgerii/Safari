@@ -294,7 +294,12 @@ public abstract class Animal : Entity {
 
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
-		
+
+		if (Group == null) {
+			// shouldnt ever really happen, but just to be safe:
+			return;
+		}
+
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;

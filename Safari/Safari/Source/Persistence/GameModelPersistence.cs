@@ -36,7 +36,7 @@ public class InitializationRule {
 /// </summary>
 public class GameModelPersistence {
 	public const int MAX_SLOTS = 5;
-	public const string SAVE_PATH = "saves";
+	public static string SavePath { get; private set; } = Path.Join(Game.SafariPath, "saves");
 	public static List<Type> GameObjectTypes { get; set; } = new List<Type>() {
 		typeof(Camera),
 		typeof(EntitySpawner<Tourist>), typeof(EntitySpawner<Poacher>),
@@ -105,7 +105,7 @@ public class GameModelPersistence {
 	}
 
 	public GameModelPersistence(string parkName) {
-		dirPath = Path.Join(SAVE_PATH, parkName);
+		dirPath = Path.Join(SavePath, parkName);
 		if (!Directory.Exists(dirPath)) {
 			Directory.CreateDirectory(dirPath);
 		}
@@ -313,7 +313,7 @@ public class GameModelPersistence {
 
 
 	public static bool IsNameAvailable(string parkName) {
-		foreach (string dir in Directory.GetDirectories(SAVE_PATH)) {
+		foreach (string dir in Directory.GetDirectories(SavePath)) {
 			string name = Path.GetFileName(dir);
 			if (name == parkName) {
 				return false;
@@ -328,7 +328,7 @@ public class GameModelPersistence {
 	/// <returns></returns>
 	public static List<string> ListExistingParkNames() =>
 		Directory
-		.GetDirectories(SAVE_PATH)
+		.GetDirectories(SavePath)
 		.OrderByDescending(s => Directory.GetLastWriteTime(s))
 		.Select(s => Path.GetFileName(s))
 		.ToList();
