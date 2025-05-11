@@ -160,7 +160,7 @@ public class AnimalGroup : GameObject {
 	}
 
 	static AnimalGroup() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("list-groups", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-groups", [ExcludeFromCodeCoverage] () => {
 			List<AnimalGroup> groups = [];
 
 			foreach (GameObject obj in GameScene.Active.GameObjects) {

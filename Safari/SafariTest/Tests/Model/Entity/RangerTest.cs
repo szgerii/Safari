@@ -56,7 +56,7 @@ public class RangerTest : SimulationTest {
 	public void TestSalary() {
 		Safari.Game.RemoveObject(GameScene.Active.Model.Level);
 		PrivateObject gsPO = new(GameScene.Active);
-		gsPO.SetField("model", Substitute.ForPartsOf<GameModel>("test park", 100_000, GameDifficulty.Normal, new DateTime(2003, 11, 04), true));
+		gsPO.SetField("model", Substitute.ForPartsOf<GameModel>("test park", 100_000, GameDifficulty.Normal, new DateTime(2003, 11, 04)));
 		ITexture2D staticBG = new NoopTexture2D(null, 3584, 2048);
 		Model.Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
 		Safari.Game.AddObject(Model.Level);

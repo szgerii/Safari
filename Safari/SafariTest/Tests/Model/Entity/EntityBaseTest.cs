@@ -20,6 +20,7 @@ public class EntityBaseTest : SimulationTest {
 		entity.Bounds = new Vectangle(0, 0, 1, 1);
 		Safari.Game.AddObject(entity);
 		RunOneFrame();
+		CollectionAssert.AreEquivalent(new Ent[] { entity }, Ent.ActiveEntities.ToList());
 
 		Assert.IsNotNull(entity.NavCmp);
 		Assert.IsTrue(entity.Visible);

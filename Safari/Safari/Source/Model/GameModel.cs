@@ -8,6 +8,7 @@ using Safari.Scenes;
 using System;
 using Engine.Graphics.Stubs.Texture;
 using Newtonsoft.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model;
 
@@ -54,24 +55,24 @@ public class GameModel {
 	/// <summary>
 	/// How much faster 'medium' speed is compared to 'slow'
 	/// </summary>
-	private const int MEDIUM_FRAMES = 8;
+	public const int MEDIUM_FRAMES = 8;
 	/// <summary>
 	/// The component of medium speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int MEDIUM_FAKE = 4;
+	public const int MEDIUM_FAKE = 4;
 	/// <summary>
 	/// How much faster 'fast' speed is compared to 'slow'
 	/// </summary>
-	private const int FAST_FRAMES = 36;
+	public const int FAST_FRAMES = 36;
 	/// <summary>
 	/// The component of fast speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int FAST_FAKE = 12;
+	public const int FAST_FAKE = 12;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double DAY_LENGTH = 210.0;
+	public const double DAY_LENGTH = 210.0;
 
 	public const double SUNRISE_START = 0.98;
 	public const double SUNRISE_END = 0.02;
@@ -289,7 +290,7 @@ public class GameModel {
 	public event EventHandler GameWon;
 
 	static GameModel() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -300,28 +301,28 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Slow;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Medium;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Fast;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -331,19 +332,19 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.CheckWinLose = !gs.Model.CheckWinLose;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds += 10000;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds -= 10000;
 			}
@@ -355,7 +356,7 @@ public class GameModel {
 		CheckWinLose = false;
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
@@ -391,6 +392,7 @@ public class GameModel {
 		}
 	}
 
+	[ExcludeFromCodeCoverage]
 	public void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;
 
@@ -426,6 +428,7 @@ public class GameModel {
 
 	private void TriggerWin() {
 		GameWon?.Invoke(this, EventArgs.Empty);
+		PostWin = true;
 	}
 
 	private void WinUpdate() {
