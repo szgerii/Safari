@@ -44,33 +44,33 @@ public class AnimalGroupTest : SimulationTest {
 
 	[TestMethod("Memory Test")]
 	public void TestMemory() {
-		CollectionAssert.AreEqual(Array.Empty<Vector2>(), GetFoodSpots());
-		CollectionAssert.AreEqual(Array.Empty<Vector2>(), GetWaterSpots());
+		CollectionAssert.AreEqual(Array.Empty<Point>(), GetFoodSpots());
+		CollectionAssert.AreEqual(Array.Empty<Point>(), GetWaterSpots());
 
-		group!.AddFoodSpot(new Vector2(100, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200) }, GetFoodSpots());
-		group.AddFoodSpot(new Vector2(100, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200) }, GetFoodSpots());
-		group.AddFoodSpot(new Vector2(200, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200), new(200, 200) }, GetFoodSpots());
+		group!.AddFoodSpot(new Point(1, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2) }, GetFoodSpots());
+		group.AddFoodSpot(new Point(1, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2) }, GetFoodSpots());
+		group.AddFoodSpot(new Point(2, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2), new(2, 2) }, GetFoodSpots());
 
-		group.AddWaterSpot(new Vector2(100, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200) }, GetWaterSpots());
-		group.AddWaterSpot(new Vector2(100, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200) }, GetWaterSpots());
-		group.AddWaterSpot(new Vector2(200, 200));
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 200), new(200, 200) }, GetWaterSpots());
+		group.AddWaterSpot(new Point(1, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2) }, GetWaterSpots());
+		group.AddWaterSpot(new Point(1, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2) }, GetWaterSpots());
+		group.AddWaterSpot(new Point(2, 2));
+		CollectionAssert.AreEquivalent(new Point[] { new(1, 2), new(2, 2) }, GetWaterSpots());
 	}
 
 	[TestMethod("Merging Test")]
 	public void TestMerge() {
-		group!.AddFoodSpot(new Vector2(100, 100));
-		group!.AddWaterSpot(new Vector2(100, 100));
+		group!.AddFoodSpot(new Point(1, 1));
+		group!.AddWaterSpot(new Point(1, 1));
 
 		Animal animal2 = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), animal!.Species, Gender.Female);
-		animal2.Group.AddFoodSpot(new Vector2(100, 100));
-		animal2.Group.AddFoodSpot(new Vector2(200, 200));
-		animal2.Group.AddWaterSpot(new Vector2(200, 200));
+		animal2.Group.AddFoodSpot(new Point(1, 1));
+		animal2.Group.AddFoodSpot(new Point(2, 2));
+		animal2.Group.AddWaterSpot(new Point(2, 2));
 		Assert.IsTrue(group.CanMergeWith(animal2.Group));
 
 		group.MergeWith(animal2.Group);
@@ -80,8 +80,8 @@ public class AnimalGroupTest : SimulationTest {
 		Assert.AreEqual(group, animal2.Group);
 		CollectionAssert.Contains(group.Members, animal);
 		CollectionAssert.Contains(group.Members, animal2);
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 100), new(200, 200) }, GetFoodSpots());
-		CollectionAssert.AreEqual(new Vector2[] { new(100, 100), new(200, 200) }, GetWaterSpots());
+		CollectionAssert.AreEqual(new Point[] { new(1, 1), new(2, 2) }, GetFoodSpots());
+		CollectionAssert.AreEqual(new Point[] { new(1, 1), new(2, 2) }, GetWaterSpots());
 
 		while (group.Size < AnimalGroup.MAX_SIZE) {
 			Animal anim = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), animal.Species, Gender.Female);
@@ -146,7 +146,7 @@ public class AnimalGroupTest : SimulationTest {
 
 		Assert.AreNotEqual(AnimalGroupState.SeekingFood, group.State);
 
-		group.AddFoodSpot(Vector2.Zero);
+		group.AddFoodSpot(Point.Zero);
 
 		Assert.AreEqual(AnimalGroupState.SeekingFood, group.State);
 		Assert.IsTrue(group.NavCmp.Moving);
@@ -156,7 +156,7 @@ public class AnimalGroupTest : SimulationTest {
 
 		Assert.AreNotEqual(AnimalGroupState.SeekingWater, group.State);
 
-		group.AddWaterSpot(Vector2.Zero);
+		group.AddWaterSpot(Point.Zero);
 
 		Assert.AreEqual(AnimalGroupState.SeekingWater, group.State);
 		Assert.IsTrue(group.NavCmp.Moving);
@@ -200,7 +200,7 @@ public class AnimalGroupTest : SimulationTest {
 
 		group!.StateMachine.Transition(AnimalGroupState.Idle);
 		// +3 gyerek
-		Assert.AreEqual(9, group.Size);
+		Assert.AreEqual(8, group.Size);
 
 		Model.GameSpeed = GameSpeed.Fast;
 		GameAssert.AreNotEqualBefore(AnimalGroupState.Idle, () => group.State, TimeSpan.FromDays(1));
@@ -212,7 +212,7 @@ public class AnimalGroupTest : SimulationTest {
 		Vector2 target = new Vector2(1500, 1500);
 		Point tilemapPos = (target / Model.Level.TileSize).ToPoint();
 		Model.Level.SetTile(tilemapPos, new Grass());
-		group!.AddFoodSpot(target);
+		group!.AddFoodSpot(tilemapPos);
 
 		animalPO!.SetProperty("HungerLevel", (int)animalPT!.GetField("HUNGER_THRESHOLD_HERB")! + 1);
 		Model.GameSpeed = GameSpeed.Fast;
@@ -221,11 +221,11 @@ public class AnimalGroupTest : SimulationTest {
 		RunOneFrame();
 
 		Assert.AreEqual(AnimalGroupState.SeekingFood, group.State);
-		Assert.AreEqual(target, group.NavCmp.Target);
+		Assert.AreEqual(tilemapPos.ToVector2() * Model.Level.TileSize, group.NavCmp.Target);
 		Assert.AreEqual(true, group.NavCmp.Moving);
 
 		EntityBoundsManager.RemoveEntity(animal);
-		animal!.Position = target;
+		animal!.Position = tilemapPos.ToVector2() * Model.Level.TileSize;
 		animal.UpdateBounds();
 		EntityBoundsManager.AddEntity(animal);
 
@@ -237,7 +237,7 @@ public class AnimalGroupTest : SimulationTest {
 		Vector2 target = new Vector2(1500, 1500);
 		Point tilemapPos = (target / Model.Level.TileSize).ToPoint();
 		Model.Level.SetTile(tilemapPos, new Water());
-		group!.AddWaterSpot(target);
+		group!.AddWaterSpot(tilemapPos);
 
 		animalPO!.SetProperty("ThirstLevel", (int)animalPT!.GetField("THIRST_THRESHOLD")! + 1);
 		Model.GameSpeed = GameSpeed.Fast;
@@ -246,17 +246,17 @@ public class AnimalGroupTest : SimulationTest {
 		RunOneFrame();
 
 		Assert.AreEqual(AnimalGroupState.SeekingWater, group.State);
-		Assert.AreEqual(target, group.NavCmp.Target);
+		Assert.AreEqual(tilemapPos.ToVector2() * Model.Level.TileSize, group.NavCmp.Target);
 		Assert.AreEqual(true, group.NavCmp.Moving);
 
 		EntityBoundsManager.RemoveEntity(animal);
-		animal!.Position = target;
+		animal!.Position = tilemapPos.ToVector2() * Model.Level.TileSize;
 		animal.UpdateBounds();
 		EntityBoundsManager.AddEntity(animal);
 
 		GameAssert.AreEqualInNFrames(AnimalGroupState.Drinking, () => group.State, 5);
 	}
 
-	private List<Vector2> GetFoodSpots() => (List<Vector2>)groupPO!.GetField("knownFoodSpots")!;
-	private List<Vector2> GetWaterSpots() => (List<Vector2>)groupPO!.GetField("knownWaterSpots")!;
+	private List<Point> GetFoodSpots() => ((HashSet<Point>)groupPO!.GetField("knownFoodSpots")!).ToList();
+	private List<Point> GetWaterSpots() => ((HashSet<Point>)groupPO!.GetField("knownWaterSpots")!).ToList();
 }

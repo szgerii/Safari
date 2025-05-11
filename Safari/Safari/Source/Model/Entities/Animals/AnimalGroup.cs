@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Engine.Debug;
+using Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Safari.Components;
@@ -8,9 +9,8 @@ using Safari.Persistence;
 using Safari.Popups;
 using Safari.Scenes;
 using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -34,14 +34,13 @@ public enum AnimalGroupState {
 [SimulationActor]
 [JsonObject(MemberSerialization.OptIn)]
 public class AnimalGroup : GameObject {
-	public const int MAX_SIZE = 10;
-	private const float BASE_FORMATION_SPREAD = 30f;
-	private const float FORMATION_SPREAD_STEP = 13f;
+	public const int MAX_SIZE = 8;
+	public const float FORMATION_SPREAD = 140f;
 
 	[JsonProperty]
-	private readonly List<Vector2> knownFoodSpots = [];
+	private readonly HashSet<Point> knownFoodSpots = [];
 	[JsonProperty]
-	private readonly List<Vector2> knownWaterSpots = [];
+	private readonly HashSet<Point> knownWaterSpots = [];
 
 	/// <summary>
 	/// The species of the animals inside the group
@@ -69,13 +68,19 @@ public class AnimalGroup : GameObject {
 	/// <summary>
 	/// The current radius used for the formation, based on group size
 	/// </summary>
-	public float FormationSpread => BASE_FORMATION_SPREAD + Size * FORMATION_SPREAD_STEP;
+	public float FormationSpread => FORMATION_SPREAD + Size * 0;
 
 	/// <summary>
 	/// The speed at which the animals inside the group move
 	/// </summary>
 	[JsonProperty]
 	public float Speed { get; set; } = 50f;
+
+	/// <summary>
+	/// Hunt prey for carnivorous groups
+	/// </summary>
+	[GameobjectReferenceProperty]
+	public Animal HuntTarget { get; private set; } = null;
 
 	/// <summary>
 	/// Whether the group has a hungry animal inside it
@@ -129,6 +134,7 @@ public class AnimalGroup : GameObject {
 		Species = creator.Species;
 		AddMember(creator);
 		Game.AddObject(this);
+		CalcFormationOffsets();
 
 		NavCmp = new NavigationCmp(Speed);
 		StateMachine = new(AnimalGroupState.Wandering);
@@ -139,6 +145,8 @@ public class AnimalGroup : GameObject {
 		foreach (GameObject go in refObjs["Members"]) {
 			AddMember((Animal)go);
 		}
+
+		HuntTarget = (Animal)refObjs["HuntTarget"][0];
 
 		if (StateMachine.CurrentState == AnimalGroupState.Wandering) {
 			NavCmp.ReachedTarget += OnWanderTargetReached;
@@ -171,11 +179,10 @@ public class AnimalGroup : GameObject {
 	}
 
 	public override void Load() {
-		OnSizeChange();
 		Attach(NavCmp);
 		Attach(StateMachine);
 
-		OnSizeChange();
+		CalcFormationOffsets();
 
 		base.Load();
 	}
@@ -186,7 +193,10 @@ public class AnimalGroup : GameObject {
 	/// <param name="other">The other group in the merge</param>
 	/// <returns>Whether a merge is possible</returns>
 	public bool CanMergeWith(AnimalGroup other) {
-		return other.Species == Species && (Size + other.Size) <= MAX_SIZE && this != other;
+		AnimalGroupState[] validStates = [AnimalGroupState.Idle, AnimalGroupState.Wandering];
+		bool isStateValid = validStates.Contains(State) && validStates.Contains(other.State);
+
+		return other.Species == Species && (Size + other.Size) <= MAX_SIZE && isStateValid && this != other;
 	}
 
 	/// <summary>
@@ -203,16 +213,16 @@ public class AnimalGroup : GameObject {
 			AddMember(other.Members[i]);
 		}
 
-		foreach (Vector2 foodSpot in other.knownFoodSpots) {
+		foreach (Point foodSpot in other.knownFoodSpots) {
 			AddFoodSpot(foodSpot);
 		}
-		foreach (Vector2 waterSpot in other.knownWaterSpots) {
+		foreach (Point waterSpot in other.knownWaterSpots) {
 			AddWaterSpot(waterSpot);
 		}
 
 		Game.RemoveObject(other);
 
-		OnSizeChange();
+		CalcFormationOffsets();
 	}
 
 	/// <summary>
@@ -235,15 +245,15 @@ public class AnimalGroup : GameObject {
 			Game.RemoveObject(this);
 		}
 
-		OnSizeChange();
+		CalcFormationOffsets();
 	}
 
 	/// <summary>
 	/// Registers a food source position into the group's memory
 	/// </summary>
 	/// <param name="foodSpot">The food source position to add</param>
-	public void AddFoodSpot(Vector2 foodSpot) {
-		if (!knownFoodSpots.Contains(foodSpot)) {
+	public void AddFoodSpot(Point foodSpot) {
+		if (!KnowsFoodSpot(foodSpot)) {
 			knownFoodSpots.Add(foodSpot);
 		}
 
@@ -257,8 +267,8 @@ public class AnimalGroup : GameObject {
 	/// Registers a water source position into the group's memory
 	/// </summary>
 	/// <param name="waterSpot">The water source position to add</param>
-	public void AddWaterSpot(Vector2 waterSpot) {
-		if (!knownWaterSpots.Contains(waterSpot)) {
+	public void AddWaterSpot(Point waterSpot) {
+		if (!KnowsWaterSpot(waterSpot)) {
 			knownWaterSpots.Add(waterSpot);
 		}
 
@@ -267,6 +277,30 @@ public class AnimalGroup : GameObject {
 			StateMachine.Transition(AnimalGroupState.SeekingWater);
 		}
 	}
+
+	public void RemoveFoodSpot(Point tilePos, bool skipCheck = false) {
+		if (!skipCheck && !KnowsFoodSpot(tilePos))
+			return;
+
+		knownFoodSpots.Remove(tilePos);
+
+		if (NavCmp.TargetPosition != null && NavCmp.TargetPosition.Value.ToPoint() == tilePos) {
+			StateMachine.Transition(AnimalGroupState.SeekingFood);
+		}
+	}
+
+	public void RemoveWaterSpot(Point tilePos, bool skipCheck = false) {
+		if (skipCheck || KnowsWaterSpot(tilePos)) {
+			knownWaterSpots.Remove(tilePos);
+		}
+
+		if (NavCmp.TargetPosition != null && NavCmp.TargetPosition.Value.ToPoint() == tilePos) {
+			StateMachine.Transition(AnimalGroupState.SeekingWater);
+		}
+	}
+
+	public bool KnowsFoodSpot(Point tilePos) => knownFoodSpots.Contains(tilePos);
+	public bool KnowsWaterSpot(Point tilePos) => knownWaterSpots.Contains(tilePos);
 
 	/// <summary>
 	/// Whether any member of the group can see the given position
@@ -364,9 +398,11 @@ public class AnimalGroup : GameObject {
 	}
 
 	private DateTime idleStart;
+	private TimeSpan idlePeriod;
 	[StateBegin(AnimalGroupState.Idle)]
 	public void BeginIdle() {
 		idleStart = GameScene.Active.Model.IngameDate;
+		idlePeriod = TimeSpan.FromMinutes(Game.Random.Next(120, 240));
 
 		NavCmp.Moving = false;
 
@@ -395,14 +431,15 @@ public class AnimalGroup : GameObject {
 			Animal child = (Animal)Activator.CreateInstance(Species.GetAnimalType(), [females[i].Position, Utils.GetRandomEnumValue<Gender>()]);
 			Game.AddObject(child);
 			AddMember(child);
-			OnSizeChange();
+			CalcFormationOffsets();
 		}
 	}
 
 	[StateUpdate(AnimalGroupState.Idle)]
 	public void IdleUpdate(GameTime gameTime) {
-		if ((GameScene.Active.Model.IngameDate - idleStart).TotalHours > 2) {
+		if (GameScene.Active.Model.IngameDate - idleStart > idlePeriod) {
 			StateMachine.Transition(AnimalGroupState.Wandering);
+			idlePeriod = TimeSpan.Zero;
 		}
 	}
 
@@ -420,6 +457,7 @@ public class AnimalGroup : GameObject {
 	[StateBegin(AnimalGroupState.Wandering)]
 	public void BeginWandering() {
 		SetNewWanderingPos();
+		CalcFormationOffsets();
 		NavCmp.ReachedTarget += OnWanderTargetReached;
 	}
 
@@ -431,6 +469,36 @@ public class AnimalGroup : GameObject {
 	[StateUpdate(AnimalGroupState.Wandering)]
 	public void WanderingUpdate(GameTime gameTime) {
 		SyncToFormation();
+
+		foreach (Animal animal in Members) {
+			foreach (Entity entity in animal.GetEntitiesInSight()) {
+				if (entity is Poacher) {
+					Vector2 escapeDir = -Vector2.Normalize(entity.Position - Position);
+					escapeDir *= 1000;
+					Point escapePoint = (Position + escapeDir).ToPoint();
+					int ts = GameScene.Active.Model.Level.TileSize;
+					while (GameScene.Active.Model.Level.IsOutOfPlayArea(escapePoint.X / ts, escapePoint.Y / ts)) {
+						escapeDir *= 0.9f;
+						escapePoint = (Position + escapeDir).ToPoint();
+					}
+					NavCmp.TargetPosition = escapePoint.ToVector2();
+					NavCmp.Moving = true;
+					NavCmp.StopOnTargetReach = false;
+				}
+				
+				if (Species.IsCarnivorous() && HasHungryMember) {
+					if (entity is not Animal seenAnimal || Members.Contains(entity) || entity.IsDead) {
+						continue;
+					}
+
+					if (!seenAnimal.Species.IsCarnivorous()) {
+						HuntTarget = seenAnimal;
+						StateMachine.Transition(AnimalGroupState.SeekingFood);
+						return;
+					}
+				}
+			}
+		}
 	}
 
 	[JsonProperty]
@@ -438,20 +506,78 @@ public class AnimalGroup : GameObject {
 	private void OnNearDestination(object sender, NavigationTargetEventArgs e) {
 		nearDestination = true;
 		NavCmp.TargetInSight -= OnNearDestination;
+
+		Level level = GameScene.Active.Model.Level;
+		Point target = NavCmp.TargetPosition.Value.ToPoint();
+		target = new Point(target.X / level.TileSize, target.Y / level.TileSize);
+		List<Point> tileBlob = level.GetTileBlob(target);
+		HashSet<Vector2> occupied = [];
+
+		foreach (Animal animal in Members) {
+			Vector2 memberTarget = GetNearestFromList(tileBlob, animal.CenterPosition, occupied).Value;
+			occupied.Add(memberTarget);
+			animal.NavCmp.TargetPosition = memberTarget;
+			animal.NavCmp.Moving = true;
+			animal.NavCmp.StopOnTargetReach = false;
+		}
 	}
 
-	[StateBegin(AnimalGroupState.SeekingFood)]
-	public void BeginSeekingFood() {
-		if (Species.IsCarnivorous() || knownFoodSpots.Count == 0) {
+	public void HuntFinished(object sender, NavigationTargetEventArgs e) {
+		if (HuntTarget != null) {
+			HuntTarget.Died -= HuntInterrupted;
+			HuntTarget.Caught -= HuntInterrupted;
+		}
+		
+		if (HuntTarget == null || HuntTarget.IsDead) {
 			StateMachine.Transition(AnimalGroupState.Wandering);
 			return;
 		}
 
-		nearDestination = false;
+		HuntTarget.Die();
+		foreach (Animal member in Members) {
+			member.Feed(100);
+		}
+		StateMachine.Transition(AnimalGroupState.Idle);
+	}
+
+	public void HuntInterrupted(object sender, EventArgs e) {
+		if (HuntTarget != null) {
+			HuntTarget.Died -= HuntInterrupted;
+			HuntTarget.Caught -= HuntInterrupted;
+		}
+
+		HuntTarget = null;
+		NavCmp.ReachedTarget -= HuntFinished;
+		StateMachine.Transition(AnimalGroupState.Wandering);
+	}
+
+	[StateBegin(AnimalGroupState.SeekingFood)]
+	public void BeginSeekingFood() {
+		if (Species.IsCarnivorous()) {
+			if (HuntTarget == null) {
+				StateMachine.Transition(AnimalGroupState.Wandering);
+				return;
+			}
+
+			NavCmp.TargetObject = HuntTarget;
+			NavCmp.ReachedTarget += HuntFinished;
+			NavCmp.StopOnTargetReach = false;
+			HuntTarget.Died += HuntInterrupted;
+			HuntTarget.Caught += HuntInterrupted;
+		} else {
+			if (knownFoodSpots.Count == 0) {
+				StateMachine.Transition(AnimalGroupState.Wandering);
+				return;
+			}
+		
+			nearDestination = false;
+			NavCmp.TargetInSight += OnNearDestination;
+			NavCmp.TargetPosition = GetNearestFromList([.. knownFoodSpots]);
+			NavCmp.StopOnTargetReach = true;
+		}
+
 		NavCmp.Moving = true;
-		NavCmp.StopOnTargetReach = true;
-		NavCmp.TargetInSight += OnNearDestination;
-		NavCmp.TargetPosition = GetNearestFromList(knownFoodSpots);
+		CalcFormationOffsets();
 	}
 
 	[StateUpdate(AnimalGroupState.SeekingFood)]
@@ -462,34 +588,53 @@ public class AnimalGroup : GameObject {
 			return;
 		}
 
-		if (!nearDestination) {
-			SyncToFormation();
+		if (Species.IsCarnivorous()) {
+			 SyncToFormation();
 		} else {
-			bool everyoneCanEat = true;
-			foreach (Animal member in Members) {
-				bool canEat = false;
+			if (!nearDestination) {
+				SyncToFormation();
+			} else {
+				bool everyoneCanEat = true;
+				foreach (Animal member in Members) {
+					bool canEat = false;
 
-				foreach (Tile tile in member.GetTilesInReach()) {
-					if (tile.IsFoodSource) {
-						canEat = true;
-						break;
+					foreach (Tile tile in member.GetTilesInReach()) {
+						if (tile.IsFoodSource) {
+							canEat = true;
+							break;
+						}
+					}
+
+					if (!canEat) {
+						everyoneCanEat = false;
 					}
 				}
 
-				if (!canEat) {
-					everyoneCanEat = false;
-
-					member.NavCmp.TargetPosition = NavCmp.TargetPosition;
-					member.NavCmp.Moving = true;
-					member.NavCmp.StopOnTargetReach = true;
+				if (everyoneCanEat) {
+					StateMachine.Transition(AnimalGroupState.Feeding);
 				}
 			}
+		}
+	}
 
-			if (everyoneCanEat) {
-				StateMachine.Transition(AnimalGroupState.Feeding);
-				NavCmp.Moving = false;
-				NavCmp.TargetPosition = null;
-			}
+	[StateEnd(AnimalGroupState.SeekingFood)]
+	public void EndSeekingFood() {
+		NavCmp.TargetObject = null;
+		NavCmp.TargetPosition = null;
+		NavCmp.Moving = false;
+
+		foreach (Animal animal in Members) {
+			animal.NavCmp.Moving = false;
+		}
+	}
+
+	[StateEnd(AnimalGroupState.SeekingWater)]
+	public void EndSeekingWater() {
+		NavCmp.TargetPosition = null;
+		NavCmp.Moving = false;
+
+		foreach (Animal animal in Members) {
+			animal.NavCmp.Moving = false;
 		}
 	}
 
@@ -504,7 +649,8 @@ public class AnimalGroup : GameObject {
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = true;
 		NavCmp.TargetInSight += OnNearDestination;
-		NavCmp.TargetPosition = GetNearestFromList(knownWaterSpots);
+		NavCmp.TargetPosition = GetNearestFromList([.. knownWaterSpots]);
+		CalcFormationOffsets();
 	}
 
 	[StateUpdate(AnimalGroupState.SeekingWater)]
@@ -531,10 +677,6 @@ public class AnimalGroup : GameObject {
 
 				if (!canDrink) {
 					everyoneCanDrink = false;
-
-					member.NavCmp.TargetPosition = NavCmp.TargetPosition;
-					member.NavCmp.Moving = true;
-					member.NavCmp.StopOnTargetReach = true;
 				}
 			}
 
@@ -590,38 +732,67 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	private Vector2? GetNearestFromList(List<Vector2> spots) {
+	private Vector2? GetNearestFromList(List<Point> spots, Vector2? from = null, ICollection<Vector2> excludeList = null) {
+		from ??= Position;
+		excludeList ??= Array.Empty<Vector2>();
+		
 		float minDist = -1;
-		int minInd = -1;
+		Vector2? result = null;
 		for (int i = 0; i < spots.Count; i++) {
-			Vector2 spot = spots[i];
-			float dist = Vector2.Distance(Position, spot);
+			Vector2 realPos = new(spots[i].X * GameScene.Active.Model.Level.TileSize, spots[i].Y * GameScene.Active.Model.Level.TileSize);
+			float dist = Vector2.DistanceSquared(from.Value, realPos);
 
-			if (minInd == -1 || dist < minDist) {
+			if (!excludeList.Contains(realPos) && (result == null || dist < minDist)) {
 				minDist = dist;
-				minInd = i;
+				result = realPos;
 			}
 		}
 
-		return minInd > -1 ? spots[minInd] : null;
+		if (result == null && excludeList != Array.Empty<Vector2>()) {
+			// if no results can be returned without reusing points from excludeList, try to get one without it
+			result = GetNearestFromList(spots, from);
+		}
+
+		return result;
 	}
 
-	private void OnSizeChange() {
+	/// <summary>
+	/// Calculates the formation offsets for the current group size <br/>
+	/// The result will be for straight upwards movement on the Y axis and will have to be rotated accordingly
+	/// </summary>
+	private void CalcFormationOffsets() {
 		if (Size <= 0) {
 			formationOffsets = [];
 		} else if (Size == 1) {
 			formationOffsets = [Vector2.Zero];
 		} else {
-			Vector2[] result = new Vector2[Size];
-			double step = 2 * (float)Math.PI / Size;
-
+			formationOffsets = new Vector2[Size];
 			for (int i = 0; i < Size; i++) {
-				double rad = i * step;
+				Vector2 size = Members[i].Bounds.Size;
+				Vector2 pos;
+				bool collides;
+				int attempts = 0;
+				do {
+					float angle = Game.Random.NextSingle() * (2 * (float)Math.PI);
+					float r = Game.Random.NextSingle() * FormationSpread;
+					pos = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * r;
 
-				result[i] = new Vector2((float)Math.Cos(rad), (float)Math.Sin(rad)) * FormationSpread;
+					collides = false;
+					Vectangle targetBounds = new(pos - (size / 2), size);
+					for (int j = 0; j < i; j++) {
+						Vector2 jSize = Members[j].Bounds.Size;
+						Vectangle jBounds = new(formationOffsets[j] - (jSize / 2), jSize);
+
+						if (jBounds.Intersects(targetBounds)) {
+							collides = true;
+							break;
+						}
+					}
+
+					attempts++;
+				} while (attempts <= 100 && collides);
+				formationOffsets[i] = pos;
 			}
-
-			formationOffsets = result;
 		}
 	}
 }

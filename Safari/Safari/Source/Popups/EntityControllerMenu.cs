@@ -1,16 +1,23 @@
-﻿using Engine.Components;
+﻿using Engine.Input;
+using Engine.Components;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Safari.Popups;
 
 public class EntityControllerMenu : PopupMenu {
+	protected static readonly Vector2 BASE_SIZE = new(0.3f, 0.9f);
+
 	public static EntityControllerMenu Active { get; private set; } = null;
-	private Button closeButton;
-	private readonly Image image;
-	private Header header;
+	protected Button closeButton;
+	protected readonly Image image;
+	protected Header header;
 	protected Safari.Model.Entities.Entity controlledEntity;
 
 	public EntityControllerMenu(Safari.Model.Entities.Entity entity) {
@@ -29,7 +36,7 @@ public class EntityControllerMenu : PopupMenu {
 	private Vector2? prevOffset = null;
 	private void PrepareUI() {
 		background = null;
-		panel = new Panel(new Vector2(0.3f, 0.9f), PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
+		panel = new Panel(BASE_SIZE, PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
 		panel.Tag = "PassiveFocus";
 		panel.Padding = new Vector2(20, 20);
 
@@ -64,6 +71,7 @@ public class EntityControllerMenu : PopupMenu {
 		controlledEntity.Died += OnEntityDied;
 		controlledEntity.IsBeingInspected = true;
 		base.Show();
+		InputManager.Mouse.ScrollLock = true;
 	}
 
 	public override void Hide() {
@@ -72,6 +80,7 @@ public class EntityControllerMenu : PopupMenu {
 		controlledEntity.IsBeingInspected = false;
 		base.Hide();
 		Active = null;
+		InputManager.Mouse.ScrollLock = false;
 	}
 
 	public override void Update(GameTime gameTime) {
@@ -101,4 +110,31 @@ public class EntityControllerMenu : PopupMenu {
 	}
 
 	protected virtual void UpdateData() { }
+
+	private readonly Type[] ROUNDED_TYPES = [typeof(float), typeof(double)];
+	private const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+	protected virtual string DumpObjectDataToString(object targetObj, Type targetType = null) {
+		if (targetType == null) {
+			targetType = targetObj.GetType();
+		}
+
+		List<MemberInfo> infos = [.. targetType.GetProperties(FLAGS)];
+		infos.AddRange(targetType.GetFields(FLAGS));
+
+		StringBuilder sb = new("");
+		foreach (MemberInfo info in infos) {
+			string line = $"{info.Name}: ";
+
+			if (info is FieldInfo field) {
+				line += ROUNDED_TYPES.Contains(field.FieldType) ? $"{field.GetValue(targetObj):0.00}" : $"{field.GetValue(targetObj)}";
+			} else if (info is PropertyInfo prop) {
+				line += ROUNDED_TYPES.Contains(prop.PropertyType) ? $"{prop.GetValue(targetObj):0.00}" : $"{prop.GetValue(targetObj)}";
+			}
+
+			sb.Append(line);
+			sb.Append('\n');
+		}
+
+		return sb.ToString();
+	}
 }

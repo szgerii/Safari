@@ -13,6 +13,7 @@ public class Tiger : Animal {
 
 	public Tiger(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Tiger, gender) {
 		DisplayName = "Tiger";
+		SightDistance = 8;
 
 		InitSprite();
 	}

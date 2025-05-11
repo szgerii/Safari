@@ -3,7 +3,10 @@ using Engine.Components;
 using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
 using Safari.Scenes;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Tiles;
@@ -112,6 +115,26 @@ public abstract class Tile : GameObject {
 		}
 
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, src);
+	}
+
+	public override void Update(GameTime gameTime) {
+		Sprite.Tint = Color.White;
+
+		if (IsFoodSource || IsWaterSource) {
+			foreach (Entity entity in Entity.ActiveEntities) {
+				if (entity is Animal animal && entity.IsBeingInspected && animal.Group != null) {
+					bool knows = (!animal.Species.IsCarnivorous() && IsFoodSource) ? animal.Group.KnowsFoodSpot(TilemapPosition) :
+									animal.Group.KnowsWaterSpot(TilemapPosition);
+					if (knows) {
+						float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
+						Sprite.Tint = Color.White * (0.5f + fadeFactor);
+						break;
+					}
+				}
+			}
+		}
+
+		base.Update(gameTime);
 	}
 
 	[ExcludeFromCodeCoverage]

@@ -12,8 +12,8 @@ using Safari.Popups;
 using Engine.Helpers;
 using Engine.Graphics.Stubs.Texture;
 using Newtonsoft.Json;
-using Safari.Persistence;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -39,8 +39,8 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The level of hunger at which a carnivorous animal will become hungry
 	/// </summary>
-	private const int HUNGER_THRESHOLD_CARN = 35;
-	private const float INITIAL_HUNGER_DECAY_CARN = 0.05f;
+	private const int HUNGER_THRESHOLD_CARN = 45;
+	private const float INITIAL_HUNGER_DECAY_CARN = 0.2f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
@@ -179,6 +179,11 @@ public abstract class Animal : Entity {
 	public AnimalGroupState State => Group.State;
 
 	/// <summary>
+	/// Invoked when the animal is captured by a poacher
+	/// </summary>
+	public event EventHandler Caught;
+
+	/// <summary>
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
@@ -296,6 +301,12 @@ public abstract class Animal : Entity {
 		base.Unload();
 	}
 
+	private const float STUCK_CHECK_THRESHOLD = 32f;
+	private const float GROUP_DISTANCE_THRESHOLD = AnimalGroup.FORMATION_SPREAD * 2f;
+	private readonly static AnimalGroupState[] checkpointStates = [ AnimalGroupState.Wandering, AnimalGroupState.SeekingWater, AnimalGroupState.SeekingFood ];
+	private Vector2 checkpointPos = new Vector2(-100);
+	private DateTime checkpointTime = DateTime.MinValue;
+	private bool checkpointFarFromGroup = false;
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
 
@@ -307,6 +318,32 @@ public abstract class Animal : Entity {
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
+		}
+
+		if (GameScene.Active.Model.IngameDate - checkpointTime >= TimeSpan.FromHours(1)) {
+			if (checkpointStates.Contains(State)) {
+				if (Vector2.Distance(CenterPosition, checkpointPos) < STUCK_CHECK_THRESHOLD) {
+					Group.Leave(this);
+					Group = new AnimalGroup(this);
+				}
+
+				if (Vector2.Distance(CenterPosition, Group.Position) > GROUP_DISTANCE_THRESHOLD) {
+					if (checkpointFarFromGroup) {
+						Group.Leave(this);
+						Group = new AnimalGroup(this);
+						checkpointFarFromGroup = false;
+					} else {
+						checkpointFarFromGroup = true;
+					}
+				} else {
+					checkpointFarFromGroup = false;
+				}
+			} else {
+				checkpointFarFromGroup = false;
+			}
+
+			checkpointPos = CenterPosition;
+			checkpointTime = GameScene.Active.Model.IngameDate;
 		}
 
 		// update anim
@@ -362,6 +399,10 @@ public abstract class Animal : Entity {
 		}
 	}
 
+	public void Feed(int amount) {
+		HungerLevel = Math.Min(100f, HungerLevel + amount);
+	}
+
 	/// <summary>
 	/// Increases the animal's thirst level according to its drinking speed
 	/// (for continous drinking)
@@ -404,6 +445,7 @@ public abstract class Animal : Entity {
 			throw new InvalidOperationException("Cannot catch an animal that has already been caught");
 		}
 
+		Caught?.Invoke(this, EventArgs.Empty);
 		Group.Leave(this);
 
 		IsCaught = true;
@@ -460,11 +502,15 @@ public abstract class Animal : Entity {
 	private void CheckSurroundings() {
 		foreach (Tile tile in GetTilesInSight()) {
 			if (tile.IsFoodSource) {
-				Group.AddFoodSpot(tile.Position);
+				Group.AddFoodSpot(tile.TilemapPosition);
+			} else if (Group.KnowsFoodSpot(tile.TilemapPosition)) {
+				Group.RemoveFoodSpot(tile.TilemapPosition, true);
 			}
 
 			if (tile.IsWaterSource) {
-				Group.AddWaterSpot(tile.Position);
+				Group.AddWaterSpot(tile.TilemapPosition);
+			} else if (Group.KnowsWaterSpot(tile.TilemapPosition)) {
+				Group.RemoveWaterSpot(tile.TilemapPosition);
 			}
 		}
 
@@ -478,15 +524,6 @@ public abstract class Animal : Entity {
 			if (entity is Animal anim && anim.Group != null) {
 				if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
 					Group.MergeWith(anim.Group);
-				}
-
-				if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
-					if (CanReach(anim)) {
-						HungerLevel = 100f;
-						anim.Die();
-					} else {
-						// TODO: set nav target to anim
-					}
 				}
 			}
 		}
