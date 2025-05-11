@@ -108,7 +108,7 @@ public class LightManager : IPostProcessPass {
 	/// </summary>
 	/// <param name="p">the point in the level the light used to be</param>
 	/// <param name="range">how far the light used to reach</param>
-	public void RemoveLightsource(Point p, int range) => RemoveLightSource(p.X, p.Y, range);
+	public void RemoveLightSource(Point p, int range) => RemoveLightSource(p.X, p.Y, range);
 
 	/// <summary>
 	/// Check whether a given point in the level is lit

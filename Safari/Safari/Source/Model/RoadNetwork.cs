@@ -121,14 +121,14 @@ public class RoadNetwork {
 	public event EventHandler<RoadChangedEventArgs> RoadChanged;
 
 	static RoadNetwork() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				RoadNetwork network = GameScene.Active.Model.Level.Network;
 				network.DebugRoute = network.RandomRoute;
 			}
 		}));
 
-		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", [ExcludeFromCodeCoverage] (object sender, GameTime gameTime) => {
 			if (debugTexture == null) {
 				debugTexture = Utils.GenerateTexture(1, 1, Color.DarkCyan);
 			}

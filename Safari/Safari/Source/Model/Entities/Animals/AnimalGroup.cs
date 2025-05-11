@@ -11,6 +11,7 @@ using Safari.Scenes;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -166,7 +167,7 @@ public class AnimalGroup : GameObject {
 	}
 
 	static AnimalGroup() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("list-groups", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("list-groups", [ExcludeFromCodeCoverage] () => {
 			List<AnimalGroup> groups = [];
 
 			foreach (GameObject obj in GameScene.Active.GameObjects) {

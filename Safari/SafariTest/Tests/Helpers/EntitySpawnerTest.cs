@@ -49,7 +49,7 @@ public class EntitySpawnerTest {
 
 		// model
 		current = start;
-		model = Substitute.ForPartsOf<GameModel>("test park", 10000, GameDifficulty.Normal, start, true);
+		model = Substitute.ForPartsOf<GameModel>("test park", 10000, GameDifficulty.Normal, start);
 		model.Configure().IngameDate.Returns((CallInfo _) => current);
 		gs.Configure().Model.Returns((CallInfo _) => model);
 	}
