@@ -65,8 +65,6 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private readonly Button entityManagerButton;
 
-    private Rectangle maskArea;
-
     public Rectangle Size => panel.CalcDestRect();
 
     private Statusbar() {
