@@ -88,7 +88,7 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	public static bool operator ==(Rectangle a, Vectangle b) => b == a;
 	public static bool operator !=(Rectangle a, Vectangle b) => !(b == a);
 
-	public readonly override bool Equals(object obj) {
+	public readonly override bool Equals(object? obj) {
 		return (obj is Vectangle vect && this == vect) ||
 			   (obj is Rectangle rect && this == rect);
 	}

@@ -12,7 +12,7 @@ using System.Text;
 namespace Safari.Popups;
 
 public class DebugConsole : PopupMenu, IResettableSingleton {
-	private static DebugConsole instance;
+	private static DebugConsole? instance;
 	public static DebugConsole Instance {
 		get {
 			instance ??= new();

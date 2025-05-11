@@ -154,8 +154,8 @@ public class RoadNetwork {
 		
 		Point middleB = new Point(b.X * level.TileSize, b.Y * level.TileSize);
 		middleB += new Point(level.TileSize / 2, level.TileSize / 2);
-		Point loc = new Point(0, 0);
-		Point size = new Point(0, 0);
+		Point loc;
+		Point size;
 		if (a.X == b.X) {
 			// vertical
 			if (middleA.Y < middleB.Y) {
@@ -394,7 +394,7 @@ public class RoadNetwork {
 	}
 
 	// Pick a random point from a set
-	private Point PickRandom(HashSet<Point> set) {
+	private static Point PickRandom(HashSet<Point> set) {
 		Point[] points = set.ToArray();
 		return points[Game.Random.Next(points.Length)];
 	}
@@ -407,12 +407,9 @@ public class RoadNetwork {
 		SetAt(p, RoadState.FromNone);
 		while (points.Count > 0) {
 			(Point current, int fuel) = points.Dequeue();
-			if (set.Contains(current)) {
-				set.Remove(current);
-			}
-			if (!used.Contains(current)) {
-				used.Add(current);
-			}
+			set.Remove(current);
+			used.Add(current);
+
 			if (fuel > 0) {
 				Point left = new Point(current.X - 1, current.Y);
 				Point right = new Point(current.X + 1, current.Y);
@@ -449,9 +446,7 @@ public class RoadNetwork {
 		SetAt(Start, RoadState.FromNone);
 		while (points.Count > 0) {
 			Point current = points.Dequeue();
-			if (!result.Contains(current)) {
-				result.Add(current);
-			}
+			result.Add(current);
 			Point left = new Point(current.X - 1, current.Y);
 			Point right = new Point(current.X + 1, current.Y);
 			Point up = new Point(current.X, current.Y - 1);

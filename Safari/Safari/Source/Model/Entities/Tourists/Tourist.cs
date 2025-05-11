@@ -34,13 +34,13 @@ public class Tourist : Entity {
 	[StaticSavedProperty]
 	public static int RatingMemory { get; set; }
 	[StaticSavedProperty]
-	private static double[] recentRatings;
+	private static double[]? recentRatings;
 	[StaticSavedProperty]
 	private static int ratingCount = 0;
 	/// <summary>
 	/// The spawner responsible for "creating" tourists
 	/// </summary>
-	public static EntitySpawner<Tourist> Spawner { get; set; }
+	public static EntitySpawner<Tourist>? Spawner { get; set; }
 	/// <summary>
 	/// The tourists that are currently waiting in the line
 	/// </summary>
@@ -75,7 +75,7 @@ public class Tourist : Entity {
 	[JsonProperty]
 	private DateTime nextSwitch;
 	[JsonProperty]
-	private bool spriteType;
+	private readonly bool spriteType;
 	[JsonProperty]
 	private bool waitingForJeep = false;
 
@@ -125,7 +125,7 @@ public class Tourist : Entity {
 	public static double SpawnRate {
 		get {
 			// base spawn rate -> lerp
-			int i = 1;
+			int i;
 			for (i = 1; i < milestoneCount - 1; i++) {
 				if (AvgRating < milestones[i]) {
 					break;
@@ -417,7 +417,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// Notify this tourist that unfortunately their jeep got "destroyed", and they must leave immediately
 	/// </summary>
-	public void TourFailed() {
+	public static void TourFailed() {
 		AddReview(1.0f);
 	}
 

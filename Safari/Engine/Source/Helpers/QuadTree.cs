@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Engine.Helpers;
@@ -42,6 +43,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	/// <summary>
 	/// True if the quadtree (node) doesn't have any child quadrants
 	/// </summary>
+	[MemberNotNullWhen(false, nameof(nw), nameof(ne), nameof(sw), nameof(se))]
 	public bool IsLeaf => nw == null;
 
 	/// <summary>
@@ -50,12 +52,12 @@ public class QuadTree<T> where T : class, ISpatial {
 	public int ExpectedCollisionCount { get; set; } = 50;
 
 	private readonly List<T> elements = [];
-	private QuadTree<T> nw, ne, sw, se;
+	private QuadTree<T>? nw, ne, sw, se;
 	private int subElementCount = 0;
 	
 	private static readonly ObjectPool<Queue<QuadTree<T>>> queuePool = new(() => new(32), queue => queue.Clear(), 10);
 	private static readonly ObjectPool<Stack<QuadTree<T>>> stackPool = new(() => new(32), stack => stack.Clear(), 30);
-	private ITexture2D boundsTex;
+	private ITexture2D? boundsTex;
 
 	/// <param name="bounds">The bounds the quadtree (node) can store AABBs in</param>
 	public QuadTree(Vectangle bounds) {
@@ -84,7 +86,7 @@ public class QuadTree<T> where T : class, ISpatial {
 			Split();
 		}
 
-		QuadTree<T> containingChild = GetContainingChild(element);
+		QuadTree<T>? containingChild = GetContainingChild(element);
 		subElementCount++;
 		if (containingChild == null) {
 			elements.Add(element);
@@ -100,7 +102,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	private void InsertInternal(T element) {
 		if (element.Bounds.Size == Vector2.Zero) return;
 
-		QuadTree<T> containingChild = GetContainingChild(element);
+		QuadTree<T>? containingChild = GetContainingChild(element);
 		subElementCount++;
 
 		if (containingChild == null) {
@@ -118,7 +120,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	public bool Remove(T element) {
 		if (element.Bounds.Size == Vector2.Zero) return false;
 
-		QuadTree<T> containingChild = GetContainingChild(element);
+		QuadTree<T>? containingChild = GetContainingChild(element);
 
 		bool removed = containingChild?.Remove(element) ?? elements.Remove(element);
 
@@ -148,7 +150,7 @@ public class QuadTree<T> where T : class, ISpatial {
 		se = new QuadTree<T>(new Vectangle(Bounds.X + w, Bounds.Y + h, w, h), Threshold, MaxDepth, Level + 1);
 
 		for (int i = elements.Count - 1; i >= 0; i--) {
-			QuadTree<T> containingChild = GetContainingChild(elements[i]);
+			QuadTree<T>? containingChild = GetContainingChild(elements[i]);
 
 			if (containingChild != null) {
 				T element = elements[i];
@@ -189,7 +191,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	/// <param name="element">The element to check collisions against</param>
 	/// <param name="predicate">The predicate that needs to evaluate to true for an element to be even considered for collision (leave on null for no predicate checking)</param>
 	/// <returns>A list of elements that <paramref name="element" /> is colliding with</returns>
-	public List<T> CalculateCollisions(T element, Func<T, T, bool> predicate = null) {
+	public List<T> CalculateCollisions(T element, Func<T, T, bool>? predicate = null) {
 		Vectangle bounds = element.Bounds;
 		if (!bounds.Intersects(Bounds)) return [];
 
@@ -262,7 +264,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	/// <param name="element">The element to check collisions against</param>
 	/// <param name="predicate">The predicate that needs to evaluate to true for an element to be even considered for collision (leave on null for no predicate checking)</param>
 	/// <returns>True if <paramref name="element"/> is colliding with any other element, false otherwise</returns>
-	public bool Collides(T element, Func<T, T, bool> predicate = null) {
+	public bool Collides(T element, Func<T, T, bool>? predicate = null) {
 		Vectangle bounds = element.Bounds;
 		if (!bounds.Intersects(Bounds)) return false;
 
@@ -325,7 +327,7 @@ public class QuadTree<T> where T : class, ISpatial {
 	/// <param name="element">The element to check</param>
 	/// <returns>The containing child quadrant, or null if there isn't one</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private QuadTree<T> GetContainingChild(T element) {
+	private QuadTree<T>? GetContainingChild(T element) {
 		Vectangle bounds = element.Bounds;
 		
 		bool left = bounds.Right < center.X;
@@ -354,6 +356,6 @@ public class QuadTree<T> where T : class, ISpatial {
 
 		Rectangle dest = (Rectangle)Bounds;
 		float filledRatio = Math.Min(1, elements.Count / (float)Threshold);
-		Game.SpriteBatch.Draw(boundsTex.ToTexture2D(), dest, null, Color.Lerp(Color.White, Color.Red, filledRatio), 0, Vector2.Zero, SpriteEffects.None, 0);
+		Game.SpriteBatch!.Draw(boundsTex.ToTexture2D(), dest, null, Color.Lerp(Color.White, Color.Red, filledRatio), 0, Vector2.Zero, SpriteEffects.None, 0);
 	}
 }

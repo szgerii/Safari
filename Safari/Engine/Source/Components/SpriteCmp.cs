@@ -13,7 +13,7 @@ public class SpriteCmp : Component, IDrawable {
 	/// <summary>
 	/// The texture of the sprite
 	/// </summary>
-	public virtual ITexture2D Texture { get; set; }
+	public virtual ITexture2D? Texture { get; set; }
 	/// <summary>
 	/// The origin point of the sprite
 	/// </summary>
@@ -61,7 +61,7 @@ public class SpriteCmp : Component, IDrawable {
 				return LayerDepth;
 			}
 
-			return LayerDepth - 0.1f * ((Owner.ScreenPosition.Y + (YSortOffset * Scale)) / Camera.Active.ScreenHeight);
+			return LayerDepth - 0.1f * ((Owner!.ScreenPosition.Y + (YSortOffset * Scale)) / Camera.Active!.ScreenHeight);
 		}
 	}
 	/// <summary>
@@ -83,8 +83,8 @@ public class SpriteCmp : Component, IDrawable {
 
 	public virtual void Draw(GameTime gameTime) {
 		if (Visible) {
-			Vector2 pos = new Vector2(Utils.Round(Owner.Position.X), Utils.Round(Owner.Position.Y));
-			Game.SpriteBatch.Draw(Texture.ToTexture2D(), pos, SourceRectangle, Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
+			Vector2 pos = new Vector2(Utils.Round(Owner!.Position.X), Utils.Round(Owner.Position.Y));
+			Game.SpriteBatch!.Draw(Texture!.ToTexture2D(), pos, SourceRectangle, Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 		}
 	}
 }

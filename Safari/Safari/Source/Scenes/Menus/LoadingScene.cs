@@ -10,7 +10,7 @@ using Safari.Popups;
 namespace Safari.Scenes.Menus;
 
 public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
-	private static LoadingScene instance;
+	private static LoadingScene? instance;
 	private static GameScene gameToLoad = null;
 	private static string parkNameToLoad = null;
 	private static int parkSlotToLoad = -1;

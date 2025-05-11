@@ -43,8 +43,8 @@ public class GamePad {
 	private readonly Dictionary<Buttons, PressedCallback> pressedCallbacks = new Dictionary<Buttons, PressedCallback>();
 	private readonly Dictionary<Buttons, ReleasedCallback> releasedCallbacks = new Dictionary<Buttons, ReleasedCallback>();
 	private readonly Dictionary<GamePadAxes, AxisChangedCallback> axisChangedCallbacks = new Dictionary<GamePadAxes, AxisChangedCallback>();
-	private ConnectedCallback connectedCallback = null;
-	private DisconnectedCallback disconnectedCallback = null;
+	private ConnectedCallback? connectedCallback = null;
+	private DisconnectedCallback? disconnectedCallback = null;
 
 	internal void UpdateEvents() {
 		foreach (Buttons button in pressedCallbacks.Keys) {

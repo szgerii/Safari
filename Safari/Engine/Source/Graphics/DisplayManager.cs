@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Engine.Graphics;
@@ -20,10 +21,10 @@ public static class DisplayManager {
 	public static int TargetFPS { get; private set; }
 	public static WindowType WindowType { get; private set; } = WindowType.WINDOWED;
 
-	private static Game Game => Game.Instance;
-	private static GraphicsDeviceManager Graphics => Game.Graphics;
-	private static GameWindow Window => Game.Window;
-	public static List<DisplayMode> SupportedResolutions { get; private set; }
+	private static Game? Game => Game.Instance;
+	private static GraphicsDeviceManager? Graphics => Game.Graphics;
+	private static GameWindow? Window => Game?.Window;
+	public static List<DisplayMode>? SupportedResolutions { get; private set; }
 
 
 	// By default: include resolutions between 480p 4:3 and 4k 21:9
@@ -34,7 +35,7 @@ public static class DisplayManager {
 	public static int MAX_HEIGHT { get; set; } = 2160;
 
 	public static void Init(WindowType windowType = WindowType.WINDOWED) {
-		SupportedResolutions = Graphics.GraphicsDevice.Adapter.SupportedDisplayModes
+		SupportedResolutions = Graphics!.GraphicsDevice.Adapter.SupportedDisplayModes
 			.Where((dm) => dm.Width >= MIN_WIDTH && dm.Height >= MIN_HEIGHT && dm.Width <= MAX_WIDTH && dm.Height <= MAX_HEIGHT)
 			.ToList();
 		SetResolution(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode, false);
@@ -45,7 +46,16 @@ public static class DisplayManager {
 		ApplyChanges();
 	}
 
+	[MemberNotNull(nameof(Graphics), nameof(Window), nameof(Game), nameof(SupportedResolutions))]
+	private static void AssertInit() {
+		if (Graphics == null || Window == null || Game == null || SupportedResolutions == null) {
+			throw new InvalidOperationException("Cannot use this method of the display manager before it (and the game instance) have been initialized");
+		}
+	}
+
 	public static void ApplyChanges() {
+		AssertInit();
+
 		Graphics.PreferredBackBufferWidth = Width;
 		Graphics.PreferredBackBufferHeight = Height;
 		Graphics.SynchronizeWithVerticalRetrace = VSync;
@@ -81,6 +91,8 @@ public static class DisplayManager {
 	}
 
 	public static void DiscardChanges() {
+		AssertInit();
+
 		Width = Graphics.PreferredBackBufferWidth;
 		Height = Graphics.PreferredBackBufferHeight;
 		AspectRatio = (float)Width / Height;
@@ -98,6 +110,8 @@ public static class DisplayManager {
 	}
 
 	public static bool IsSupported(int width, int height) {
+		AssertInit();
+
 		foreach (DisplayMode res in SupportedResolutions) {
 			if (res.Width == width && res.Height == height) {
 				return true;
@@ -118,6 +132,8 @@ public static class DisplayManager {
 	}
 
 	public static void SetResolution(int width, int height, bool apply = true) {
+		AssertInit();
+
 		if (WindowType == WindowType.WINDOWED) {
 			Width = width;
 			Height = height;
@@ -141,6 +157,8 @@ public static class DisplayManager {
 	}
 
 	public static void IncreaseResolution() {
+		AssertInit();
+
 		for (int i = 0; i < SupportedResolutions.Count - 1; i++) {
 			if (SupportedResolutions[i].Width == Width && SupportedResolutions[i].Height == Height) {
 				SetResolution(SupportedResolutions[i + 1]);
@@ -150,6 +168,8 @@ public static class DisplayManager {
 	}
 
 	public static void DecreaseResolution() {
+		AssertInit();
+
 		for (int i = SupportedResolutions.Count; i >= 1; i--) {
 			if (SupportedResolutions[i].Width == Width && SupportedResolutions[i].Height == Height) {
 				SetResolution(SupportedResolutions[i - 1]);

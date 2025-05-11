@@ -11,7 +11,7 @@ using System.Collections.Generic;
 namespace Safari.Scenes.Menus;
 
 public class SettingsMenu : MenuScene, IResettableSingleton {
-	private static SettingsMenu instance;
+	private static SettingsMenu? instance;
 	public static SettingsMenu Instance {
 		get {
 			instance ??= new();
@@ -23,48 +23,48 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         instance = null;
 	}
 
-	private Header title;
-    private Panel settingsPanel;
+	private Header? title;
+    private Panel? settingsPanel;
 
-    private Panel fpsPanel;
-    private Label fpsText;
-    private Slider fpsSlider;
+    private Panel? fpsPanel;
+    private Label? fpsText;
+    private Slider? fpsSlider;
 
-    private Panel vsyncPanel;
-    private Label vsyncText;
-    private Button vsyncButton;
+    private Panel? vsyncPanel;
+    private Label? vsyncText;
+    private Button? vsyncButton;
 
-    private Panel screenTypePanel;
-    private Label screenTypeText;
-    private Panel screenTypeButtonPanel;
-    private Button screenTypeWindowed;
-    private Button screenTypeBorderless;
-    private Button screenTypeFullscreen;
+    private Panel? screenTypePanel;
+    private Label? screenTypeText;
+    private Panel? screenTypeButtonPanel;
+    private Button? screenTypeWindowed;
+    private Button? screenTypeBorderless;
+    private Button? screenTypeFullscreen;
 
-    private Panel cameraSpeedPanel;
-    private Label cameraSpeedText;
-    private Slider cameraSpeedSlider;
+    private Panel? cameraSpeedPanel;
+    private Label? cameraSpeedText;
+    private Slider? cameraSpeedSlider;
     private float cameraSpeedStoredValue;
 
-    private Panel cameraAccelPanel;
-    private Label cameraAccelText;
-    private Slider cameraAccelSlider;
+    private Panel? cameraAccelPanel;
+    private Label? cameraAccelText;
+    private Slider? cameraAccelSlider;
     private float cameraAccelStoredValue;
 
-    private Panel resolutionPanel;
-    private Label resolutionText;
-    private Panel resolutionChangePanel;
-    private Label resolutionsDisplay;
-    private Button prevResolution;
-    private Button nextResolution;
-    private List<(int, int)> resolutions;
+    private Panel? resolutionPanel;
+    private Label? resolutionText;
+    private Panel? resolutionChangePanel;
+    private Label? resolutionsDisplay;
+    private Button? prevResolution;
+    private Button? nextResolution;
+    private List<(int, int)>? resolutions;
     private (int, int) selectedResolution;
     private int currentResolution;
     private WindowType selectedWindowType;
 
-    private Panel buttonPanel;
-    private Button saveAndExitButton;
-    private Button discardAndExitButton;
+    private Panel? buttonPanel;
+    private Button? saveAndExitButton;
+    private Button? discardAndExitButton;
 
     private static float scale = ((float)DisplayManager.Height / 1080f) * 1.2f;
     public static event EventHandler ScaleChanged;

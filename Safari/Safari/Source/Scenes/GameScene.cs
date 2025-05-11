@@ -30,7 +30,7 @@ public enum MouseMode {
 }
 
 public class GameScene : Scene {
-	private GameModel model;
+	private readonly GameModel model;
 	public static GameScene Active => SceneManager.Active as GameScene;
 	public virtual GameModel Model => model;
 

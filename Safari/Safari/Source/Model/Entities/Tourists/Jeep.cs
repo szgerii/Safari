@@ -133,7 +133,7 @@ public class Jeep : Entity {
 	private static bool someoneWaitingForJeep = false;
 
 	[JsonProperty]
-	private int color;
+	private readonly int color;
 
 	static Jeep() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("add-jeep", () => {
@@ -467,7 +467,7 @@ public class Jeep : Entity {
 		if (!NavCmp.Moving)
 			return;
 		Vector2 delta = NavCmp.LastIntendedDelta;
-		JeepDirection newDir = dir;
+		JeepDirection newDir;
 		bool horizontal = Math.Abs(delta.X) >= Math.Abs(delta.Y);
 		if (horizontal) {
 			newDir = delta.X >= 0 ? JeepDirection.Right : JeepDirection.Left;

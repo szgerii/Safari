@@ -8,7 +8,7 @@ using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
-    private static MainMenu instance;
+    private static MainMenu? instance;
     public static MainMenu Instance {
         get {
             instance ??= new();
@@ -20,13 +20,13 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
         instance = null;
     }
 
-    private Header title;
-    private Panel buttonPanel;
-    private Button newGameButton;
-    private Button continueGameButton;
-    private Button loadGameButton;
-    private Button settingsButton;
-    private Button exitButton;
+    private Header? title;
+    private Panel? buttonPanel;
+    private Button? newGameButton;
+    private Button? continueGameButton;
+    private Button? loadGameButton;
+    private Button? settingsButton;
+    private Button? exitButton;
     private bool loadGame = false;
 
     protected override void ConstructUI() {

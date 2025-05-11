@@ -13,7 +13,7 @@ using Safari.Scenes.Menus;
 namespace Safari.Popups;
 
 public class PauseMenu : PopupMenu, IResettableSingleton {
-    private static PauseMenu instance;
+    private static PauseMenu? instance;
     public static PauseMenu Instance {
         get {
             instance ??= new();

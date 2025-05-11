@@ -461,7 +461,7 @@ public class GameModel {
 	/// Print various information regarding the current state of the game model
 	/// </summary>
 	[ExcludeFromCodeCoverage]
-	public void PrintModelDebugInfos() {
+	public static void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;
 
 		string speedName = "";

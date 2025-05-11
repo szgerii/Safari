@@ -20,7 +20,7 @@ public class Shop : PopupMenu, IResettableSingleton {
     public const int BUSH_COST = 80;
     public const int JEEP_COST = 5000;
 
-    private static Shop instance;
+    private static Shop? instance;
     public static Shop Instance {
         get {
             instance ??= new();

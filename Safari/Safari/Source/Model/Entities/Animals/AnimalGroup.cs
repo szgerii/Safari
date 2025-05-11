@@ -751,7 +751,7 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	private Vector2? GetNearestFromList(List<Point> spots, Vector2? from = null, ICollection<Vector2> excludeList = null) {
+	private Vector2? GetNearestFromList(List<Point> spots, Vector2? from = null, HashSet<Vector2> excludeList = null) {
 		from ??= Position;
 		excludeList ??= Array.Empty<Vector2>();
 		

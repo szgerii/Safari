@@ -8,7 +8,7 @@ namespace Safari.Popups;
 
 public abstract class PopupMenu : IUpdatable {
     protected Panel background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
-    protected Panel panel;
+    protected Panel? panel;
 
     private Rectangle maskArea;
     /// <summary>

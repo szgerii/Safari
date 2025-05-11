@@ -56,9 +56,9 @@ public class Mouse {
 
 	private readonly Dictionary<MouseButtons, PressedCallback> pressedCallbacks = new Dictionary<MouseButtons, PressedCallback>();
 	private readonly Dictionary<MouseButtons, ReleasedCallback> releasedCallbacks = new Dictionary<MouseButtons, ReleasedCallback>();
-	private MovedCallback movedCallback = null;
-	private ScrollWheelChangedCallback scrollWheelChangedCallback = null;
-	private HScrollWheelChangedCallback hScrollWheelChangedCallback = null;
+	private MovedCallback? movedCallback = null;
+	private ScrollWheelChangedCallback? scrollWheelChangedCallback = null;
+	private HScrollWheelChangedCallback? hScrollWheelChangedCallback = null;
 
 	internal void UpdateEvents() {
 		if (!InputManager.IsGameFocused) return;
@@ -279,11 +279,11 @@ public class Mouse {
 		if (
 			Location.X < 0 ||
 			Location.Y < 0 ||
-			Location.X >= Game.Graphics.PreferredBackBufferWidth ||
-			Location.Y >= Game.Graphics.PreferredBackBufferHeight) {
+			Location.X >= Game.Graphics!.PreferredBackBufferWidth ||
+			Location.Y >= Game.Graphics!.PreferredBackBufferHeight) {
 			return false;
 		}
-		if (!Game.Instance.IsActive) {
+		if (!(Game.Instance?.IsActive ?? false)) {
 			return false;
 		}
 		switch (mouseButton) {

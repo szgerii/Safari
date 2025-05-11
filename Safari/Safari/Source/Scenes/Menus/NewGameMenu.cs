@@ -10,7 +10,7 @@ using Safari.Persistence;
 namespace Safari.Scenes.Menus;
 
 public class NewGameMenu : MenuScene, IResettableSingleton {
-	private static NewGameMenu instance;
+	private static NewGameMenu? instance;
 	public static NewGameMenu Instance {
 		get {
 			instance ??= new();
@@ -22,16 +22,16 @@ public class NewGameMenu : MenuScene, IResettableSingleton {
 		instance = null;
 	}
 
-	private Header title;
-    private Panel itemPanel;
-    private TextInput input;
-    private Button startButton;
-    private Button menuButton;
-    private Panel radioPanel;
-    private Header diffTitle;
-    private RadioButton radioEasy;
-    private RadioButton radioMedium;
-    private RadioButton radioHard;
+	private Header? title;
+    private Panel? itemPanel;
+    private TextInput? input;
+    private Button? startButton;
+    private Button? menuButton;
+    private Panel? radioPanel;
+    private Header? diffTitle;
+    private RadioButton? radioEasy;
+    private RadioButton? radioMedium;
+    private RadioButton? radioHard;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);

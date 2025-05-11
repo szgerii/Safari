@@ -15,14 +15,14 @@ public enum Direction : byte {
 /// Requires a separate animated sprite component to bind to.
 /// </summary>
 public class DirectionalAnimationCmp : Component {
-	private AnimatedSpriteCmp targetSprite;
+	private AnimatedSpriteCmp? targetSprite;
 	/// <summary>
 	/// The animated sprite the component manages
 	/// </summary>
-	public AnimatedSpriteCmp TargetSprite {
+	public AnimatedSpriteCmp? TargetSprite {
 		get {
 			// in case the animated sprite cmp wasn't available when the ctor ran
-			targetSprite ??= Owner.GetComponent<AnimatedSpriteCmp>();
+			targetSprite ??= Owner!.GetComponent<AnimatedSpriteCmp>();
 			return targetSprite;
 		}
 		set {
@@ -59,7 +59,7 @@ public class DirectionalAnimationCmp : Component {
 	/// <param name="animatedSprite">The animated sprite component to operate on (if omitted, the owner's animated sprite cmp will be set later, once it's accessible)</param>
 	/// <param name="initialAnimation">The name of the animation to play initially (NOTE: this will only be played instantly if the sprite cmp is provided)</param>
 	/// <param name="initialDirection">The initial direction of the animations</param>
-	public DirectionalAnimationCmp(AnimatedSpriteCmp animatedSprite = null, string initialAnimation = "Idle", Direction initialDirection = Direction.Right) {
+	public DirectionalAnimationCmp(AnimatedSpriteCmp? animatedSprite = null, string initialAnimation = "Idle", Direction initialDirection = Direction.Right) {
 		targetSprite = animatedSprite;
 		animationName = initialAnimation;
 		direction = initialDirection;
@@ -89,6 +89,8 @@ public class DirectionalAnimationCmp : Component {
 	}
 
 	protected void UpdateAnimation() {
+		if (TargetSprite == null) return;
+
 		TargetSprite.CurrentAnimation = AnimationName + direction.ToString();
 	}
 }

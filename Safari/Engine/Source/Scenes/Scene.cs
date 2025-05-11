@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Engine.Scenes;
 
 public class Scene : IUpdatable, IDrawable {
-	public event EventHandler<GameTime> PreUpdate, PostUpdate, PreDraw, PostDraw;
+	public event EventHandler<GameTime>? PreUpdate, PostUpdate, PreDraw, PostDraw;
 
 	public bool Loaded { get; protected set; } = false;
 

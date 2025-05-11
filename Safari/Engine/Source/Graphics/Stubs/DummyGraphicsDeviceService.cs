@@ -9,10 +9,10 @@ namespace Engine.Graphics.Stubs;
 /// Graphics device service to use with SDL's dummy video driver
 /// </summary>
 public class DummyGraphicsDeviceService : IGraphicsDeviceService {
-	public GraphicsDevice GraphicsDevice { get; } = null;
-	public event EventHandler<EventArgs> DeviceCreated;
-	public event EventHandler<EventArgs> DeviceDisposing;
-	public event EventHandler<EventArgs> DeviceReset;
-	public event EventHandler<EventArgs> DeviceResetting;
+	public GraphicsDevice? GraphicsDevice { get; } = null;
+	public event EventHandler<EventArgs>? DeviceCreated;
+	public event EventHandler<EventArgs>? DeviceDisposing;
+	public event EventHandler<EventArgs>? DeviceReset;
+	public event EventHandler<EventArgs>? DeviceResetting;
 }
 #pragma warning restore CS0067

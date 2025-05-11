@@ -13,7 +13,7 @@ public class ActionSegment {
 	internal List<MouseButtons> mouseButtons;
 	internal List<Buttons> buttons;
 
-	public ActionSegment(Keys[] keys = null, MouseButtons[] mouseButtons = null, Buttons[] buttons = null) {
+	public ActionSegment(Keys[]? keys = null, MouseButtons[]? mouseButtons = null, Buttons[]? buttons = null) {
 		this.keys = new List<Keys>();
 		this.mouseButtons = new List<MouseButtons>();
 		this.buttons = new List<Buttons>();
@@ -36,14 +36,14 @@ public class ActionSegment {
 public class InputAction {
 	internal List<ActionSegment> actions;
 
-	public InputAction(ActionSegment[] actions = null) {
+	public InputAction(ActionSegment[]? actions = null) {
 		this.actions = new List<ActionSegment>();
 		if (actions != null) {
 			this.actions.AddRange(actions);
 		}
 	}
 
-	public InputAction(Keys[] keys = null, MouseButtons[] mouseButtons = null, Buttons[] buttons = null) {
+	public InputAction(Keys[]? keys = null, MouseButtons[]? mouseButtons = null, Buttons[]? buttons = null) {
 		actions = new List<ActionSegment> {
 			new ActionSegment(keys, mouseButtons, buttons)
 		};

@@ -8,7 +8,7 @@ using Safari.Persistence;
 namespace Safari.Scenes.Menus;
 
 class SaveSelectMenu : MenuScene, IResettableSingleton{
-    private static SaveSelectMenu instance;
+    private static SaveSelectMenu? instance;
     private string park = null;
     public string Park { get => park; set => park = value; }
     public static SaveSelectMenu Instance {
@@ -22,9 +22,9 @@ class SaveSelectMenu : MenuScene, IResettableSingleton{
         instance = null;
     }
 
-    private Header title;
-    private Panel savesPanel;
-    private Button saveSelectButton;
+    private Header? title;
+    private Panel? savesPanel;
+    private Button? saveSelectButton;
 
     protected override void ConstructUI() {
         if(park == null) {

@@ -13,7 +13,7 @@ public class NoopTexture2D : ITexture2D {
 	/// An empty noop texture (width, height = -1)
 	/// </summary>
 	public static NoopTexture2D Empty => new();
-	private Color[] data;
+	private Color[]? data;
 
 	public int Width { get; private set; }
 	public int Height { get; private set; }
@@ -35,9 +35,9 @@ public class NoopTexture2D : ITexture2D {
 		data = new Color[width * height];
 	}
 
-	public NoopTexture2D(GraphicsDevice graphicsDevice, int width, int height) : this(width, height) { }
-	public NoopTexture2D(GraphicsDevice graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format) : this(width, height) { }
-	public NoopTexture2D(GraphicsDevice graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format, int arraySize) : this(width, height) { }
+	public NoopTexture2D(GraphicsDevice? graphicsDevice, int width, int height) : this(width, height) { }
+	public NoopTexture2D(GraphicsDevice? graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format) : this(width, height) { }
+	public NoopTexture2D(GraphicsDevice? graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format, int arraySize) : this(width, height) { }
 
 	public static ITexture2D FromFile(GraphicsDevice graphicsDevice, string path, Action<byte[]> colorProcessor) => new NoopTexture2D();
 	public static ITexture2D FromFile(GraphicsDevice graphicsDevice, string path) => new NoopTexture2D();
@@ -47,7 +47,7 @@ public class NoopTexture2D : ITexture2D {
 
 	public void GetData<T>(int level, int arraySize, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct { }
 	public void GetData(out Color[] data) {
-		data = this.data;
+		data = this.data ?? [];
 	}
 
 	public void Reload(Stream textureStream) { }

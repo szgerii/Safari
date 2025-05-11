@@ -145,7 +145,7 @@ public class SafariSettings
 	}
 
 
-    public static SafariSettings Instance { get; private set; }
+    public static SafariSettings? Instance { get; private set; }
 
 	[JsonConstructor]
     private SafariSettings() {

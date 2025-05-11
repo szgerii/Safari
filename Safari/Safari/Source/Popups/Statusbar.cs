@@ -13,7 +13,7 @@ using System;
 namespace Safari.Popups;
 
 public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
-    private static Statusbar instance;
+    private static Statusbar? instance;
 	public static Statusbar Instance {
 		get {
 			instance ??= new();
