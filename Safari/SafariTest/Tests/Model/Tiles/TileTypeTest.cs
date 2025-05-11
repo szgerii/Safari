@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Safari.Model.Tiles;
+using SafariTest.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,8 @@ public class TileTypeTest {
 			Assert.IsTrue(t.IsFoodSource);
 			Assert.IsFalse(t.IsWaterSource);
 			Assert.AreEqual(5, t.LightRange);
+			Assert.IsNotNull(type.GetDisplayName());
+			Assert.IsTrue(type.GetDisplayName().Length > 0);
 		}
 		foreach (TreeType type in type2) {
 			Tree t = new Tree(type);
@@ -50,6 +53,8 @@ public class TileTypeTest {
 			Assert.IsTrue(t.IsFoodSource);
 			Assert.IsFalse(t.IsWaterSource);
 			Assert.AreEqual(5, t.LightRange);
+			Assert.IsNotNull(type.GetDisplayName());
+			Assert.IsTrue(type.GetDisplayName().Length > 0);
 		}
 		foreach (TreeType type in type3) {
 			Tree t = new Tree(type);
@@ -57,7 +62,16 @@ public class TileTypeTest {
 			Assert.IsTrue(t.IsFoodSource);
 			Assert.IsFalse(t.IsWaterSource);
 			Assert.AreEqual(5, t.LightRange);
+			Assert.IsNotNull(type.GetDisplayName());
+			Assert.IsTrue(type.GetDisplayName().Length > 0);
 		}
+
+		Assert.That.DoesNotThrow(() => {
+			TreeType invalid = (TreeType)3000;
+			invalid.GetType();
+			invalid.GetTexture();
+			invalid.GetDisplayName();
+		});
 	}
 
 	[TestMethod]

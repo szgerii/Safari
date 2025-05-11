@@ -152,7 +152,7 @@ public abstract class Entity : GameObject, ISpatial {
 	}
 
 	static Entity() {
-		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", [ExcludeFromCodeCoverage] (object sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				e.DrawInteractBounds(gameTime);
 			}
