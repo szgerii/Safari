@@ -204,12 +204,12 @@ public class AnimalBaseTest : SimulationTest {
 
 		Model.Level.SetTile(tilemapPos, new Grass());
 		animal.Update(unitGT);
-		CollectionAssert.Contains((List<Vector2>)groupPO!.GetField("knownFoodSpots")!, tilemapPos.ToVector2() * Model.Level.TileSize);
+		CollectionAssert.Contains(((HashSet<Point>)groupPO!.GetField("knownFoodSpots")!).ToList(), tilemapPos);
 
 		tilemapPos = (animal!.Position / Model.Level.TileSize).ToPoint();
 		Model.Level.SetTile(tilemapPos, new Water());
 		animal.Update(unitGT);
-		CollectionAssert.Contains((List<Vector2>)groupPO!.GetField("knownWaterSpots")!, tilemapPos.ToVector2() * Model.Level.TileSize);
+		CollectionAssert.Contains(((HashSet<Point>)groupPO!.GetField("knownWaterSpots")!).ToList(), tilemapPos);
 
 		Poacher poacher = new(new Vector2(1800, 1800));
 		Safari.Game.AddObject(poacher);
