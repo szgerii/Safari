@@ -21,7 +21,7 @@ public static class AnimalSpeciesExtensions {
 	/// </summary>
 	/// <param name="species">The species to use</param>
 	/// <returns>The Animal sub-class Type belonging to the species</returns>
-	public static Type GetAnimalType(this AnimalSpecies species) {
+	public static Type? GetAnimalType(this AnimalSpecies species) {
 		return species switch {
 			AnimalSpecies.Zebra => typeof(Zebra),
 			AnimalSpecies.Elephant => typeof(Elephant),

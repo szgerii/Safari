@@ -21,11 +21,13 @@ public class Elephant : Animal {
 	}
 
 	private void InitSprite() {
-		Sprite.Texture = Game.LoadTexture("Assets/Animals/Elephant");
+		Sprite!.Texture = Game.LoadTexture("Assets/Animals/Elephant");
 		Sprite.YSortOffset = 96;
 		Sprite.Scale = 0.75f;
 
-		Vectangle baseColl = new(5, 73, 85, 24);
-		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		if (collisionCmp != null) {
+			Vectangle baseColl = new(5, 73, 85, 24);
+			collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		}
 	}
 }

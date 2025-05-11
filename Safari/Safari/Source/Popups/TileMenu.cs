@@ -35,7 +35,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);
         itemsPanel.Padding = new Vector2(0);
-        panel.AddChild(itemsPanel);
+        panel!.AddChild(itemsPanel);
 
         extrasPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.Simple, Anchor.BottomRight);
         extrasPanel.Padding = new Vector2(0);
@@ -250,7 +250,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
     private void BuildTile() {
         if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level.TileSize).ToPoint();
+            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level!.TileSize).ToPoint();
             if (GameScene.Active.MouseMode == MouseMode.Build) {
                 int price = 0;
                 switch (Shop.CHelper.SelectedIndex) {
@@ -274,7 +274,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                     new AlertMenu("Funds", "You don't have enough money for this.").Show();
                     return;
                 }
-                if (!Shop.CHelper.CanBuild(p, Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].Instance)) {
+                if (!Shop.CHelper.CanBuild(p, Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].Instance!)) {
                     return;
                 }
                 Shop.CHelper.BuildCurrent(p);
@@ -285,7 +285,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
     private void DestroyTile() {
         if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level.TileSize).ToPoint();
+            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level!.TileSize).ToPoint();
             Shop.CHelper.Demolish(p);
         }
     }
@@ -295,7 +295,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
         UserInterface.Active.AddEntity(extrasPanel);
         destroyButton.Checked = false;
         base.Show();
-        extrasPanel.Offset = new Vector2(0, panel.Offset.Y);
+        extrasPanel.Offset = new Vector2(0, panel!.Offset.Y);
         extrasMaskArea = extrasPanel.CalcDestRect();
         GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }

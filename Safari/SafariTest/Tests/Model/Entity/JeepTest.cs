@@ -57,10 +57,10 @@ public class JeepTest : SimulationTest {
 		Assert.IsTrue(eventInvoked);
 
 		Game.RunOneFrame();
-		Jeep j1 = Jeep.WaitingJeep;
+		Jeep j1 = Jeep.WaitingJeep!;
 		Assert.AreEqual(JeepState.WaitingForTourists, j1.StateMachine.CurrentState);
 
-		Point p2 = Model.Level.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
+		Point p2 = Model.Level!.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
 		Model.Level.ClearTile(p2);
 		Game.RunOneFrame();
 		j1.AddTourist(new Tourist(new Vector2(40, 40)));
@@ -83,7 +83,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.IsNotNullBefore(() => Jeep.WaitingJeep, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
-		Jeep j2 = Jeep.WaitingJeep;
+		Jeep j2 = Jeep.WaitingJeep!;
 
 		j2.AddTourist(new Tourist(new Vector2(40, 40)));
 		Game.RunOneFrame();
@@ -99,7 +99,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.IsNotNullBefore(() => Jeep.WaitingJeep, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
-		Jeep j3 = Jeep.WaitingJeep;
+		Jeep j3 = Jeep.WaitingJeep!;
 		Assert.AreEqual(JeepState.WaitingForTourists, j3.StateMachine.CurrentState);
 
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
@@ -120,7 +120,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.IsNotNullBefore(() => Jeep.WaitingJeep, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
-		Jeep j4 = Jeep.WaitingJeep;
+		Jeep j4 = Jeep.WaitingJeep!;
 		Assert.AreEqual(JeepState.WaitingForTourists, j4.StateMachine.CurrentState);
 
 		Model.Level.ClearTile(p2);
@@ -150,7 +150,7 @@ public class JeepTest : SimulationTest {
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 		Jeep.Init(200);
-		Point p1 = Model.Level.Network.Start + new Microsoft.Xna.Framework.Point(1, 0);
+		Point p1 = Model.Level!.Network.Start + new Microsoft.Xna.Framework.Point(1, 0);
 		Point p2 = Model.Level.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
 		Model.GameSpeed = GameSpeed.Slow;
 
@@ -162,7 +162,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.IsNotNullBefore(() => Jeep.WaitingJeep, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
-		Jeep j1 = Jeep.WaitingJeep;
+		Jeep j1 = Jeep.WaitingJeep!;
 		Assert.AreEqual(JeepState.WaitingForTourists, j1.StateMachine.CurrentState);
 
 		Game.RunOneFrame();
@@ -204,7 +204,7 @@ public class JeepTest : SimulationTest {
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 		Jeep.Init(200);
-		Point p2 = Model.Level.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
+		Point p2 = Model.Level!.Network.Start + new Microsoft.Xna.Framework.Point(2, 0);
 		Model.GameSpeed = GameSpeed.Slow;
 
 		Jeep.RequestNextJeep();
@@ -215,7 +215,7 @@ public class JeepTest : SimulationTest {
 		Model.GameSpeed = Safari.Model.GameSpeed.Fast;
 		GameAssert.IsNotNullBefore(() => Jeep.WaitingJeep, TimeSpan.FromHours(1));
 		Model.GameSpeed = Safari.Model.GameSpeed.Slow;
-		Jeep j1 = Jeep.WaitingJeep;
+		Jeep j1 = Jeep.WaitingJeep!;
 		Assert.AreEqual(JeepState.WaitingForTourists, j1.StateMachine.CurrentState);
 
 		j1.AddTourist(new Tourist(new Vector2(40, 40)));

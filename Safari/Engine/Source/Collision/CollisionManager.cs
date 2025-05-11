@@ -80,7 +80,7 @@ public static class CollisionManager {
 
 	// OPTIMIZE: maybe we'll need to optimize how collision differences are stored and calculated
 	private static readonly List<(CollisionCmp listener, CollisionCmp other)> activeCollisions = [];
-	public static void PostUpdate(object _, GameTime gameTime) {
+	public static void PostUpdate(object? _, GameTime gameTime) {
 		AssertInit();
 
 		List<(CollisionCmp listener, CollisionCmp other)> buff = [];
@@ -130,6 +130,8 @@ public static class CollisionManager {
 		if (collisionCmps == null) return;
 
 		foreach (CollisionCmp cmp in collisionCmps) {
+			if (cmp.ColliderTex == null) continue;
+
 			Game.SpriteBatch!.Draw(cmp.ColliderTex.ToTexture2D(), cmp.AbsoluteCollider.Location, cmp.ColliderTex.Bounds, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0f);
 		}
 	}

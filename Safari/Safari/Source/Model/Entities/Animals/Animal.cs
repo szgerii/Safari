@@ -81,11 +81,11 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Invoked when this animal gets hungry
 	/// </summary>
-	public event EventHandler GotHungry;
+	public event EventHandler? GotHungry;
 	/// <summary>
 	/// Invoked when this animal gets thirsty
 	/// </summary>
-	public event EventHandler GotThirsty;
+	public event EventHandler? GotThirsty;
 
 	/// <summary>
 	/// Represents how hungry the animal currently is (goes down with time)
@@ -174,31 +174,31 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The group this animal belongs to
 	/// </summary>
-	public AnimalGroup Group { get; set; }
+	public AnimalGroup? Group { get; set; }
 
 	/// <summary>
 	/// Shorthand for Group.State
 	/// </summary>
-	public AnimalGroupState State => Group.State;
+	public AnimalGroupState State => Group!.State;
 
 	/// <summary>
 	/// Invoked when the animal is captured by a poacher
 	/// </summary>
-	public event EventHandler Caught;
+	public event EventHandler? Caught;
 
 	/// <summary>
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
-	protected AnimatedSpriteCmp AnimSprite => Sprite as AnimatedSpriteCmp;
+	protected AnimatedSpriteCmp AnimSprite => (AnimatedSpriteCmp)Sprite!;
 	/// <summary>
 	/// The animal's collision detection component
 	/// </summary>
-	protected CollisionCmp collisionCmp;
+	protected CollisionCmp? collisionCmp;
 	
 	[JsonConstructor]
 	public Animal() : base() {
-		Died += (object sender, EventArgs e) => {
+		Died += (object? sender, EventArgs e) => {
 			Group?.Leave(this);
 		};
 		InitAnimations();
@@ -217,7 +217,7 @@ public abstract class Animal : Entity {
 
 		birthTime = GameScene.Active.Model.IngameDate;
 
-		Died += (object sender, EventArgs e) => {
+		Died += (object? sender, EventArgs e) => {
 			Group?.Leave(this);
 		};
 
@@ -227,6 +227,7 @@ public abstract class Animal : Entity {
 
 	}
 
+	[MemberNotNull(nameof(collisionCmp))]
 	private void InitCollision() {
 		collisionCmp = new CollisionCmp(Vectangle.Empty) {
 			Tags = CollisionTags.Animal,
@@ -253,7 +254,7 @@ public abstract class Animal : Entity {
 
 	static Animal() {
 		// add debug feature for drawing animal stats
-		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object? sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				if (e is Animal a) a.DrawIndicators(gameTime);
 			}
@@ -449,7 +450,7 @@ public abstract class Animal : Entity {
 		}
 
 		Caught?.Invoke(this, EventArgs.Empty);
-		Group.Leave(this);
+		Group?.Leave(this);
 
 		IsCaught = true;
 	}
@@ -469,14 +470,14 @@ public abstract class Animal : Entity {
 		Group = new AnimalGroup(this);
 	}
 
-	private ITexture2D indicatorTex = null, indicatorOutlineTex = null;
+	private ITexture2D? indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
 	[ExcludeFromCodeCoverage]
 	public void DrawIndicators(GameTime gameTime) {
-		if (IsCaught) return;
+		if (IsCaught || Sprite == null) return;
 
 		int maxWidth = Utils.Round(Bounds.Width * 0.8f);
 		int margin = Utils.Round(Bounds.Width * 0.1f);
@@ -495,7 +496,7 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch!.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		Game.SpriteBatch.Draw(indicatorOutlineTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		// hunger level
 		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
@@ -505,14 +506,14 @@ public abstract class Animal : Entity {
 	private void CheckSurroundings() {
 		foreach (Tile tile in GetTilesInSight()) {
 			if (tile.IsFoodSource) {
-				Group.AddFoodSpot(tile.TilemapPosition);
-			} else if (Group.KnowsFoodSpot(tile.TilemapPosition)) {
+				Group?.AddFoodSpot(tile.TilemapPosition);
+			} else if (Group?.KnowsFoodSpot(tile.TilemapPosition) ?? false) {
 				Group.RemoveFoodSpot(tile.TilemapPosition, true);
 			}
 
 			if (tile.IsWaterSource) {
-				Group.AddWaterSpot(tile.TilemapPosition);
-			} else if (Group.KnowsWaterSpot(tile.TilemapPosition)) {
+				Group?.AddWaterSpot(tile.TilemapPosition);
+			} else if (Group?.KnowsWaterSpot(tile.TilemapPosition) ?? false) {
 				Group.RemoveWaterSpot(tile.TilemapPosition);
 			}
 		}
@@ -525,7 +526,7 @@ public abstract class Animal : Entity {
 			}
 
 			if (entity is Animal anim && anim.Group != null) {
-				if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
+				if (Group != anim.Group && (Group?.CanMergeWith(anim.Group) ?? false)) {
 					Group.MergeWith(anim.Group);
 				}
 			}

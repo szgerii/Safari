@@ -31,7 +31,7 @@ public enum MouseMode {
 
 public class GameScene : Scene {
 	private readonly GameModel model;
-	public static GameScene Active => SceneManager.Active as GameScene;
+	public static GameScene Active => (GameScene)SceneManager.Active!;
 	public virtual GameModel Model => model;
 
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
@@ -55,8 +55,8 @@ public class GameScene : Scene {
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
-	private ITexture2D demolishHover;
-	private ITexture2D buildHover;
+	private ITexture2D? demolishHover;
+	private ITexture2D? buildHover;
 
 	static GameScene() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
@@ -64,7 +64,6 @@ public class GameScene : Scene {
 
 			foreach (GameObject obj in Active.GameObjects) {
 				if (obj is Tile) continue;
-				string objStr = obj.ToString();
 
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
@@ -94,7 +93,7 @@ public class GameScene : Scene {
 
 		Jeep.Cleanup();
 
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			Statusbar.Instance.Unload();
 			EntityControllerMenu.Active?.Hide();
 		}
@@ -104,7 +103,7 @@ public class GameScene : Scene {
 		PostUpdate -= CollisionManager.PostUpdate;
 		EntityBoundsManager.CleanUp();
 		CollisionManager.CleanUp();
-		PostProcessPasses.Remove(model.Level.LightManager);
+		PostProcessPasses.Remove(model.Level!.LightManager);
 
 		Game.ContentManager.Unload();
 	}
@@ -149,13 +148,11 @@ public class GameScene : Scene {
 			}
 		}
 
-		if (!Game.Instance.IsHeadless) {
-			PostProcessPasses.Add(model.Level.LightManager);
+		if (Game.CanDraw) {
+			PostProcessPasses.Add(model.Level!.LightManager);
 		}
 
-
-
-		int tileSize = model.Level.TileSize;
+		int tileSize = model.Level!.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
 
 		EntityBoundsManager.Init(mapBounds);
@@ -247,7 +244,7 @@ public class GameScene : Scene {
 	}
 
 	public void UpdateInspect() {
-		Entity entity = Entity.GetEntityOnMouse();
+		Entity? entity = Entity.GetEntityOnMouse();
 
 		if (InputManager.Mouse.JustReleased(MouseButtons.LeftButton) && !MouseDragLock) {
 			if (entity != null && entity is Ranger ranger) {
@@ -265,6 +262,8 @@ public class GameScene : Scene {
 	}
 
 	private void UpdatePalette() {
+		if (Model.Level == null) return;
+
 		if (MouseMode == MouseMode.Build) {
 			if (InputManager.Actions.JustPressed("next-brush")) {
 				Model.Level.ConstructionHelperCmp.SelectNext();
@@ -289,7 +288,7 @@ public class GameScene : Scene {
 
 	public void UpdateBuild() {
 		if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-			Point p = (GetMouseTilePos() / Model.Level.TileSize).ToPoint();
+			Point p = (GetMouseTilePos() / Model.Level!.TileSize).ToPoint();
 			if (MouseMode == MouseMode.Build) {
 				Model.Level.ConstructionHelperCmp.BuildCurrent(p);
 			} else if (MouseMode == MouseMode.Demolish) {
@@ -299,7 +298,7 @@ public class GameScene : Scene {
 	}
 
 	public bool MousePlayable(Vector2 mouseTilePos) {
-		return !Model.Level.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
+		return !Model.Level!.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
 	}
 
 	public bool InMaskedArea(Point position) {
@@ -313,7 +312,7 @@ public class GameScene : Scene {
 
 	public Vector2 GetMouseTilePos() {
 		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
-		mouseTilePos.X -= mouseTilePos.X % Model.Level.TileSize;
+		mouseTilePos.X -= mouseTilePos.X % Model.Level!.TileSize;
 		mouseTilePos.Y -= mouseTilePos.Y % Model.Level.TileSize;
 
 		return mouseTilePos;
@@ -321,17 +320,17 @@ public class GameScene : Scene {
 
 	public override void Draw(GameTime gameTime) {
 		if (MouseMode == MouseMode.Build) {
-			var cons = Model.Level.ConstructionHelperCmp;
+			var cons = Model.Level!.ConstructionHelperCmp;
 			if (cons.SelectedInstance != null) {
 				Tile t = cons.SelectedInstance;
 				Vector2 mousePos = GetMouseTilePos();
 				Point tilePos = (mousePos / Model.Level.TileSize).ToPoint();
 				t.DrawPreviewAt(GetMouseTilePos(), cons.CanBuildCurrent(tilePos));
-				Game.SpriteBatch.Draw(buildHover.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+				Game.SpriteBatch!.Draw(buildHover!.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			}
 		} else if (MouseMode == MouseMode.Demolish) {
 			Vector2 mousePosWorld = GetMouseTilePos();
-			Game.SpriteBatch.Draw(demolishHover.ToTexture2D(), mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(demolishHover!.ToTexture2D(), mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 		}
 
 		base.Draw(gameTime);
@@ -379,7 +378,7 @@ public class GameScene : Scene {
 		AddObject(Camera.Active);
 	}
 
-	private void OnGameLost(object sender, LoseReason reason) {
+	private void OnGameLost(object? sender, LoseReason reason) {
 		string message = reason switch {
 			LoseReason.Money => "You ran out of funds.",
 			LoseReason.Animals => "All of your animals have died.",
@@ -388,7 +387,7 @@ public class GameScene : Scene {
 
 		if (Game.CanDraw) {
 			AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
-			menu.Chosen += (object sender, bool e) => {
+			menu.Chosen += (object? sender, bool e) => {
 				SceneManager.Load(MainMenu.Instance);
 			};
 			model.Pause();
@@ -396,7 +395,7 @@ public class GameScene : Scene {
 		}
 	}
 
-	private void OnGameWon(object sender, EventArgs e) {
+	private void OnGameWon(object? sender, EventArgs e) {
 		string difficulty = model.Difficulty switch {
 			GameDifficulty.Easy => "easy",
 			GameDifficulty.Normal => "normal",
@@ -405,7 +404,7 @@ public class GameScene : Scene {
 
 		if (Game.CanDraw) {
 			AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
-			menu.Chosen += (object sender, bool e) => {
+			menu.Chosen += (object? sender, bool e) => {
 				if (e) {
 					SceneManager.Load(MainMenu.Instance);
 				} else {

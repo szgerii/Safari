@@ -7,6 +7,7 @@ using Safari.Components;
 using Safari.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Scenes.Menus;
 
@@ -67,7 +68,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     private Button? discardAndExitButton;
 
     private static float scale = ((float)DisplayManager.Height / 1080f) * 1.2f;
-    public static event EventHandler ScaleChanged;
+    public static event EventHandler? ScaleChanged;
 
     /// <summary>
     /// Get the scaling for text that matches the resolution.
@@ -83,6 +84,10 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     }
 
     protected override void ConstructUI() {
+        if (SafariSettings.Instance == null) {
+            throw new InvalidOperationException("Couldn't find an active settings instance");
+        }
+
         panel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.TopLeft);
 
         title = new Header("Safari", Anchor.TopCenter);
@@ -152,8 +157,8 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeWindowed.ToggleMode = true;
         screenTypeWindowed.OnClick = (Entity entity) => {
             screenTypeWindowed.Checked = true;
-            screenTypeBorderless.Checked = false;
-            screenTypeFullscreen.Checked = false;
+            screenTypeBorderless!.Checked = false;
+            screenTypeFullscreen!.Checked = false;
             selectedWindowType = WindowType.WINDOWED;
         };
         screenTypeButtonPanel.AddChild(screenTypeWindowed);
@@ -164,7 +169,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeBorderless.OnClick = (Entity entity) => {
             screenTypeWindowed.Checked = false;
             screenTypeBorderless.Checked = true;
-            screenTypeFullscreen.Checked = false;
+            screenTypeFullscreen!.Checked = false;
             selectedWindowType = WindowType.BORDERLESS;
         };
         screenTypeButtonPanel.AddChild(screenTypeBorderless);
@@ -306,11 +311,15 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     }
 
     private void SaveButtonClicked(Entity entity) {
+        if (SafariSettings.Instance == null) {
+            throw new InvalidOperationException("Couldn't find an active settings instance");
+        }
+        
         SafariSettings.Instance.CameraSpeed = cameraSpeedStoredValue;
         SafariSettings.Instance.CameraAcceleration = cameraAccelStoredValue;
         SafariSettings.Instance.Resolution = selectedResolution;
-        SafariSettings.Instance.VSync = vsyncButton.Checked;
-        SafariSettings.Instance.Fps = fpsSlider.Value == 91 ? 0 : fpsSlider.Value;
+        SafariSettings.Instance.VSync = vsyncButton!.Checked;
+        SafariSettings.Instance.Fps = fpsSlider!.Value == 91 ? 0 : fpsSlider.Value;
         SafariSettings.Instance.WindowType = selectedWindowType;
 		SafariSettings.Instance.Apply();
         ScaleText();
@@ -326,16 +335,16 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
 
     private void ScaleText() {
         Scale = ((float)selectedResolution.Item2 / 1080f) * 1.2f;
-        fpsText.Scale = Scale;
-        vsyncText.Scale = Scale;
-        screenTypeText.Scale = Scale;
-        cameraSpeedText.Scale = Scale;
-        cameraAccelText.Scale = Scale;
-        resolutionText.Scale = Scale;
-        resolutionsDisplay.Scale = Scale;
+        fpsText!.Scale = Scale;
+        vsyncText!.Scale = Scale;
+        screenTypeText!.Scale = Scale;
+        cameraSpeedText!.Scale = Scale;
+        cameraAccelText!.Scale = Scale;
+        resolutionText!.Scale = Scale;
+        resolutionsDisplay!.Scale = Scale;
 
-        prevResolution.ButtonParagraph.Scale = Scale;
-        nextResolution.ButtonParagraph.Scale = Scale;
+        prevResolution!.ButtonParagraph.Scale = Scale;
+        nextResolution!.ButtonParagraph.Scale = Scale;
     }
 
     protected override void DestroyUI() {

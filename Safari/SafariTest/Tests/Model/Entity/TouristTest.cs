@@ -69,7 +69,7 @@ public class TouristTest : SimulationTest {
 
 		oldRating = Tourist.AvgRating;
 		Tourist t3 = SpawnT(new(0, 0));
-		t3.TourFailed();
+		Tourist.TourFailed();
 		Assert.IsTrue(Tourist.AvgRating < oldRating);
 
 		Jeep.RentFee = 100;
@@ -98,7 +98,7 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
 		Tourist.PickupSpot = new Point(3, 3);
-		Vector2 PickupCenter = Model.Level.GetTileCenter(new Point(3, 3));
+		Vector2 PickupCenter = Model.Level!.GetTileCenter(new Point(3, 3));
 		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
@@ -132,7 +132,7 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.Next(5, 11).Returns(8);
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
-		Vector2 PickupCenter = Model.Level.GetTileCenter(Tourist.PickupSpot);
+		Vector2 PickupCenter = Model.Level!.GetTileCenter(Tourist.PickupSpot);
 		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;

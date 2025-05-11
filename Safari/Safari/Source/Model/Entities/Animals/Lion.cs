@@ -22,11 +22,13 @@ public class Lion : Animal {
 	}
 
 	private void InitSprite() {
-		Sprite.Texture = Game.LoadTexture("Assets/Animals/Lion");
+		Sprite!.Texture = Game.LoadTexture("Assets/Animals/Lion");
 		Sprite.YSortOffset = 96;
 		Sprite.Scale = 2 / 3f;
 
-		Vectangle baseColl = new(12, 75, 80, 20);
-		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		if (collisionCmp != null) {
+			Vectangle baseColl = new(12, 75, 80, 20);
+			collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		}
 	}
 }

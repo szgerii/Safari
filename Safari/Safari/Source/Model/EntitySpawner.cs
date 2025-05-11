@@ -135,7 +135,7 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 			CurrentChance = BaseChance;
 		}
 
-		bool randCheck = Game.Random.NextSingle() <= CurrentChance;
+		bool randCheck = Game.Random!.NextSingle() <= CurrentChance;
 
 		CurrentChance = Math.Min(CurrentChance + ChanceIncrease, 1f);
 
@@ -143,8 +143,8 @@ public class EntitySpawner<T> : GameObject where T : notnull, Entity {
 			return;
 		}
 
-		Vector2 pos = Utils.GetRandomPosition(SpawnArea ?? GameScene.Active.Model.Level.PlayAreaBounds);
-		T entity = (T)Activator.CreateInstance(typeof(T), [ pos ]);
+		Vector2 pos = Utils.GetRandomPosition(SpawnArea ?? GameScene.Active.Model.Level!.PlayAreaBounds);
+		T entity = (T)Activator.CreateInstance(typeof(T), [ pos ])!;
 		Game.AddObject(entity);
 		LastSuccessfulSpawn = LastSpawnAttempt;
 		CurrentChance = 0;

@@ -65,7 +65,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private readonly Button entityManagerButton;
 
-    public Rectangle Size => panel.CalcDestRect();
+    public Rectangle Size => panel?.CalcDestRect() ?? Rectangle.Empty;
 
     private Statusbar() {
         background = null;
@@ -123,9 +123,9 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
             EntityManager.Instance.Toggle();
-			animals.Hide();
-			tiles.Hide();
-			others.Hide();
+			animals?.Hide();
+			tiles?.Hide();
+			others?.Hide();
 		};
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
@@ -330,7 +330,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         AdjustSpeedButtons();
     }
 
-    private void ScaleText(object sender, EventArgs e) {
+    private void ScaleText(object? sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;

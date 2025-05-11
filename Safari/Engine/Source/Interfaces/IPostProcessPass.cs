@@ -14,12 +14,12 @@ public interface IPostProcessPass {
 	/// The output texture that gets sent to the next step in post-processing, 
 	/// or to the final draw to the screen (if this is the last step)
 	/// </summary>
-	public IRenderTarget2D Output { get; }
+	public IRenderTarget2D? Output { get; }
 
 	/// <summary>
 	/// The shader that the pass uses (this is where the output of the previous step is uploaded to)
 	/// </summary>
-	public Effect Shader { get; }
+	public Effect? Shader { get; }
 
 	/// <summary>
 	/// Use this function to set uniforms, prepare the Output texture, etc

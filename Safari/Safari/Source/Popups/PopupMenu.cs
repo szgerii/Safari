@@ -7,7 +7,7 @@ using Safari.Scenes;
 namespace Safari.Popups;
 
 public abstract class PopupMenu : IUpdatable {
-    protected Panel background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
+    protected Panel? background = new Panel(new Vector2(0, 0), PanelSkin.None, Anchor.TopLeft);
     protected Panel? panel;
 
     private Rectangle maskArea;
@@ -15,7 +15,7 @@ public abstract class PopupMenu : IUpdatable {
     /// Shows the popup and handles background logic.
     /// </summary>
     public virtual void Show() {
-        if (panel.Parent != null) {
+        if (panel?.Parent != null) {
             return;
         }
         if (background != null) {
@@ -23,19 +23,19 @@ public abstract class PopupMenu : IUpdatable {
             maskArea = this.background.CalcDestRect();
             GameScene.Active?.MaskedAreas.Add(maskArea);
         } else {
-            maskArea = this.panel.CalcDestRect();
+            maskArea = this.panel!.CalcDestRect();
             GameScene.Active?.MaskedAreas.Add(maskArea);
         }
         UserInterface.Active.AddEntity(panel);
 
-        panel.BringToFront();
+        panel!.BringToFront();
     }
 
     /// <summary>
     /// Hides the popup and handles background logic.
     /// </summary>
     public virtual void Hide() {
-        if(background == null && panel.Parent != null) {
+        if(background == null && panel?.Parent != null) {
             GameScene.Active?.MaskedAreas.Remove(maskArea);
         } else if (background != null && background.Parent != null) {
             GameScene.Active?.MaskedAreas.Remove(maskArea);

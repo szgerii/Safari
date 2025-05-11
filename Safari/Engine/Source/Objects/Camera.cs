@@ -54,7 +54,7 @@ public class Camera : GameObject {
 	private ITexture2D? tex;
 	public override void Draw(GameTime gameTime) {
 		if (DebugMode.IsFlagActive("cam-indicators")) {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			tex ??= Utils.GenerateTexture(tileSize, tileSize, Color.Red, true);
 
 			int halfTileSize = Utils.Round(tileSize / 2f);

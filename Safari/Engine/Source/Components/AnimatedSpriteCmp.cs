@@ -138,7 +138,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 
 	protected float frameTime;
 
-	public AnimatedSpriteCmp(ITexture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
+	public AnimatedSpriteCmp(ITexture2D? texture, int columnCount, int rowCount, int fps) : base(texture) {
 		ColumnCount = columnCount;
 		RowCount = rowCount;
 		FPS = fps;

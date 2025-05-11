@@ -54,7 +54,7 @@ public abstract partial class AutoTile : Tile {
 		NeedsUpdate = false;
 
 		if (TileSize == -1) {
-			TileSize = GameScene.Active.Model.Level.TileSize;
+			TileSize = GameScene.Active.Model.Level!.TileSize;
 		}
 
 		AutoTileBitmask result = 0;
@@ -104,18 +104,23 @@ public abstract partial class AutoTile : Tile {
 	/// <returns>Whether there's a neighbor at the offset</returns>
 	private bool HasNeighborAtOffset(Point offset) {
 		Point destPos = TilemapPosition + offset;
-		Level currentLevel = GameScene.Active.Model.Level;
+		Level currentLevel = GameScene.Active.Model.Level!;
 
 		if (currentLevel.IsOutOfBounds(destPos.X, destPos.Y)) {
 			return false;
 		}
 
-		Tile target = currentLevel.GetTile(destPos.X, destPos.Y);
+		Tile? target = currentLevel.GetTile(destPos.X, destPos.Y);
 
 		return target != null && target.GetType() == GetType();
 	}
 
 	public override void UpdateYSortOffset() {
+		if (Texture == null) {
+			Sprite.YSortOffset = 0;
+			return;
+		}
+
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, SourceRectangle) - 1;
 	}
 }

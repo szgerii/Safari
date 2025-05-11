@@ -18,7 +18,7 @@ public class AutoTileTest {
 		NoopTexture2D tex = new(null, 100, 100);
 		AutoTile at = Substitute.ForPartsOf<AutoTile>(tex);
 
-		Assert.AreEqual(tex, (NoopTexture2D)at.Texture);
+		Assert.AreEqual(tex, (NoopTexture2D)at.Texture!);
 		Assert.IsTrue(at.NeedsUpdate);
 
 		bool updateTexCalled = false;

@@ -6,16 +6,16 @@ namespace Safari.Persistence;
 [JsonObject(MemberSerialization.OptIn)]
 public class SafariSaveNode {
 	[JsonProperty]
-	public string FullTypeName { get; set; }
+	public string? FullTypeName { get; set; }
 
 	[JsonProperty]
-	public string GameObjectSerialized { get; set; }
+	public string? GameObjectSerialized { get; set; }
 
 	[JsonProperty]
 	public int GameObjectID { get; set; }
 
 	[JsonProperty]
-	public List<SafariSaveRefNode> Refs { get; set; }
+	public List<SafariSaveRefNode>? Refs { get; set; }
 
 	[JsonConstructor]
 	public SafariSaveNode() { }

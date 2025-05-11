@@ -70,7 +70,7 @@ public class SpriteCmp : Component, IDrawable {
 	public bool Visible { get; set; } = true;
 #endregion
 
-	public SpriteCmp(ITexture2D texture, Vector2? origin = null, float rotation = 0, float scale = 1, SpriteEffects flip = SpriteEffects.None, Rectangle? sourceRectangle = null, Color? tint = null, float layerDepth = 1) {
+	public SpriteCmp(ITexture2D? texture, Vector2? origin = null, float rotation = 0, float scale = 1, SpriteEffects flip = SpriteEffects.None, Rectangle? sourceRectangle = null, Color? tint = null, float layerDepth = 1) {
 		Texture = texture;
 		Origin = origin ?? Vector2.Zero;
 		Rotation = rotation;

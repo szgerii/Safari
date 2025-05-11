@@ -66,7 +66,7 @@ public class EntityBaseTest : SimulationTest {
 		// sprite
 		PrivateObject entityPO = new(entity);
 		entityPO.SetProperty("Sprite", new SpriteCmp(new NoopTexture2D(null, 50, 50)));
-		entity.Sprite.SourceRectangle = new(10, 10, 20, 20);
+		entity.Sprite!.SourceRectangle = new(10, 10, 20, 20);
 		entity.Sprite.Origin = new Vector2(30, 30);
 		entity.Sprite.Scale = 2;
 		AssertBounds(new Vectangle(470, 470, 40, 40));

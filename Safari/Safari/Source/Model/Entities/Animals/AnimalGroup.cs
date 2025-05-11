@@ -87,7 +87,7 @@ public class AnimalGroup : GameObject {
 	/// Hunt prey for carnivorous groups
 	/// </summary>
 	[GameobjectReferenceProperty]
-	public Animal HuntTarget { get; private set; } = null;
+	public Animal? HuntTarget { get; private set; } = null;
 
 	/// <summary>
 	/// Whether the group has a hungry animal inside it
@@ -135,6 +135,7 @@ public class AnimalGroup : GameObject {
 	public AnimalGroup() : base(Vector2.Zero) {
 		NavCmp = new NavigationCmp(Speed);
 		StateMachine = new();
+		formationOffsets = [];
 	}
 
 	public AnimalGroup(Animal creator) : base(creator.Position) {
@@ -403,14 +404,14 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	private void OnHungryMember(object sender, EventArgs e) {
+	private void OnHungryMember(object? sender, EventArgs e) {
 		if ((State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) || Species.IsCarnivorous())
 			return;
 
 		StateMachine.Transition(AnimalGroupState.SeekingFood);
 	}
 
-	private void OnThirstyMember(object sender, EventArgs e) {
+	private void OnThirstyMember(object? sender, EventArgs e) {
 		if (State != AnimalGroupState.Idle && State != AnimalGroupState.Wandering) return;
 
 		StateMachine.Transition(AnimalGroupState.SeekingWater);
@@ -421,7 +422,7 @@ public class AnimalGroup : GameObject {
 	[StateBegin(AnimalGroupState.Idle)]
 	public void BeginIdle() {
 		idleStart = GameScene.Active.Model.IngameDate;
-		idlePeriod = TimeSpan.FromMinutes(Game.Random.Next(120, 240));
+		idlePeriod = TimeSpan.FromMinutes(Game.Random!.Next(120, 240));
 
 		NavCmp.Moving = false;
 
@@ -447,7 +448,7 @@ public class AnimalGroup : GameObject {
 			males[i].Mate();
 			females[i].Mate();
 
-			Animal child = (Animal)Activator.CreateInstance(Species.GetAnimalType(), [females[i].Position, Utils.GetRandomEnumValue<Gender>()]);
+			Animal child = (Animal)Activator.CreateInstance(Species.GetAnimalType()!, [females[i].Position, Utils.GetRandomEnumValue<Gender>()])!;
 			Game.AddObject(child);
 			AddMember(child);
 			CalcFormationOffsets();
@@ -463,13 +464,13 @@ public class AnimalGroup : GameObject {
 	}
 
 	private void SetNewWanderingPos() {
-		Level currLevel = GameScene.Active.Model.Level;
+		Level currLevel = GameScene.Active.Model.Level!;
 		NavCmp.TargetPosition = currLevel.GetRandomPosition();
 		NavCmp.Moving = true;
 		NavCmp.StopOnTargetReach = false;
 	}
 
-	private void OnWanderTargetReached(object sender, NavigationTargetEventArgs e) {
+	private void OnWanderTargetReached(object? sender, NavigationTargetEventArgs e) {
 		SetNewWanderingPos();
 	}
 
@@ -495,7 +496,7 @@ public class AnimalGroup : GameObject {
 					Vector2 escapeDir = -Vector2.Normalize(entity.Position - Position);
 					escapeDir *= 1000;
 					Point escapePoint = (Position + escapeDir).ToPoint();
-					int ts = GameScene.Active.Model.Level.TileSize;
+					int ts = GameScene.Active.Model.Level!.TileSize;
 					while (GameScene.Active.Model.Level.IsOutOfPlayArea(escapePoint.X / ts, escapePoint.Y / ts)) {
 						escapeDir *= 0.9f;
 						escapePoint = (Position + escapeDir).ToPoint();
@@ -522,18 +523,18 @@ public class AnimalGroup : GameObject {
 
 	[JsonProperty]
 	private bool nearDestination = false;
-	private void OnNearDestination(object sender, NavigationTargetEventArgs e) {
+	private void OnNearDestination(object? sender, NavigationTargetEventArgs e) {
 		nearDestination = true;
 		NavCmp.TargetInSight -= OnNearDestination;
 
-		Level level = GameScene.Active.Model.Level;
-		Point target = NavCmp.TargetPosition.Value.ToPoint();
+		Level level = GameScene.Active.Model.Level!;
+		Point target = NavCmp.TargetPosition!.Value.ToPoint();
 		target = new Point(target.X / level.TileSize, target.Y / level.TileSize);
 		List<Point> tileBlob = level.GetTileBlob(target);
 		HashSet<Vector2> occupied = [];
 
 		foreach (Animal animal in Members) {
-			Vector2 memberTarget = GetNearestFromList(tileBlob, animal.CenterPosition, occupied).Value;
+			Vector2 memberTarget = GetNearestFromList(tileBlob, animal.CenterPosition, occupied)!.Value;
 			occupied.Add(memberTarget);
 			animal.NavCmp.TargetPosition = memberTarget;
 			animal.NavCmp.Moving = true;
@@ -541,7 +542,7 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	public void HuntFinished(object sender, NavigationTargetEventArgs e) {
+	public void HuntFinished(object? sender, NavigationTargetEventArgs e) {
 		if (HuntTarget != null) {
 			HuntTarget.Died -= HuntInterrupted;
 			HuntTarget.Caught -= HuntInterrupted;
@@ -559,7 +560,7 @@ public class AnimalGroup : GameObject {
 		StateMachine.Transition(AnimalGroupState.Idle);
 	}
 
-	public void HuntInterrupted(object sender, EventArgs e) {
+	public void HuntInterrupted(object? sender, EventArgs e) {
 		if (HuntTarget != null) {
 			HuntTarget.Died -= HuntInterrupted;
 			HuntTarget.Caught -= HuntInterrupted;
@@ -751,14 +752,14 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
-	private Vector2? GetNearestFromList(List<Point> spots, Vector2? from = null, HashSet<Vector2> excludeList = null) {
+	private Vector2? GetNearestFromList(List<Point> spots, Vector2? from = null, HashSet<Vector2>? excludeList = null) {
 		from ??= Position;
-		excludeList ??= Array.Empty<Vector2>();
+		excludeList ??= [];
 		
 		float minDist = -1;
 		Vector2? result = null;
 		for (int i = 0; i < spots.Count; i++) {
-			Vector2 realPos = new(spots[i].X * GameScene.Active.Model.Level.TileSize, spots[i].Y * GameScene.Active.Model.Level.TileSize);
+			Vector2 realPos = new(spots[i].X * GameScene.Active.Model.Level!.TileSize, spots[i].Y * GameScene.Active.Model.Level.TileSize);
 			float dist = Vector2.DistanceSquared(from.Value, realPos);
 
 			if (!excludeList.Contains(realPos) && (result == null || dist < minDist)) {
@@ -767,7 +768,7 @@ public class AnimalGroup : GameObject {
 			}
 		}
 
-		if (result == null && excludeList != Array.Empty<Vector2>()) {
+		if (result == null && excludeList.Count != 0) {
 			// if no results can be returned without reusing points from excludeList, try to get one without it
 			result = GetNearestFromList(spots, from);
 		}
@@ -779,6 +780,7 @@ public class AnimalGroup : GameObject {
 	/// Calculates the formation offsets for the current group size <br/>
 	/// The result will be for straight upwards movement on the Y axis and will have to be rotated accordingly
 	/// </summary>
+	[MemberNotNull(nameof(formationOffsets))]
 	private void CalcFormationOffsets() {
 		if (Size <= 0) {
 			formationOffsets = [];
@@ -792,7 +794,7 @@ public class AnimalGroup : GameObject {
 				bool collides;
 				int attempts = 0;
 				do {
-					float angle = Game.Random.NextSingle() * (2 * (float)Math.PI);
+					float angle = Game.Random!.NextSingle() * (2 * (float)Math.PI);
 					float r = Game.Random.NextSingle() * FormationSpread;
 					pos = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * r;
 

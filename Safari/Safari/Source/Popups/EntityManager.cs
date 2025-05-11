@@ -200,6 +200,8 @@ class EntityManager : PopupMenu {
     }
 
     private void RemoveCurrentTab() {
+        if (panel == null) return;
+
         if (currentPanel == EntityManagerTab.RangerTab) {
             panel.RemoveChild(rangerPanel);
         } else if (currentPanel == EntityManagerTab.AnimalTab) {
@@ -210,6 +212,8 @@ class EntityManager : PopupMenu {
     }
 
     private void LoadTab(EntityManagerTab tab) {
+        if (panel == null) return;
+
         if (tab == EntityManagerTab.RangerTab) {
             panel.AddChild(rangerPanel);
             currentPanel = EntityManagerTab.RangerTab;
@@ -259,7 +263,7 @@ class EntityManager : PopupMenu {
         animalTabBtn.OnClick = null;
         otherTabBtn.OnClick = null;
 
-        if (panel.Parent != null) {
+        if (panel?.Parent != null) {
             base.Hide();
         }
     }
@@ -307,7 +311,7 @@ class EntityManager : PopupMenu {
         rangerDefaultTargetButton.ButtonParagraph.Text = "Default Target";
     }
 
-    private void ScaleText(object sender, EventArgs e) {
+    private void ScaleText(object? sender, EventArgs e) {
         rangerHireLabel.Scale = SettingsMenu.Scale;
         rangerHireMinus.ButtonParagraph.Scale = SettingsMenu.Scale;
         rangerHirePlus.ButtonParagraph.Scale = SettingsMenu.Scale;
@@ -334,7 +338,7 @@ class EntityManager : PopupMenu {
             new AlertMenu("Can't gire ranger", "You can't hire more rangers because you would go bankrupt!").Show();
             return;
         }
-        Ranger temp = new Ranger(MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level));
+        Ranger temp = new Ranger(MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level!));
         rangerTargetIndex = (rangerTargetIndex + 1) % Enum.GetValues(typeof(AnimalSpecies)).Length;
         Game.AddObject(temp);
         rangerHireLabel.Text = GameScene.Active.Model.RangerCount.ToString();
@@ -384,7 +388,7 @@ class EntityManager : PopupMenu {
             tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                 if (GameScene.Active.Model.IsDaytime || item.HasChip) {
                     new AnimalControllerMenu(item).Show();
-                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(item.CenterPosition);
+                    Camera.Active!.GetComponent<CameraControllerCmp>()!.CenterOnPosition(item.CenterPosition);
                     Toggle();
                 }
             };
@@ -510,7 +514,7 @@ class EntityManager : PopupMenu {
                 tempControllerPanel.Padding = new Vector2(0);
                 tempControllerPanel.OnClick = (GeonBit.UI.Entities.Entity entity) => {
                     new RangerControllerMenu(ranger).Show();
-                    Camera.Active.GetComponent<CameraControllerCmp>().CenterOnPosition(ranger.CenterPosition);
+                    Camera.Active!.GetComponent<CameraControllerCmp>()!.CenterOnPosition(ranger.CenterPosition);
                     Toggle();
                 };
 

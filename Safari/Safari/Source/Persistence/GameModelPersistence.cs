@@ -55,8 +55,8 @@ public class GameModelPersistence {
 	public static List<InitializationRule> Rules { get; set; } = new List<InitializationRule>() {
 		// camera initializer
 		new((obj, scene) => {
-			Camera camera = obj as Camera;
-			Level l = scene.Model.Level;
+			Camera camera = (Camera)obj;
+			Level l = scene.Model.Level!;
 			Rectangle bounds = new Rectangle(0, 0, l.MapWidth *l.TileSize, l.MapHeight * l.TileSize);
 			Camera.Active = camera;
 			CameraControllerCmp controllerCmp = new(bounds);
@@ -65,7 +65,7 @@ public class GameModelPersistence {
 		}, (obj, scene) => obj is Camera),
 		// tourist spawner initializer
 		new((obj, scene) => {
-			EntitySpawner<Tourist> spawner = obj as EntitySpawner<Tourist>;
+			EntitySpawner<Tourist> spawner = (EntitySpawner<Tourist>)obj;
 			spawner.EntityCount = () => Tourist.Queue.Count;
 			spawner.ExtraCondition = () => GameScene.Active.Model.IsDaytime;
 			Tourist.Spawner = spawner;
@@ -73,15 +73,15 @@ public class GameModelPersistence {
 		}, (obj, scene) => obj is EntitySpawner<Tourist>),
 		// poacher spawner initializer
 		new((obj, scene) => {
-			EntitySpawner<Poacher> spawner = obj as EntitySpawner<Poacher>;
+			EntitySpawner<Poacher> spawner = (EntitySpawner<Poacher>)obj;
 			spawner.EntityCount = () => GameScene.Active.Model.PoacherCount;
 			spawner.ExtraCondition = () => !DebugMode.IsFlagActive("no-poachers");
 			scene.AddObject(spawner);
 		}, (obj, scene) => obj is EntitySpawner<Poacher>),
 		// tile initializer
 		new ((obj, scene) => {
-			Tile t = obj as Tile;
-			Point tmappos = (t.Position / scene.Model.Level.TileSize).ToPoint() + t.AnchorTile;
+			Tile t = (Tile)obj;
+			Point tmappos = (t.Position / scene.Model.Level!.TileSize).ToPoint() + t.AnchorTile;
 			ConstructionHelperCmp cons = scene.Model.Level.ConstructionHelperCmp;
 			if (cons.CanBuild(tmappos, t)) {
 				cons.InstaBuild(tmappos, t);
@@ -92,9 +92,9 @@ public class GameModelPersistence {
 			scene.AddObject(obj);
 		}, (obj, scene) => obj is AnimalGroup || obj is Entity),
 	};
-	private static MethodInfo deserMI;
+	private static readonly MethodInfo? deserMI;
 
-	private string dirPath;
+	private readonly string dirPath;
 	public List<SafariSaveHead> Saves { get; private init; } = new();
 
 	static GameModelPersistence() {
@@ -121,7 +121,10 @@ public class GameModelPersistence {
 			}
 			try {
 				using (StreamReader sr = new StreamReader(FileName(i))) {
-					SafariSaveHead head = JsonConvert.DeserializeObject<SafariSaveHead>(sr.ReadToEnd());
+					SafariSaveHead? head = JsonConvert.DeserializeObject<SafariSaveHead>(sr.ReadToEnd());
+					if (head == null) {
+						return;
+					}
 					Saves.Add(head);
 				}
 			} catch { }
@@ -152,16 +155,16 @@ public class GameModelPersistence {
 			foreach (Type type in GameObjectTypes) {
 				if (go.GetType() == type) {
 					string dump = JsonConvert.SerializeObject(go);
-					string typeName = type.AssemblyQualifiedName;
+					string typeName = type.AssemblyQualifiedName!;
 					List<SafariSaveRefNode> refs = new();
 					foreach (PropertyInfo pi in go.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)) {
 						if (pi.GetCustomAttribute(typeof(GameobjectReferencePropertyAttribute)) != null) {
-							refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(go, null)));
+							refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(go, null)!));
 						}
 					}
 					foreach (FieldInfo fi in go.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)) {
 						if (fi.GetCustomAttribute(typeof(GameobjectReferencePropertyAttribute)) != null) {
-							refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(go)));
+							refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(go)!));
 						}
 					}
 
@@ -172,25 +175,25 @@ public class GameModelPersistence {
 		}
 
 		foreach (Type type in StaticTypes) {
-			string typeName = type.AssemblyQualifiedName;
+			string typeName = type.AssemblyQualifiedName!;
 			List<SafariSaveStaticProp> props = new();
 			List<SafariSaveRefNode> refs = new();
 			foreach (PropertyInfo pi in type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)) {
 				if (pi.GetCustomAttribute(typeof(StaticSavedPropertyAttribute)) != null) {
 					string propName = pi.Name;
-					string propType = pi.PropertyType.AssemblyQualifiedName;
+					string propType = pi.PropertyType.AssemblyQualifiedName!;
 					props.Add(new(propType, propName, true, JsonConvert.SerializeObject(pi.GetValue(null, null))));
 				} else if (pi.GetCustomAttribute(typeof(StaticSavedReferenceAttribute)) != null) {
-					refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(null, null)));
+					refs.Add(GetRef(pi.Name, pi.PropertyType, refIDs, pi.GetValue(null, null)!));
 				}
 			}
 			foreach (FieldInfo fi in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)) {
 				if (fi.GetCustomAttribute(typeof(StaticSavedPropertyAttribute)) != null) {
 					string propName = fi.Name;
-					string propType = fi.FieldType.AssemblyQualifiedName;
+					string propType = fi.FieldType.AssemblyQualifiedName!;
 					props.Add(new(propType, propName, false, JsonConvert.SerializeObject(fi.GetValue(null))));
 				} else if (fi.GetCustomAttribute(typeof(StaticSavedReferenceAttribute)) != null) {
-					refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(null)));
+					refs.Add(GetRef(fi.Name, fi.FieldType, refIDs, fi.GetValue(null)!));
 				}
 			}
 			staticNodes.Add(new(typeName, props, refs));
@@ -226,7 +229,7 @@ public class GameModelPersistence {
 
 	public bool Load(int slot) {
 		SafariSaveHead head = Saves[slot];
-		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized);
+		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized!)!;
 		
 		Jeep.Init(400);
 		Tourist.Init(60);
@@ -235,11 +238,11 @@ public class GameModelPersistence {
 		GameScene scene = new GameScene(model);
 
 		Dictionary<int, GameObject> refs = new();
-		List<(GameObject, MethodInfo, Dictionary<string, List<int>>)> setupMethods = new();
+		List<(GameObject?, MethodInfo, Dictionary<string, List<int>>)> setupMethods = new();
 
-		foreach (SafariSaveNode node in head.SaveNodes) {
-			Type objectType = Type.GetType(node.FullTypeName);
-			object obj = deserMI
+		foreach (SafariSaveNode node in head.SaveNodes!) {
+			Type objectType = Type.GetType(node.FullTypeName!)!;
+			object? obj = deserMI!
 						.MakeGenericMethod(new[] { objectType })
 						.Invoke(null, new[] { node.GameObjectSerialized });
 			if (obj is GameObject gameobject) {
@@ -253,9 +256,9 @@ public class GameModelPersistence {
 				foreach (MethodInfo mi in gameobject.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
 					if (mi.GetCustomAttribute(typeof(PostPersistenceSetupAttribute)) != null) {
 						Dictionary<string, List<int>> refIds = new();
-						foreach (SafariSaveRefNode rn in node.Refs) {
-							List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized);
-							refIds.Add(rn.Name, l);
+						foreach (SafariSaveRefNode rn in node.Refs!) {
+							List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized!)!;
+							refIds.Add(rn.Name!, l);
 						}
 						setupMethods.Add((gameobject, mi, refIds));
 					}
@@ -263,41 +266,41 @@ public class GameModelPersistence {
 			}
 		}
 
-		foreach (SafariSaveStaticNode node in head.StaticNodes) {
-			Type type = Type.GetType(node.FullTypeName);
-			foreach (SafariSaveStaticProp prop in node.Props) {
-				string name = prop.PropName;
-				Type propType = Type.GetType(prop.FullTypeName);
-				object propValue = deserMI
+		foreach (SafariSaveStaticNode node in head.StaticNodes!) {
+			Type? type = Type.GetType(node.FullTypeName!);
+			foreach (SafariSaveStaticProp prop in node.Props!) {
+				string name = prop.PropName!;
+				Type propType = Type.GetType(prop.FullTypeName!)!;
+				object? propValue = deserMI!
 						.MakeGenericMethod(new[] { propType})
 						.Invoke(null, new[] { prop.PropSerialized });
 				if (prop.IsProp) {
-					type
-						.GetProperty(prop.PropName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+					type!
+						.GetProperty(prop.PropName!, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!
 						.SetValue(null, propValue);
 				} else {
-					type.GetField(prop.PropName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+					type!.GetField(prop.PropName!, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!
 						.SetValue(null, propValue);
 				}
 			}
-			foreach (MethodInfo mi in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)) {
+			foreach (MethodInfo mi in type!.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)) {
 				if (mi.GetCustomAttribute(typeof(PostPersistenceStaticSetupAttribute)) != null) {
 					Dictionary<string, List<int>> refIds = new();
-					foreach (SafariSaveRefNode rn in node.Refs) {
-						List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized);
-						refIds.Add(rn.Name, l);
+					foreach (SafariSaveRefNode rn in node.Refs!) {
+						List<int> l = JsonConvert.DeserializeObject<List<int>>(rn.ContentSerialized!)!;
+						refIds.Add(rn.Name!, l);
 					}
 					setupMethods.Add((null, mi, refIds));
 				}
 			}
 		}
 
-		foreach ((GameObject gameobject, MethodInfo mi, Dictionary<string, List<int>> refIds) in setupMethods) {
-			Dictionary<string, List<GameObject>> refObjs = new();
+		foreach ((GameObject? gameobject, MethodInfo mi, Dictionary<string, List<int>> refIds) in setupMethods) {
+			Dictionary<string, List<GameObject?>> refObjs = new();
 			foreach (string key in refIds.Keys) {
-				List<GameObject> current = new();
+				List<GameObject?> current = new();
 				foreach (int i in refIds[key]) {
-					GameObject go = i < 0 || !refs.ContainsKey(i) ? null : refs[i];
+					GameObject? go = i < 0 || !refs.ContainsKey(i) ? null : refs[i];
 					current.Add(go);
 				}
 				refObjs.Add(key, current);
@@ -305,7 +308,7 @@ public class GameModelPersistence {
 			mi.Invoke(gameobject, new[] { refObjs });
 		}
 
-		model.Level.Background = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
+		model.Level!.Background = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
 		SceneManager.Load(scene);
 		scene.AddObject(model.Level);
 

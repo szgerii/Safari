@@ -102,7 +102,7 @@ public class ConstructionHelperTest : SimulationTest {
 	public void CHBuild() {
 		Level.PLAY_AREA_CUTOFF_X = 2;
 		Level.PLAY_AREA_CUTOFF_Y = 2;
-		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance.GraphicsDevice, 3200, 3200);
+		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance?.GraphicsDevice, 3200, 3200);
 		Level l = new Level(32, 10, 10, tex);
 		ConstructionHelperCmp ch = new ConstructionHelperCmp(10, 10);
 		ch.Owner = l;

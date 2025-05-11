@@ -23,11 +23,13 @@ public class Giraffe : Animal {
 	}
 
 	private void InitSprite() {
-		Sprite.Texture = Game.LoadTexture("Assets/Animals/Giraffe");
+		Sprite!.Texture = Game.LoadTexture("Assets/Animals/Giraffe");
 		Sprite.Scale = 0.75f;
 		Sprite.YSortOffset = 128;
 
-		Vectangle baseColl = new(7, 107, 81, 20);
-		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		if (collisionCmp != null) {
+			Vectangle baseColl = new(7, 107, 81, 20);
+			collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		}
 	}
 }

@@ -11,7 +11,7 @@ namespace Safari;
 [JsonObject(MemberSerialization.OptIn)]
 public class SafariSettings
 {
-    private static string path = Path.Join(Game.SafariPath, "settings.json");
+    private static readonly string path = Path.Join(Game.SafariPath, "settings.json");
 	#region RESOLUTION
 	public static List<(int, int)> ResolutionOptions { get; private set; } = new();
     public static (int, int) DefaultResolution { get; set; } = (1280, 720);
@@ -123,7 +123,7 @@ public class SafariSettings
     #endregion
 
     public static void Init() {
-		foreach (DisplayMode dm in DisplayManager.SupportedResolutions) {
+		foreach (DisplayMode dm in DisplayManager.SupportedResolutions!) {
             ResolutionOptions.Add((dm.Width, dm.Height));
 		}
 #if DEBUG
@@ -137,6 +137,10 @@ public class SafariSettings
         try {
             using (StreamReader sr = new StreamReader(path)) {
                 Instance = JsonConvert.DeserializeObject<SafariSettings>(sr.ReadToEnd());
+
+                if (Instance == null) {
+                    throw new InvalidOperationException("The settings file couldn't be deserialized");
+                }
             }
         } catch {
             Instance = new SafariSettings();

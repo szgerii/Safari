@@ -8,15 +8,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Popups;
 
 public class EntityControllerMenu : PopupMenu {
 	protected static readonly Vector2 BASE_SIZE = new(0.3f, 0.9f);
 
-	public static EntityControllerMenu Active { get; private set; } = null;
-	protected Button closeButton;
-	protected readonly Image image;
+	public static EntityControllerMenu? Active { get; private set; } = null;
+	protected Button? closeButton;
+	protected readonly Image? image;
 	protected Header header;
 	protected Safari.Model.Entities.Entity controlledEntity;
 
@@ -26,14 +27,15 @@ public class EntityControllerMenu : PopupMenu {
 		header.Text = entity.DisplayName;
 		controlledEntity = entity;
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
-			image = new Image(anim.Texture.ToTexture2D(), new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
+			image = new Image(anim.Texture!.ToTexture2D(), new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
 			image.Offset = new Vector2(0, 0.3f);
 			UpdateSourceRectangle();
-			panel.AddChild(image);
+			panel!.AddChild(image);
 		}
 	}
 
 	private Vector2? prevOffset = null;
+	[MemberNotNull(nameof(closeButton), nameof(header))]
 	private void PrepareUI() {
 		background = null;
 		panel = new Panel(BASE_SIZE, PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
@@ -58,16 +60,14 @@ public class EntityControllerMenu : PopupMenu {
 		Hide();
 	}
 
-	private void OnEntityDied(object sender, EventArgs e) {
+	private void OnEntityDied(object? sender, EventArgs e) {
 		Hide();
 	}
 
 	public override void Show() {
-		if (Active != null) {
-			Active.Hide();
-		}
+		Active?.Hide();
 		Active = this;
-		closeButton.OnClick += OnCloseClick;
+		closeButton!.OnClick += OnCloseClick;
 		controlledEntity.Died += OnEntityDied;
 		controlledEntity.IsBeingInspected = true;
 		base.Show();
@@ -75,7 +75,7 @@ public class EntityControllerMenu : PopupMenu {
 	}
 
 	public override void Hide() {
-		closeButton.OnClick -= OnCloseClick;
+		closeButton!.OnClick -= OnCloseClick;
 		controlledEntity.Died -= OnEntityDied;
 		controlledEntity.IsBeingInspected = false;
 		base.Hide();
@@ -94,7 +94,7 @@ public class EntityControllerMenu : PopupMenu {
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
 			Rectangle r = anim.CalculateSrcRec();
 
-			image.SourceRectangle = r;
+			image!.SourceRectangle = r;
 			if (r.Width >= r.Height) {
 				float width = 96;
 				float height = (width / r.Size.X) * r.Size.Y;
@@ -105,7 +105,7 @@ public class EntityControllerMenu : PopupMenu {
 				image.Size = new Vector2(width, height);
 			}
 		} else {
-			image.SourceRectangle = null;
+			image!.SourceRectangle = null;
 		}
 	}
 
@@ -113,7 +113,7 @@ public class EntityControllerMenu : PopupMenu {
 
 	private readonly Type[] ROUNDED_TYPES = [typeof(float), typeof(double)];
 	private const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-	protected virtual string DumpObjectDataToString(object targetObj, Type targetType = null) {
+	protected virtual string DumpObjectDataToString(object targetObj, Type? targetType = null) {
 		if (targetType == null) {
 			targetType = targetObj.GetType();
 		}

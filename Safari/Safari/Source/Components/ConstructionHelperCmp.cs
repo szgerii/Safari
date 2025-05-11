@@ -13,7 +13,7 @@ namespace Safari.Components;
 /// Pre-generates tile instances for a specific slot in the palette
 /// </summary>
 public class PaletteItem {
-	public Tile Instance { get; private set; }
+	public Tile? Instance { get; private set; }
 	/// <summary>
 	/// The number for variants this item has (for example: treetypes)
 	/// </summary>
@@ -80,7 +80,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	private readonly int height;
 	private readonly bool[,] mapStatus;
 
-	private Level Level => Owner as Level;
+	private Level Level => (Level)Owner!;
 	public const int ROAD = 0;
 	public const int GRASS = 1;
 	public const int WATER = 2;
@@ -110,7 +110,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 			if (SelectedIndex >= 0) {
 				return Palette[SelectedIndex];
 			} else {
-				return null;
+				throw new InvalidOperationException("SelectedIndex is in an invalid state");
 			}
 		}
 	}
@@ -120,10 +120,10 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// </summary>
 	public Tile SelectedInstance {
 		get {
-			if (SelectedIndex >= 0) {
-				return Palette[SelectedIndex].Instance;
+			if (SelectedIndex >= 0 && Palette[SelectedIndex].Instance != null) {
+				return Palette[SelectedIndex].Instance!;
 			} else {
-				return null;
+				throw new InvalidOperationException("SelectedIndex is in an invalid state");
 			}
 		}
 	}
@@ -155,7 +155,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	public void Update(GameTime gameTime) {
 		if (SelectedIndex != lastIndex) {
 			foreach (var field in typeof(ConstructionHelperCmp).GetFields()) {
-				if ((int)field.GetValue(null) == SelectedIndex) {
+				if ((int)field.GetValue(null)! == SelectedIndex) {
 					currentBrushStr = field.Name;
 				}
 			}
@@ -197,7 +197,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// <summary>
 	/// Checks whether the selected tile can be built at the given coordinates
 	/// </summary>
-	public bool CanBuildCurrent(int x, int y) => SelectedInstance != null ? CanBuild(x, y, SelectedInstance) : false;
+	public bool CanBuildCurrent(int x, int y) => SelectedInstance != null && CanBuild(x, y, SelectedInstance);
 
 	/// <summary>
 	/// Checks whether the selected tile can be built at the given coordinates
@@ -273,7 +273,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 		if (Level.IsOutOfPlayArea(p.X, p.Y)) {
 			return;
 		}
-		Tile tile = Level.GetTile(p);
+		Tile? tile = Level.GetTile(p);
 		if (tile == null || unbreakable.Contains(p)) {
 			return;
 		}

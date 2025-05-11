@@ -20,7 +20,7 @@ public abstract class Tile : GameObject {
 	/// The position of the tile inside the tilemap grid
 	/// </summary>
 	public Point TilemapPosition
-		=> (Position / GameScene.Active.Model.Level.TileSize).ToPoint();
+		=> (Position / GameScene.Active.Model.Level!.TileSize).ToPoint();
 
 	/// <summary>
 	/// The Sprite component responsible for rendering this tile
@@ -32,7 +32,7 @@ public abstract class Tile : GameObject {
 	/// <br/>
 	/// Set to null to make the tile invisible
 	/// </summary>
-	public ITexture2D Texture {
+	public ITexture2D? Texture {
 		get => Sprite.Texture;
 		set {
 			Sprite.Texture = value;
@@ -92,7 +92,7 @@ public abstract class Tile : GameObject {
 	/// </summary>
 	public Point[] ConstructionBlockOffsets { get; protected set; } = [];
 
-	public Tile(ITexture2D texture = null) : base(new Vector2(-1)) {
+	public Tile(ITexture2D? texture = null) : base(new Vector2(-1)) {
 		Sprite = new SpriteCmp(texture);
 		Sprite.YSortEnabled = true;
 		Sprite.LayerDepth = 0.5f;
@@ -108,6 +108,11 @@ public abstract class Tile : GameObject {
 	/// Adjusts the Y-Sort offset to the current state of the tile
 	/// </summary>
 	public virtual void UpdateYSortOffset() {
+		if (Texture == null) {
+			Sprite.YSortOffset = 0;
+			return;
+		}
+
 		Rectangle? src = SourceRectangle;
 
 		if (src != null) {
@@ -147,9 +152,9 @@ public abstract class Tile : GameObject {
 			auto.UpdateTexture();
 		}
 		Color tint = canDraw ? Color.CornflowerBlue * 0.4f : Color.Red * 0.4f;
-		Game.SpriteBatch.Draw(
-			Sprite.Texture.ToTexture2D(),
-			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level.TileSize,
+		Game.SpriteBatch!.Draw(
+			Sprite.Texture!.ToTexture2D(),
+			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level!.TileSize,
 			SourceRectangle,
 			tint,
 			Sprite.Rotation,

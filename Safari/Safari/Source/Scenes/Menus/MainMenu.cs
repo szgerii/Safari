@@ -97,7 +97,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void ExitClicked(Entity entity) {
-        Game.Instance.Exit();
+        Game.Instance?.Exit();
     }
 
     protected override void DestroyUI() {

@@ -60,6 +60,11 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
                 }
                 var tempSave = temp.Saves[0].MetaData;
 
+                if (tempSave == null) {
+                    new AlertMenu("Corrupted Save", "One of your save files contains corrupted data and its metadata couldn't be read").Show();
+                    continue;
+                }
+
                 Label tempLabelName = new Label($"{tempSave.ParkName}{(tempSave.GameAlreadyWon ? "(won)" : "")}", Anchor.CenterLeft, new Vector2(0.3f, 0));
                 tempLabelName.ClickThrough = true;
                 tempLabelName.Scale = SettingsMenu.Scale;

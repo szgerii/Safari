@@ -22,11 +22,13 @@ public class TigerWhite : Animal {
 	}
 
 	private void InitSprite() {
-		Sprite.Texture = Game.LoadTexture("Assets/Animals/TigerWhite");
+		Sprite!.Texture = Game.LoadTexture("Assets/Animals/TigerWhite");
 		Sprite.YSortOffset = 64;
 		Sprite.Scale = 0.75f;
 
-		Vectangle baseColl = new(5, 43, 78, 20);
-		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		if (collisionCmp != null) {
+			Vectangle baseColl = new(5, 43, 78, 20);
+			collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		}
 	}
 }

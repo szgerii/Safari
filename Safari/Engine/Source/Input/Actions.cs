@@ -99,9 +99,7 @@ public class Actions {
 	/// Deletes an action with a given name
 	/// </summary>
 	public void Remove(string name) {
-		if (actions.ContainsKey(name)) {
-			actions.Remove(name);
-		}
+		actions.Remove(name);
 	}
 
 	/// <summary>
@@ -179,18 +177,14 @@ public class Actions {
 	/// Removes all callbacks associated with the pressed event of a complex action with a given name
 	/// </summary>
 	public void ClearPressedCallbacks(string name) {
-		if (pressedCallbacks.ContainsKey(name)) {
-			pressedCallbacks.Remove(name);
-		}
+		pressedCallbacks.Remove(name);
 	}
 
 	/// <summary>
 	/// Removes all callbacks associated with the released event of a complex action with a given name
 	/// </summary>
 	public void ClearReleasedCallbacks(string name) {
-		if (releasedCallbacks.ContainsKey(name)) {
-			releasedCallbacks.Remove(name);
-		}
+		releasedCallbacks.Remove(name);
 	}
 
 	internal bool IsDown(KeyboardState ks, MouseState ms, GamePadState gps, ActionSegment action) {

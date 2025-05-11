@@ -25,7 +25,7 @@ public abstract class CategoryMenu : PopupMenu {
 
     public override void Show() {
         visible = true;
-        panel.Offset = new Vector2(0, Statusbar.Instance.Size.Height - 45);
+        panel!.Offset = new Vector2(0, Statusbar.Instance.Size.Height - 45);
         base.Show();
     }
 

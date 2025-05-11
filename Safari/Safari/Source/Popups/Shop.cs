@@ -28,7 +28,7 @@ public class Shop : PopupMenu, IResettableSingleton {
         }
     }
 
-    public static ConstructionHelperCmp CHelper => GameScene.Active.Model.Level.ConstructionHelperCmp;
+    public static ConstructionHelperCmp CHelper => GameScene.Active.Model.Level!.ConstructionHelperCmp;
 
     public static void ResetSingleton() {
         instance?.Hide();
@@ -45,9 +45,9 @@ public class Shop : PopupMenu, IResettableSingleton {
             new AlertMenu("Funds", $"You don't have enough money to buy this {type.GetDisplayName()}").Show();
             return;
         }
-        Type animalType = type.GetAnimalType();
-        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level, type.GetSize()), gender };
-        Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs);
+        Type animalType = type.GetAnimalType()!;
+        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level!, type.GetSize()), gender };
+        Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs)!;
         Game.AddObject(temp);
         GameScene.Active.Model.Funds -= type.GetPrice();
     }

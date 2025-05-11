@@ -91,7 +91,7 @@ public class RoadNetwork {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random.Next(cachedRoutes.Count)] : new List<Point>();
+			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random!.Next(cachedRoutes.Count)] : new List<Point>();
 		}
 	}
 
@@ -112,7 +112,7 @@ public class RoadNetwork {
 	/// The example route used for debugging / presenting
 	/// </summary>
 	public List<Point> DebugRoute { get; set; } = new List<Point>();
-	private static ITexture2D debugTexture = null;
+	private static ITexture2D? debugTexture = null;
 
 	/// <summary>
 	/// Use this event any time an object store a route from this network.
@@ -123,17 +123,17 @@ public class RoadNetwork {
 	static RoadNetwork() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
-				RoadNetwork network = GameScene.Active.Model.Level.Network;
+				RoadNetwork network = GameScene.Active.Model.Level!.Network;
 				network.DebugRoute = network.RandomRoute;
 			}
 		}));
 
-		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", [ExcludeFromCodeCoverage] (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", [ExcludeFromCodeCoverage] (object? sender, GameTime gameTime) => {
 			if (debugTexture == null) {
 				debugTexture = Utils.GenerateTexture(1, 1, Color.DarkCyan);
 			}
 			if (SceneManager.Active is GameScene) {
-				Level level = GameScene.Active.Model.Level;
+				Level level = GameScene.Active.Model.Level!;
 				List<Point> dr = level.Network.DebugRoute;
 				if (dr.Count > 0) {
 					for (int i = 1; i < dr.Count; i++) {
@@ -175,7 +175,7 @@ public class RoadNetwork {
 				size = new Point(middleA.X - middleB.X, width2 * 2);
 			}
 		}
-		Game.SpriteBatch.Draw(debugTexture.ToTexture2D(), new Rectangle(loc, size), Color.White);
+		Game.SpriteBatch!.Draw(debugTexture!.ToTexture2D(), new Rectangle(loc, size), Color.White);
 	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {
@@ -186,7 +186,7 @@ public class RoadNetwork {
 		SetAt(end, RoadState.Road);
 		this.Start = start;
 		this.End = end;
-		RoadChanged += (object sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
+		RoadChanged += (object? sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
 	}
 
 	/// <summary>
@@ -396,7 +396,7 @@ public class RoadNetwork {
 	// Pick a random point from a set
 	private static Point PickRandom(HashSet<Point> set) {
 		Point[] points = set.ToArray();
-		return points[Game.Random.Next(points.Length)];
+		return points[Game.Random!.Next(points.Length)];
 	}
 
 	// Remove a point, and its neighbours in a given range, from a set

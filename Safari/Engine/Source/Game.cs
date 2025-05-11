@@ -188,12 +188,12 @@ public class Game : Microsoft.Xna.Framework.Game {
 				// Let the pass prepare its uniforms and output texture
 				pass.PreDraw(gameTime);
 				// Set RT
-				GraphicsDevice.SetRenderTarget(pass.Output.ToRenderTarget2D());
+				GraphicsDevice.SetRenderTarget(pass.Output!.ToRenderTarget2D());
 				// bind ibo, vbo for fullscreen drawing
 				GraphicsDevice.Indices = fullScreenIbo;
 				GraphicsDevice.SetVertexBuffer(fullScreenVbo);
 				// upload prev pass to the shader and bind it
-				pass.Shader.Parameters["PrevStep"].SetValue(result);
+				pass.Shader!.Parameters["PrevStep"].SetValue(result);
 				pass.Shader.CurrentTechnique.Passes[0].Apply();
 				// Draw call
 				GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);

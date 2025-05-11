@@ -16,7 +16,7 @@ public class LightEntityCmp : Component, IUpdatable {
 	private readonly Level level;
 	private readonly int range;
 	private Point? old_map_pos = null;
-	private Entity ownerEntity;
+	private Entity? ownerEntity;
 
 	public LightEntityCmp(Level level, int range) {
 		this.level = level;
@@ -30,7 +30,7 @@ public class LightEntityCmp : Component, IUpdatable {
 	}
 
 	public void Update(GameTime gameTime) {
-		Point centerPoint = ownerEntity.CenterPosition.ToPoint();
+		Point centerPoint = ownerEntity!.CenterPosition.ToPoint();
 		int map_x = (int)(centerPoint.X / (float)level.TileSize);
 		int map_y = (int)(centerPoint.Y / (float)level.TileSize);
 		Point map_pos = new Point(map_x, map_y);

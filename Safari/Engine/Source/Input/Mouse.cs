@@ -160,18 +160,14 @@ public class Mouse {
 	/// Removes all callbacks associated with the pressed event of a given mouse button
 	/// </summary>
 	public void ClearPressedCallbacks(MouseButtons mouseButton) {
-		if (pressedCallbacks.ContainsKey(mouseButton)) {
-			pressedCallbacks.Remove(mouseButton);
-		}
+		pressedCallbacks.Remove(mouseButton);
 	}
 
 	/// <summary>
 	/// Removes all callbacks associated with the released event of a given mouse button
 	/// </summary>
 	public void ClearReleasedCallbacks(MouseButtons mouseButton) {
-		if (releasedCallbacks.ContainsKey(mouseButton)) {
-			releasedCallbacks.Remove(mouseButton);
-		}
+		releasedCallbacks.Remove(mouseButton);
 	}
 
 	/// <summary>

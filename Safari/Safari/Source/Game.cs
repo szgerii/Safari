@@ -105,7 +105,7 @@ public class Game : Engine.Game {
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("dump-map", () => {
 			if (SceneManager.Active is GameScene) {
-				MapBuilder.DumpMap(GameScene.Active.Model.Level);
+				MapBuilder.DumpMap(GameScene.Active.Model.Level!);
 			}
 		}));
 
@@ -144,7 +144,7 @@ public class Game : Engine.Game {
 		// reset singletons
 		var singletons = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterfaces().Contains(typeof(IResettableSingleton)));
 		foreach (var singleton in singletons) {
-			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static)!.Invoke(null, null);
 		}
 
 		if (!IsHeadless) {
@@ -181,7 +181,7 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("FPS (Update)", $"{updateFPS.Average:0}", DebugInfoPosition.TopRight);
 
 			if (SceneManager.Active is GameScene) {
-				GameScene.Active.Model.PrintModelDebugInfos();
+				GameModel.PrintModelDebugInfos();
 			}
 		}
     }

@@ -54,7 +54,7 @@ public class RangerTest : SimulationTest {
 
 	[TestMethod("Salary Test")]
 	public void TestSalary() {
-		Safari.Game.RemoveObject(GameScene.Active.Model.Level);
+		Safari.Game.RemoveObject(GameScene.Active.Model.Level!);
 		PrivateObject gsPO = new(GameScene.Active);
 		gsPO.SetField("model", Substitute.ForPartsOf<GameModel>("test park", 100_000, GameDifficulty.Normal, new DateTime(2003, 11, 04)));
 		ITexture2D staticBG = new NoopTexture2D(null, 3584, 2048);
@@ -142,7 +142,7 @@ public class RangerTest : SimulationTest {
 		Assert.IsTrue(ranger.CanHunt);
 
 		EntityBoundsManager.RemoveEntity(lion);
-		lion.Position = ranger.CenterPosition + new Vector2((ranger.SightDistance - 3) * Model.Level.TileSize);
+		lion.Position = ranger.CenterPosition + new Vector2((ranger.SightDistance - 3) * Model.Level!.TileSize);
 		lion.UpdateBounds();
 		EntityBoundsManager.AddEntity(lion);
 

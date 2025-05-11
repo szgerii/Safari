@@ -33,7 +33,7 @@ public class DebugConsole : PopupMenu, IResettableSingleton {
     private bool tryFocusInput = true;
     private Vector2? mousePosStorage = null;
     private readonly LinkedList<string> commandHistory = new();
-    private LinkedListNode<string> currentHistoryNode = null;
+    private LinkedListNode<string>? currentHistoryNode = null;
 
     public static bool Visible => Instance.visible;
 

@@ -34,7 +34,7 @@ public class Tourist : Entity {
 	[StaticSavedProperty]
 	public static int RatingMemory { get; set; }
 	[StaticSavedProperty]
-	private static double[]? recentRatings;
+	private static double[] recentRatings = [];
 	[StaticSavedProperty]
 	private static int ratingCount = 0;
 	/// <summary>
@@ -82,7 +82,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// The animated sprite component of the ranger
 	/// </summary>
-	public AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
+	public AnimatedSpriteCmp AnimatedSprite => (AnimatedSpriteCmp)Sprite!;
 
 	/// <summary>
 	/// The state machine used for transitioning between the different tourist behavior types
@@ -97,7 +97,7 @@ public class Tourist : Entity {
 	/// <summary>
 	/// Shorthand for the current gamescenes level object
 	/// </summary>
-	public static Level CurrentLevel => GameScene.Active.Model.Level;
+	public static Level CurrentLevel => GameScene.Active.Model.Level!;
 	/// <summary>
 	/// The space in the line between tourists
 	/// </summary>
@@ -140,7 +140,7 @@ public class Tourist : Entity {
 	/// The jeep this tourist is assigned to
 	/// </summary>
 	[GameobjectReferenceProperty]
-	public Jeep Vehicle { get; set; }
+	public Jeep? Vehicle { get; set; }
 
 	/// <summary>
 	/// Initialize the static state of tourists
@@ -181,12 +181,15 @@ public class Tourist : Entity {
 	/// Update the tourist spawners frequency based on the rating of the park
 	/// </summary>
 	public static void UpdateSpawner() {
+		if (Spawner == null) return;
+		
 		Spawner.Frequency = 1.0f / (SpawnRate);
 	}
 
 	[JsonConstructor]
 	public Tourist(bool spriteType) : base() {
 		SetupSprite(spriteType);
+		StateMachine = new();
 	}
 
 	[PostPersistenceSetup]
@@ -218,11 +221,11 @@ public class Tourist : Entity {
 
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";
-		spriteType = Game.Random.Next(2) == 1;
+		spriteType = Game.Random!.Next(2) == 1;
 		SetupSprite(spriteType);
 		SightDistance = Game.Random.Next(4, 8);
 		var values = Enum.GetValues(typeof(AnimalSpecies));
-		favSpecies = (AnimalSpecies)values.GetValue(Game.Random.Next(values.Length));
+		favSpecies = (AnimalSpecies)values.GetValue(Game.Random!.Next(values.Length))!;
 		moneyThreshold = Game.Random.Next(5, 11) * 100;
 		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
 		NavCmp.AccountForBounds = false;
@@ -315,7 +318,7 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += ReachedQueueSpot;
 	}
 
-	private void ReachedQueueSpot(object sender, NavigationTargetEventArgs e) {
+	private void ReachedQueueSpot(object? sender, NavigationTargetEventArgs e) {
 		reachedQueueIndex = targetQueueIndex;
 		targetQueueIndex = -1;
 		if (StateMachine.CurrentState != TouristState.InQueue) {
@@ -332,13 +335,13 @@ public class Tourist : Entity {
 
 	[StateBegin(TouristState.InQueue)]
 	public void BeginInQueue() {
-		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(Game.Random.NextDouble() * 30 + 10.0);
+		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(Game.Random!.NextDouble() * 30 + 10.0);
 	}
 
-	private void OnReadyToFill(object sender, EventArgs e) => TryEntering();
+	private void OnReadyToFill(object? sender, EventArgs e) => TryEntering();
 
 	private bool TryEntering() {
-		Jeep jeep = Jeep.WaitingJeep;
+		Jeep? jeep = Jeep.WaitingJeep;
 		if (jeep != null && jeep.AddTourist(this)) {
 			Queue.Remove(this);
 			UpdateQueue();
@@ -363,7 +366,7 @@ public class Tourist : Entity {
 		DateTime now = GameScene.Active.Model.IngameDate;
 		if (now >= nextSwitch) {
 			preferStandingRight = !preferStandingRight;
-			nextSwitch = now + TimeSpan.FromMinutes(Game.Random.NextDouble() * 11 + 6);
+			nextSwitch = now + TimeSpan.FromMinutes(Game.Random!.NextDouble() * 11 + 6);
 		}
 	}
 
@@ -378,6 +381,8 @@ public class Tourist : Entity {
 
 	[StateUpdate(TouristState.InJeep)]
 	public void InJeepUpdate(GameTime gameTime) {
+		if (Vehicle == null) return;
+
 		Position = Vehicle.Position;
 		foreach (Entity entity in GetEntitiesInSight()) {
 			if (entity is Animal animal && !seenAnimals.Contains(animal)) {
@@ -451,7 +456,7 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += LeftPark;
 	}
 
-	private void LeftPark(object sender, NavigationTargetEventArgs e) {
+	private void LeftPark(object? sender, NavigationTargetEventArgs e) {
 		NavCmp.ReachedTarget -= LeftPark;
 		Die();
 	}
