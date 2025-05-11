@@ -58,11 +58,11 @@ public class GameModelTests {
 
 		model.GameSpeed = GameSpeed.Medium;
 		Assert.AreEqual(GameModel.MEDIUM_FAKE, model.FakeFrameMul, d);
-		Assert.AreEqual(GameModel.MEDIUM_FRAMES / GameModel.MEDIUM_FAKE, model.RealExtraFrames, d);
+		Assert.AreEqual((double)GameModel.MEDIUM_FRAMES / (double)GameModel.MEDIUM_FAKE, model.RealExtraFrames, d);
 
 		model.GameSpeed = GameSpeed.Fast;
 		Assert.AreEqual(GameModel.FAST_FAKE, model.FakeFrameMul, d);
-		Assert.AreEqual(GameModel.FAST_FRAMES / GameModel.FAST_FAKE, model.RealExtraFrames, d);
+		Assert.AreEqual((double)GameModel.FAST_FRAMES / (double)GameModel.FAST_FAKE, model.RealExtraFrames, d);
 
 		model.Pause();
 		Assert.AreEqual(GameSpeed.Paused, model.GameSpeed);
