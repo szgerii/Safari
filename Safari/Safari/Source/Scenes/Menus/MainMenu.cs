@@ -1,27 +1,26 @@
-﻿using Engine.Scenes;
+﻿using Engine;
+using Engine.Scenes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Engine;
 using Safari.Helpers;
-using Engine.Input;
-using Microsoft.Xna.Framework.Input;
 using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
-	private static MainMenu instance;
-	public static MainMenu Instance {
-		get {
-			instance ??= new();
-			return instance;
-		}
-	}
-	public static void ResetSingleton() {
+    private static MainMenu instance;
+    public static MainMenu Instance {
+        get {
+            instance ??= new();
+            return instance;
+        }
+    }
+    public static void ResetSingleton() {
         instance?.Unload();
-		instance = null;
-	}
+        instance = null;
+    }
 
-	private Header title;
+    private Header title;
     private Panel buttonPanel;
     private Button newGameButton;
     private Button continueGameButton;
@@ -43,6 +42,21 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
 
         continueGameButton = new Button("Continue Game", ButtonSkin.Default, Anchor.AutoCenter);
         continueGameButton.OnClick = ContinueGameClicked;
+        bool firstSaveFileHasSave = false;
+        bool saveFileExists = GameModelPersistence.ListExistingParkNames().Count > 0;
+        if (!saveFileExists) {
+            continueGameButton.Enabled = false;
+        } else {
+            firstSaveFileHasSave = new GameModelPersistence(GameModelPersistence.ListExistingParkNames()[0]).Saves.Count > 0;
+            if (!firstSaveFileHasSave) {
+                continueGameButton.Enabled = false;
+            }
+        }
+
+        if(saveFileExists && firstSaveFileHasSave) {
+            continueGameButton.Enabled = true;
+        }
+
         buttonPanel.AddChild(continueGameButton);
 
         loadGameButton = new Button("Load Game", ButtonSkin.Default, Anchor.AutoCenter);
@@ -67,14 +81,16 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void ContinueGameClicked(Entity entity) {
-        SceneManager.Load(LoadingScene.Instance);
-        loadGame = true;
+        try {
+            LoadingScene.Instance.LoadSave(GameModelPersistence.ListExistingParkNames()[0], 0);
+        } catch {
+            new AlertMenu("Corrupt save file", "An unexpected error occured when trying to read a corrupt save file").Show();
+        }
     }
 
     private void LoadGameClicked(Entity entity) {
-        //SceneManager.Load(LoadGameMenu.Instance);
-		new GameModelPersistence("test park").Load(0);
-	}
+        SceneManager.Load(LoadGameMenu.Instance);
+    }
 
     private void SettingsClicked(Entity entity) {
         SceneManager.Load(SettingsMenu.Instance);

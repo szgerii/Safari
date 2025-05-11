@@ -4,10 +4,12 @@ using Microsoft.Xna.Framework;
 using Safari.Popups;
 using Engine;
 using Safari.Helpers;
+using Safari.Model;
+using Safari.Persistence;
 
 namespace Safari.Scenes.Menus;
 
-public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
+public class NewGameMenu : MenuScene, IResettableSingleton {
 	private static NewGameMenu instance;
 	public static NewGameMenu Instance {
 		get {
@@ -30,7 +32,6 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
     private RadioButton radioEasy;
     private RadioButton radioMedium;
     private RadioButton radioHard;
-    private bool loadGame = false;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
@@ -75,8 +76,12 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        SceneManager.Load(LoadingScene.Instance);
-        loadGame = true;
+        if (GameModelPersistence.IsNameAvailable(input.Value)) {
+            LoadingScene.Instance.LoadNewGame(input.Value, radioEasy.Checked ? GameDifficulty.Easy : radioMedium.Checked ? GameDifficulty.Normal : GameDifficulty.Hard);
+        } else {
+            new AlertMenu("Safari name", "This name is already in use!").Show();
+            return;
+        }
     }
 
     private void MenuButtonClicked(Entity entity) {
@@ -95,12 +100,5 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
         radioEasy = null;
         radioMedium = null;
         radioHard = null;
-    }
-
-    public override void Update(GameTime gameTime) {
-        if (loadGame) {
-            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
-            loadGame = false;
-        }
     }
 }
