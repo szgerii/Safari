@@ -34,7 +34,13 @@ public enum AnimalGroupState {
 [SimulationActor]
 [JsonObject(MemberSerialization.OptIn)]
 public class AnimalGroup : GameObject {
+	/// <summary>
+	/// The maximum number of animals a group can contain (above this threshold groups split automatically)
+	/// </summary>
 	public const int MAX_SIZE = 8;
+	/// <summary>
+	/// The radius of the blob in which the animals position themselves when inside a group
+	/// </summary>
 	public const float FORMATION_SPREAD = 140f;
 
 	[JsonProperty]
@@ -278,6 +284,9 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Remove a food spot from the "memory" of this group
+	/// </summary>
 	public void RemoveFoodSpot(Point tilePos, bool skipCheck = false) {
 		if (!skipCheck && !KnowsFoodSpot(tilePos))
 			return;
@@ -289,6 +298,9 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Remove a water spot from the "memory" of this group
+	/// </summary>
 	public void RemoveWaterSpot(Point tilePos, bool skipCheck = false) {
 		if (skipCheck || KnowsWaterSpot(tilePos)) {
 			knownWaterSpots.Remove(tilePos);
@@ -299,7 +311,13 @@ public class AnimalGroup : GameObject {
 		}
 	}
 
+	/// <summary>
+	/// Checks whether this group knows about a food spot at the given coordinates
+	/// </summary>
 	public bool KnowsFoodSpot(Point tilePos) => knownFoodSpots.Contains(tilePos);
+	/// <summary>
+	/// Checks whether this group knows about a water spot at the given coordinates
+	/// </summary>
 	public bool KnowsWaterSpot(Point tilePos) => knownWaterSpots.Contains(tilePos);
 
 	/// <summary>

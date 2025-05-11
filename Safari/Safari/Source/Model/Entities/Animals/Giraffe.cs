@@ -3,6 +3,9 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 namespace Safari.Model.Entities.Animals;
 
+/// <summary>
+/// A class representing giraffes
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Giraffe : Animal {
 	[JsonConstructor]

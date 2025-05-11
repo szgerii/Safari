@@ -12,11 +12,17 @@ using System.Collections.Generic;
 
 namespace Safari.Model.Entities;
 
+/// <summary>
+/// The possible states of the tourist entity
+/// </summary>
 public enum RangerState {
     Wandering,
     Chasing
 }
 
+/// <summary>
+/// A class representing rangers, people who in exchange for a monthly salary protect the safari from poachers and control animal population
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Ranger : Entity {
     /// <summary>
@@ -89,6 +95,9 @@ public class Ranger : Entity {
     [JsonProperty]
     private int lastSalaryMonth = -1;
 
+    /// <summary>
+    /// Initializes the static state of rangers
+    /// </summary>
     public static void Init() {
         DefaultTarget = null;
     }
@@ -329,6 +338,9 @@ public class Ranger : Entity {
         StateMachine.Transition(RangerState.Wandering);
     }
 
+    /// <summary>
+    /// The amount of money the ranger should get if hired right now (for the remainder of the current month)
+    /// </summary>
     public static int SalaryIfHiredNow() {
         DateTime date = GameScene.Active.Model.IngameDate;
         int monthDays = DateTime.DaysInMonth(date.Year, date.Month);

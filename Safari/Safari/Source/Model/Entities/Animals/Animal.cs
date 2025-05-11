@@ -22,6 +22,9 @@ public enum Gender {
 	Female
 }
 
+/// <summary>
+/// A class for representing general animal information (most behaviour logic is container in the AnimalGroup class)
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class Animal : Entity {
 	/// <summary>

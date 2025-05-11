@@ -26,6 +26,9 @@ public enum JeepState {
 	Canceling
 }
 
+/// <summary>
+/// The possible states of the jeep entity
+/// </summary>
 public enum JeepDirection {
 	Right = 0,
 	Left = 1,
@@ -33,6 +36,9 @@ public enum JeepDirection {
 	Down = 3,
 }
 
+/// <summary>
+/// A class representing the jeeps used in tours throghout the parks road network
+/// </summary>
 [SimulationActor]
 [JsonObject(MemberSerialization.OptIn)]
 public class Jeep : Entity {
@@ -84,6 +90,9 @@ public class Jeep : Entity {
 
 	private static Level CurrentLevel => GameScene.Active.Model.Level;
 
+	/// <summary>
+	/// The statemachine managing the different states of this jeep
+	/// </summary>
 	[JsonProperty]
 	public StateMachineCmp<JeepState> StateMachine { get; private set; }
 
@@ -146,6 +155,9 @@ public class Jeep : Entity {
 		garage = new();
 	}
 
+	/// <summary>
+	/// Cleans up all static resources jeeps use
+	/// </summary>
 	public static void Cleanup() {
 		if (JeepReadyToFill == null) return;
 

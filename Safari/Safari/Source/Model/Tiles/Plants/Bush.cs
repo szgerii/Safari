@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace Safari.Model.Tiles;
 
 /// <summary>
-/// Tile for representing
+/// Tile for representing bushes, which are food sources
 /// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Bush : Tile {
@@ -24,6 +24,9 @@ public class Bush : Tile {
 	}
 }
 
+/// <summary>
+/// Tile for representing wide bushes (2x1), which are food sources
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class WideBush : Tile {
 	private static readonly Point[] BushOffsets = [

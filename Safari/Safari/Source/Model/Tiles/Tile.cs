@@ -137,6 +137,9 @@ public abstract class Tile : GameObject {
 		base.Update(gameTime);
 	}
 
+	/// <summary>
+	/// Draws the preview sprite of this tile at the given coordinates
+	/// </summary>
 	[ExcludeFromCodeCoverage]
 	public void DrawPreviewAt(Vector2 worldPos, bool canDraw) {
 		Vector2 pos = new Vector2(Utils.Round(worldPos.X), Utils.Round(worldPos.Y));
