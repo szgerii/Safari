@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Safari.Popups;
 
@@ -17,7 +18,6 @@ public class EntityControllerMenu : PopupMenu {
 	protected Button closeButton;
 	protected readonly Image image;
 	protected Header header;
-	private Rectangle maskArea;
 	protected Safari.Model.Entities.Entity controlledEntity;
 
 	public EntityControllerMenu(Safari.Model.Entities.Entity entity) {
@@ -121,7 +121,7 @@ public class EntityControllerMenu : PopupMenu {
 		List<MemberInfo> infos = [.. targetType.GetProperties(FLAGS)];
 		infos.AddRange(targetType.GetFields(FLAGS));
 
-		string output = "";
+		StringBuilder sb = new("");
 		foreach (MemberInfo info in infos) {
 			string line = $"{info.Name}: ";
 
@@ -130,9 +130,11 @@ public class EntityControllerMenu : PopupMenu {
 			} else if (info is PropertyInfo prop) {
 				line += ROUNDED_TYPES.Contains(prop.PropertyType) ? $"{prop.GetValue(targetObj):0.00}" : $"{prop.GetValue(targetObj)}";
 			}
-			output += line + "\n";
+
+			sb.Append(line);
+			sb.Append('\n');
 		}
 
-		return output;
+		return sb.ToString();
 	}
 }
