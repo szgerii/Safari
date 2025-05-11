@@ -35,6 +35,11 @@ public class Shop : PopupMenu, IResettableSingleton {
         instance = null;
     }
 
+    /// <summary>
+    /// Handles the buying of 1 animal of a give type.
+    /// </summary>
+    /// <param name="type">Animal type</param>
+    /// <param name="gender">Animal gender</param>
     public void BuyAnimal(AnimalSpecies type, Gender gender) {
         if (GameScene.Active.Model.Funds <= type.GetPrice()) {
             new AlertMenu("Funds", $"You don't have enough money to buy this {type.GetDisplayName()}").Show();

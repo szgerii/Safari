@@ -16,6 +16,9 @@ public class AlertMenu : PopupMenu {
     private static AlertMenu Active = null;
     private static bool nextAlertShowable = false;
 
+    /// <summary>
+    /// Returns the user's choice.
+    /// </summary>
     public event EventHandler<bool> Chosen;
 
     /// <summary>
@@ -121,6 +124,9 @@ public class AlertMenu : PopupMenu {
         }
     }
 
+    /// <summary>
+    /// Handles the update logic, and alert queue.
+    /// </summary>
     public static void Adjust() {
         if (Active != null) {
             return;

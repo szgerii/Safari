@@ -274,6 +274,9 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         others.Hide();
     }
 
+    /// <summary>
+    /// Toggles Statusbar and children's visibility.
+    /// </summary>
     public void Toggle() {
         if (visible) {
             Unload();
