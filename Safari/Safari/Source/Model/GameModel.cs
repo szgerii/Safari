@@ -8,6 +8,7 @@ using Safari.Scenes;
 using System;
 using Engine.Graphics.Stubs.Texture;
 using Newtonsoft.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model;
 
@@ -289,7 +290,7 @@ public class GameModel {
 	public event EventHandler GameWon;
 
 	static GameModel() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -300,28 +301,28 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Slow;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Medium;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Fast;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -331,19 +332,19 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.CheckWinLose = !gs.Model.CheckWinLose;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds += 10000;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds -= 10000;
 			}
@@ -391,6 +392,7 @@ public class GameModel {
 		}
 	}
 
+	[ExcludeFromCodeCoverage]
 	public void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;
 
