@@ -21,9 +21,14 @@ public enum TouristState {
 
 [JsonObject(MemberSerialization.OptIn)]
 public class Tourist : Entity {
-	public const int RATING_MEMORY = 80;
+	/// <summary>
+	/// The number of old reviews that determine the rating of the park
+	/// (The larger this number, the harder it is to increase rating)
+	/// </summary>
 	[StaticSavedProperty]
-	private static double[] recentRatings = new double[RATING_MEMORY];
+	public static int RatingMemory { get; set; }
+	[StaticSavedProperty]
+	private static double[] recentRatings;
 	[StaticSavedProperty]
 	private static int ratingCount = 0;
 	public static EntitySpawner<Tourist> Spawner { get; set; }
@@ -119,9 +124,10 @@ public class Tourist : Entity {
 	[GameobjectReferenceProperty]
 	public Jeep Vehicle { get; set; }
 
-	public static void Init() {
+	public static void Init(int memory) {
 		Queue = new List<Tourist>();
-		recentRatings = new double[RATING_MEMORY];
+		RatingMemory = memory;
+		recentRatings = new double[RatingMemory];
 		ratingCount = 0;
 	}
 

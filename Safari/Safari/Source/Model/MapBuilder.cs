@@ -12,11 +12,11 @@ namespace Safari.Model;
 /// Static helper class that can generate the starting map
 /// </summary>
 public static class MapBuilder {
-	public readonly static int ZEBRA_COUNT = 16;
-	public readonly static int GIRAFFE_COUNT = 8;
-	public readonly static int ELEPHANT_COUNT = 6;
-	public readonly static int LION_COUNT = 8;
-	public readonly static int TIGER_COUNT = 6;
+	public readonly static int ZEBRA_COUNT = 8;
+	public readonly static int GIRAFFE_COUNT = 4;
+	public readonly static int ELEPHANT_COUNT = 4;
+	public readonly static int LION_COUNT = 4;
+	public readonly static int TIGER_COUNT = 3;
 	public readonly static int TIGER_WHITE_COUNT = 3;
 
 	public readonly static IReadOnlyList<Point> LAKE_LOC = new List<Point>() {
@@ -502,16 +502,6 @@ public static class MapBuilder {
 		for (int i = 0; i < Jeep.STARTING_JEEPS; i++) {
 			Jeep.SpawnJeep();
 		}
-
-		Ranger ranger1 = new Ranger(new Vector2(300, 300)) {
-			TargetSpecies = AnimalSpecies.Lion
-		};
-		Game.AddObject(ranger1);
-
-		Ranger ranger2 = new Ranger(new Vector2(1500, 700)) {
-			TargetSpecies = AnimalSpecies.TigerWhite
-		};
-		Game.AddObject(ranger2);
 	}
 
 	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;

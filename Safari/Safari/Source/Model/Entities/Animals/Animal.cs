@@ -35,21 +35,21 @@ public abstract class Animal : Entity {
 	/// The level of hunger at which a herbivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_HERB = 50;
-	private const float INITIAL_HUNGER_DECAY_HERB = 0.1f;
+	private const float INITIAL_HUNGER_DECAY_HERB = 0.26f;
 	/// <summary>
 	/// The level of hunger at which a carnivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_CARN = 45;
-	private const float INITIAL_HUNGER_DECAY_CARN = 0.2f;
+	private const float INITIAL_HUNGER_DECAY_CARN = 0.17f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.2f;
+	private const float INITIAL_THIRST_DECAY = 0.32f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
-	private const int MATING_COOLDOWN_DAYS = 6;
+	private const int MATING_COOLDOWN_DAYS = 4;
 	/// <summary>
 	/// The number of days an animal can live
 	/// </summary>
@@ -57,7 +57,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The age (in days) after which the animal is considered mature and is allowed to mate
 	/// </summary>
-	public const int MATURE_AGE = 12;
+	public const int MATURE_AGE = 9;
 
 	/// <summary>
 	/// The amount of hunger level that is restored in a (real) second

@@ -1,25 +1,25 @@
-using Engine.Objects;
-using Engine.Scenes;
-using Microsoft.Xna.Framework;
-using Safari.Model;
-using Engine.Collision;
-using Safari.Components;
-using System;
 using Engine;
-using System.Collections.Generic;
-using GeonBit.UI;
+using Engine.Collision;
 using Engine.Debug;
-using Safari.Model.Entities;
-using Safari.Popups;
-using Safari.Scenes.Menus;
-using Safari.Model.Entities.Tourists;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Engine.Input;
-using Safari.Input;
+using Engine.Objects;
+using Engine.Scenes;
+using GeonBit.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Engine.Graphics.Stubs.Texture;
+using Safari.Components;
+using Safari.Input;
+using Safari.Model;
+using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using Safari.Model.Tiles;
+using Safari.Popups;
+using Safari.Scenes.Menus;
+using System;
+using System.Collections.Generic;
 
 namespace Safari.Scenes;
 
@@ -80,7 +80,7 @@ public class GameScene : Scene {
 	public GameScene(string parkName, GameDifficulty difficulty) : base() {
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
-		model = new GameModel(parkName, 6000, difficulty, startDate, StrippedInit);
+		model = new GameModel(parkName, 10000, difficulty, startDate, StrippedInit);
 	}
 
 	public GameScene(GameModel model) : base() {
@@ -99,7 +99,7 @@ public class GameScene : Scene {
 			EntityControllerMenu.Active?.Hide();
 		}
 
-        base.Unload();
+		base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		EntityBoundsManager.CleanUp();
@@ -120,11 +120,19 @@ public class GameScene : Scene {
 			if (!StrippedInit) {
 				// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
 				Jeep.Init(400);
-				Tourist.Init();
+				int memory = 
+					model.Difficulty == GameDifficulty.Easy ? 60
+					: model.Difficulty == GameDifficulty.Normal ? 100
+					: 140;
+				Tourist.Init(memory);
 				Ranger.Init();
 
-				EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
-					EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
+				int maxPoachers =
+					model.Difficulty == GameDifficulty.Easy ? 4
+					: model.Difficulty == GameDifficulty.Normal ? 8
+					: 12;
+				EntitySpawner < Poacher > poacherSpawner = new(4, 0.5f, 0.05f) {
+					EntityLimit = maxPoachers, // don't spawn if there are >= 5 poachers on the map
 					EntityCount = () => model.PoacherCount, // use PoacherCount to determine number of poachers on the map
 					ExtraCondition = () => !DebugMode.IsFlagActive("no-poachers")
 				};
@@ -145,7 +153,7 @@ public class GameScene : Scene {
 			PostProcessPasses.Add(model.Level.LightManager);
 		}
 
-		
+
 
 		int tileSize = model.Level.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
@@ -189,7 +197,7 @@ public class GameScene : Scene {
 		model.CheckWinLose = true;
 	}
 
-    public override void Update(GameTime gameTime) {
+	public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
 
 		if (InputManager.Actions.JustPressed("cycle-interact-mode")) {
@@ -216,7 +224,7 @@ public class GameScene : Scene {
 			Statusbar.Instance.Update(gameTime);
 		}
 
-        foreach (GameObject obj in GameObjects) {
+		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
 				if (obj is Entity e && e.IsDead) continue;
 

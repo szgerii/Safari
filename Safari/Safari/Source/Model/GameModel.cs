@@ -32,22 +32,22 @@ public enum LoseReason {
 [JsonObject(MemberSerialization.OptIn)]
 public class GameModel {
 	// constants for money requirements for winning
-	public const int WIN_FUNDS_EASY = 30000;
-	public const int WIN_FUNDS_NORMAL = 80000;
-	public const int WIN_FUNDS_HARD = 150000;
+	public const int WIN_FUNDS_EASY = 50000;
+	public const int WIN_FUNDS_NORMAL = 120000;
+	public const int WIN_FUNDS_HARD = 20000;
 
 	// constants for herbivore count requirements for winning
-	public const int WIN_HERB_EASY = 5;
+	public const int WIN_HERB_EASY = 20;
 	public const int WIN_HERB_NORMAL = 40;
 	public const int WIN_HERB_HARD = 80;
 
 	// constants for carnivore count requirements for winning
-	public const int WIN_CARN_EASY = 5;
+	public const int WIN_CARN_EASY = 20;
 	public const int WIN_CARN_NORMAL = 40;
 	public const int WIN_CARN_HARD = 80;
 
 	// constants storing how long the player has to keep the winning conditions
-	public const int WIN_DAYS_EASY = 3;
+	public const int WIN_DAYS_EASY = 5;
 	public const int WIN_DAYS_NORMAL = 30;
 	public const int WIN_DAYS_HARD = 60;
 

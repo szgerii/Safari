@@ -17,8 +17,8 @@ public class Shop : PopupMenu, IResettableSingleton {
     public const int GRASS_COST = 25;
     public const int ROAD_COST = 15;
     public const int WATER_COST = 30;
-    public const int BUSH_COST = 65;
-    public const int JEEP_COST = 2000;
+    public const int BUSH_COST = 80;
+    public const int JEEP_COST = 5000;
 
     private static Shop instance;
     public static Shop Instance {

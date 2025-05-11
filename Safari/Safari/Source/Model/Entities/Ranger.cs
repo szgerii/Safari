@@ -22,7 +22,7 @@ public class Ranger : Entity {
     /// <summary>
     /// The monthly salary of all rangers, payed in advance
     /// </summary>
-    public const int SALARY = 1500;
+    public const int SALARY = 4000;
     /// <summary>
     /// The amount of hours that must pass after a successful hunt (killing an ANIMAL) before the ranger will try again
     /// </summary>

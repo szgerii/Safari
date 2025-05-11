@@ -32,11 +32,11 @@ public class Poacher : Entity {
 	/// <summary>
 	/// The chance of shooting the chased animal upon reaching them (versus smuggling them out of the park)
 	/// </summary>
-	private const float SHOOT_CHANCE = 0.3f;
+	private const float SHOOT_CHANCE = 0.25f;
 	/// <summary>
 	/// The speed of the poachers (relative to the default NavCmp speed)
 	/// </summary>
-	private const float SPEED = 0.7f;
+	private const float SPEED = 0.85f;
 
 	/// <summary>
 	/// The poacher's state machine for handling behavior
