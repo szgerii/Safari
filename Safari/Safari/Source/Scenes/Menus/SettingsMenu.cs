@@ -63,8 +63,8 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     private WindowType selectedWindowType;
 
     private Panel buttonPanel;
-    private Button saveChangesButton;
-    private Button menuAndDiscardButton;
+    private Button saveAndExitButton;
+    private Button discardAndExitButton;
 
     private static float scale = ((float)DisplayManager.Height / 1080f) * 1.2f;
     public static event EventHandler ScaleChanged;
@@ -288,16 +288,16 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         //button setup
         buttonPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.None, Anchor.BottomRight);
 
-        menuAndDiscardButton = new Button("Exit & Discard", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.55f, -1));
-        menuAndDiscardButton.Padding = new Vector2(10);
-        menuAndDiscardButton.OnClick = MenuAndDiscardButtonClicked;
+        discardAndExitButton = new Button("Discard & Exit", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.5f, -1));
+        discardAndExitButton.Padding = new Vector2(10);
+        discardAndExitButton.OnClick = ExitButtonClicked;
 
-        saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
-        saveChangesButton.Padding = new Vector2(10);
-        saveChangesButton.OnClick = SaveChangesButtonClicked;
+        saveAndExitButton = new Button("Save & Exit", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.45f, -1));
+        saveAndExitButton.Padding = new Vector2(10);
+        saveAndExitButton.OnClick = SaveButtonClicked;
 
-        buttonPanel.AddChild(menuAndDiscardButton);
-        buttonPanel.AddChild(saveChangesButton);
+        buttonPanel.AddChild(discardAndExitButton);
+        buttonPanel.AddChild(saveAndExitButton);
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
@@ -305,7 +305,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         ScaleText();
     }
 
-    private void SaveChangesButtonClicked(Entity entity) {
+    private void SaveButtonClicked(Entity entity) {
         SafariSettings.Instance.CameraSpeed = cameraSpeedStoredValue;
         SafariSettings.Instance.CameraAcceleration = cameraAccelStoredValue;
         SafariSettings.Instance.Resolution = selectedResolution;
@@ -314,9 +314,10 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         SafariSettings.Instance.WindowType = selectedWindowType;
 		SafariSettings.Instance.Apply();
         ScaleText();
+        SceneManager.Load(MainMenu.Instance);
     }
 
-    private void MenuAndDiscardButtonClicked(Entity entity) {
+    private void ExitButtonClicked(Entity entity) {
         cameraSpeedStoredValue = CameraControllerCmp.DefaultScrollSpeed;
         cameraAccelStoredValue = CameraControllerCmp.DefaultAcceleration;
         DisplayManager.DiscardChanges();
@@ -369,7 +370,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         nextResolution = null;
         resolutions = null;
         buttonPanel = null;
-        menuAndDiscardButton = null;
-        saveChangesButton = null;
+        discardAndExitButton = null;
+        saveAndExitButton = null;
     }
 }

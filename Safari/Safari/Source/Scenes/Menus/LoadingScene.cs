@@ -16,6 +16,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 	private static int parkSlotToLoad = -1;
 	private static bool newGame;
 	private static bool loadGame = false;
+	private static int updates = 0;
 	public static LoadingScene Instance {
 		get {
 			instance ??= new();
@@ -34,6 +35,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 		SceneManager.Load(instance);
         loadGame = true;
 		newGame = true;
+		updates = 0;
 	}
 
 	public void LoadSave(string parkName, int slotNumber) {
@@ -43,6 +45,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
         SceneManager.Load(instance);
         loadGame = true;
 		newGame = false;
+		updates = 0;
 	}
 
     protected override void ConstructUI() {
@@ -57,6 +60,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
     }
 
     public override void Update(GameTime gameTime) {
+		if (updates == 0) { updates++; return; }
         if (loadGame) {
 			if (newGame) {
 				SceneManager.Load(gameToLoad);

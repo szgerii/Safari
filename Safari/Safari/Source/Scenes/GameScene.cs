@@ -182,7 +182,6 @@ public class GameScene : Scene {
 
 		if (Game.CanDraw) {
 			Statusbar.Instance.Load();
-			EntityManager.Instance.Load();
 		}
 
 		model.CheckWinLose = true;
@@ -207,22 +206,12 @@ public class GameScene : Scene {
 
 		UpdatePalette();
 
-		/*Vector2 mouseTilePos = GetMouseTilePos();
-		if (MousePlayable(mouseTilePos)) {
-			if (MouseMode == MouseMode.Build || MouseMode == MouseMode.Demolish) {
-				UpdateBuild();
-			} else if (MouseMode == MouseMode.Inspect) {
-				UpdateInspect();
-			}
-		}*/
-
 		if (model.GameSpeed != GameSpeed.Paused) {
 			model.Advance(gameTime);
 		}
 
 		if (Game.CanDraw) {
 			Statusbar.Instance.Update(gameTime);
-			EntityManager.Instance.Update(gameTime);
 		}
 
         foreach (GameObject obj in GameObjects) {

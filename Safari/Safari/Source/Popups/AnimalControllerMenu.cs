@@ -1,4 +1,5 @@
-﻿using GeonBit.UI.Entities;
+﻿using GeonBit.UI.DataTypes;
+using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
@@ -21,16 +22,31 @@ public class AnimalControllerMenu : EntityControllerMenu {
 		dataParagraph.Scale = 0.97f;
 		panel.AddChild(dataParagraph);
 
-		sellButton = new Button($"Sell (+{animal.Price})", ButtonSkin.Default, Anchor.AutoCenter);
+        StyleProperty deleteBase = new StyleProperty(Color.Red);
+        StyleProperty deleteHover = new StyleProperty(Color.DarkRed);
+        StyleProperty deleteClick = new StyleProperty(Color.IndianRed);
+
+        StyleProperty chipBase = new StyleProperty(Color.Green);
+        StyleProperty chipHover = new StyleProperty(Color.DarkGreen);
+        StyleProperty chipClick = new StyleProperty(Color.DarkOliveGreen);
+        StyleProperty chipDisabled = new StyleProperty(Color.Gray);
+
+        sellButton = new Button($"Sell (+{animal.Price})", ButtonSkin.Default, Anchor.AutoCenter);
 		sellButton.Size = new Vector2(0.8f, 0.1f);
 		sellButton.ButtonParagraph.Scale = 0.75f;
-		panel.AddChild(sellButton);
+        sellButton.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
+        sellButton.SetStyleProperty("FillColor", deleteHover, EntityState.MouseHover);
+        sellButton.SetStyleProperty("FillColor", deleteClick, EntityState.MouseDown);
+        panel.AddChild(sellButton);
 
 		if (!animal.HasChip) {
 			chipButton = new Button("Buy chip (-250)", ButtonSkin.Default, Anchor.AutoCenter);
 			chipButton.Size = new Vector2(0.8f, 0.1f);
 			chipButton.ButtonParagraph.Scale = 0.75f;
-			panel.AddChild(chipButton);
+            chipButton.SetStyleProperty("FillColor", chipBase, EntityState.Default);
+            chipButton.SetStyleProperty("FillColor", chipHover, EntityState.MouseHover);
+            chipButton.SetStyleProperty("FillColor", chipClick, EntityState.MouseDown);
+            panel.AddChild(chipButton);
 		}
 	}
 

@@ -65,8 +65,6 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private readonly Button entityManagerButton;
 
-    private Rectangle maskArea;
-
     public Rectangle Size => panel.CalcDestRect();
 
     private Statusbar() {
@@ -207,23 +205,26 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private void AnimalButton(Entity entity) {
         EntityManager.Instance.Hide();
-        animals.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         tiles.Hide();
         others.Hide();
+        animals.ToggleCategoryMenu();
     }
 
     private void TileButton(Entity entity) {
         EntityManager.Instance.Hide();
-        tiles.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         animals.Hide();
         others.Hide();
+        tiles.ToggleCategoryMenu();
     }
 
     private void OtherButton(Entity entity) {
         EntityManager.Instance.Hide();
-        others.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         animals.Hide();
         tiles.Hide();
+        others.ToggleCategoryMenu();
     }
 
     private void AdjustSpeedSettings(Entity entity) {
@@ -258,39 +259,26 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     public void Load() {
         visible = true;
-        UserInterface.Active.AddEntity(panel);
+        base.Show();
+        EntityManager.Instance.Load();
         AdjustSpeedButtons();
         ScaleText(null, EventArgs.Empty);
-
-        maskArea = panel.CalcDestRect();
-        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public void Unload() {
         visible = false;
-        if (panel.Parent != null) {
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
-        }
+        base.Hide();
         EntityManager.Instance.Unload();
         animals.Hide();
         tiles.Hide();
         others.Hide();
-
-        this.Hide();
     }
 
     public void Toggle() {
         if (visible) {
-            visible = false;
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
+            Unload();
         } else {
-            visible = true;
-            UserInterface.Active.AddEntity(panel);
-            maskArea = panel.CalcDestRect();
-            GameScene.Active.MaskedAreas.Add(maskArea);
-            panel.SendToBack();
+            Load();
         }
     }
 
@@ -348,6 +336,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     }
 
     public override void Update(GameTime gameTime) {
+        EntityManager.Instance.Update(gameTime);
         tiles.Update(gameTime);
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +

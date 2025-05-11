@@ -54,8 +54,6 @@ class EntityManager : PopupMenu {
     private readonly Button jeepRentFeeMinusButton;
     private readonly Button jeepRentFeePlusButton;
 
-    private Rectangle maskArea;
-
     private readonly DefaultAnimalSelectorPopup defaultSelector = DefaultAnimalSelectorPopup.Instance;
 
     public static EntityManager Instance => instance;
@@ -247,8 +245,6 @@ class EntityManager : PopupMenu {
 
         update = true;
         base.Show();
-        maskArea = this.panel.CalcDestRect();
-        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public override void Hide() {
@@ -266,7 +262,6 @@ class EntityManager : PopupMenu {
         if (panel.Parent != null) {
             base.Hide();
         }
-        GameScene.Active.MaskedAreas.Remove(maskArea);
     }
 
     public void Unload() {
@@ -276,16 +271,14 @@ class EntityManager : PopupMenu {
         if (DefaultAnimalSelectorPopup.Showing) {
             defaultSelector.Hide();
         }
-        if (panel.Parent != null) {
-            Hide();
-        }
+        Hide();
     }
 
     public void Load() {
         visible = false;
         jeepRentFeeDisplayLabel.Text = Jeep.RentFee.ToString();
-		rangerDefaultTargetButton.ButtonParagraph.Text = Ranger.DefaultTarget == null ? "Default Target" : Ranger.DefaultTarget.Value.GetDisplayName();
-		if (DefaultAnimalSelectorPopup.Showing) {
+        rangerDefaultTargetButton.ButtonParagraph.Text = Ranger.DefaultTarget == null ? "Default Target" : Ranger.DefaultTarget.Value.GetDisplayName();
+        if (DefaultAnimalSelectorPopup.Showing) {
             defaultSelector.Hide();
         }
     }
@@ -337,6 +330,10 @@ class EntityManager : PopupMenu {
     }
 
     private void RangerPlusBtn(GeonBit.UI.Entities.Entity entity) {
+        if(GameScene.Active.Model.Funds <= Ranger.SalaryIfHiredNow()) {
+            new AlertMenu("Can't gire ranger", "You can't hire more rangers because you would go bankrupt!").Show();
+            return;
+        }
         Ranger temp = new Ranger(MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level));
         rangerTargetIndex = (rangerTargetIndex + 1) % Enum.GetValues(typeof(AnimalSpecies)).Length;
         Game.AddObject(temp);
@@ -401,6 +398,10 @@ class EntityManager : PopupMenu {
 
             tempButtonSell.Padding = new Vector2(0);
             tempButtonSell.OnClick = (GeonBit.UI.Entities.Entity entity) => {
+                if(GameScene.Active.Model.AnimalCount == 1) {
+                    new AlertMenu("Can't sell", "You can't sell your last animal because you will lose the game!").Show();
+                    return;
+                }
                 item.Sell();
                 this.update = true;
             };

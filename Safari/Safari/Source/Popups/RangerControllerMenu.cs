@@ -1,4 +1,5 @@
 ﻿using Engine.Input;
+using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Model.Entities.Animals;
@@ -29,10 +30,17 @@ public class RangerControllerMenu : EntityControllerMenu {
 		
 		panel.AddChild(dropDown);
 
-		fireButton = new Button("Fire", ButtonSkin.Default, Anchor.AutoCenter);
+        StyleProperty deleteBase = new StyleProperty(Color.Red);
+        StyleProperty deleteHover = new StyleProperty(Color.DarkRed);
+        StyleProperty deleteClick = new StyleProperty(Color.IndianRed);
+
+        fireButton = new Button("Fire", ButtonSkin.Default, Anchor.AutoCenter);
 		fireButton.Size = new Vector2(0.8f, 0.1f);
 		fireButton.ButtonParagraph.Scale = 0.75f;
-		panel.AddChild(fireButton);
+        fireButton.SetStyleProperty("FillColor", deleteBase, EntityState.Default);
+        fireButton.SetStyleProperty("FillColor", deleteHover, EntityState.MouseHover);
+        fireButton.SetStyleProperty("FillColor", deleteClick, EntityState.MouseDown);
+        panel.AddChild(fireButton);
 	}
 
 	public override void Show() {

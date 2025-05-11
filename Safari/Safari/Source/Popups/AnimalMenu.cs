@@ -12,12 +12,6 @@ using System.Collections.Generic;
 namespace Safari.Popups;
 
 public class AnimalMenu : CategoryMenu {
-    //private Image zebraImage;
-    //private Image giraffeImage;
-    //private Image elephantImage;
-    //private Image lionImage;
-    //private Image tigerImage;
-    //private Image tigerWhiteImage;
     private readonly Panel itemsPanel;
 
     private readonly Panel genderPanel;
@@ -83,18 +77,17 @@ public class AnimalMenu : CategoryMenu {
     }
 
     public override void Show() {
-        UserInterface.Active.AddEntity(genderPanel);
+        if (genderPanel.Parent == null) {
+            UserInterface.Active.AddEntity(genderPanel);
+        }
         base.Show();
         genderPanel.Offset = new Vector2(0, panel.Offset.Y);
-        GameScene.Active.MaskedAreas.Add(genderPanel.CalcDestRect());
     }
 
     public override void Hide() {
-        if(panel.Parent == null) {
-            return;
+        if (genderPanel.Parent != null) {
+            UserInterface.Active.RemoveEntity(genderPanel);
         }
-        UserInterface.Active.RemoveEntity(genderPanel);
-        GameScene.Active.MaskedAreas.Remove(genderPanel.CalcDestRect());
         base.Hide();
     }
 }
