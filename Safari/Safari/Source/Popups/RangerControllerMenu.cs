@@ -1,4 +1,3 @@
-﻿using Engine.Input;
 using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
@@ -47,14 +46,12 @@ public class RangerControllerMenu : EntityControllerMenu {
 		dropDown.OnValueChange += OnDropDownChanged;
 		fireButton.OnClick += OnFireBtnClick;
 		base.Show();
-		InputManager.Mouse.ScrollLock = true;
 	}
 
 	public override void Hide() {
 		dropDown.OnValueChange -= OnDropDownChanged;
 		fireButton.OnClick -= OnFireBtnClick;
 		base.Hide();
-		InputManager.Mouse.ScrollLock = false;
 	}
 
 	protected override void UpdateData() {

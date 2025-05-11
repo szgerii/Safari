@@ -55,7 +55,7 @@ public static class InputManager {
 
 	public static void Update(GameTime gameTime) {
 		// update focus
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
 			int rootChildren = UserInterface.Active.Root.Children.Count;
 			bool allPassiveFocus = true;

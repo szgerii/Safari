@@ -1,6 +1,7 @@
 ﻿using GeonBit.UI.DataTypes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
+using Engine.Debug;
 using Safari.Model.Entities.Animals;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
@@ -69,13 +70,32 @@ public class AnimalControllerMenu : EntityControllerMenu {
 	protected override void UpdateData() {
 		sellButton.ButtonParagraph.Text = $"Sell (+{animal.Price})";
 
-		dataParagraph.Text = $"Age: {animal.Age:0} days\n" +
-			$"Sex: {animal.Gender}\n" +
-			$"State: {(animal.Group != null ? animal.State : "Caught")}\n" +
-			$"Hunger: {animal.HungerLevel:0} / 100\n" +
-			$"Thirst: {animal.ThirstLevel:0} / 100\n" +
-			$"Group Size: {animal.Group?.Size ?? 1} / {AnimalGroup.MAX_SIZE}\n" +
-			$"Has Microchip: {(animal.HasChip ? "Yes" : "No")}";
+		if (DebugMode.IsFlagActive("rich-controllers")) {
+			dataParagraph.WrapWords = true;
+			panel.Draggable = true;
+			panel.LimitDraggingToParentBoundaries = false;
+			panel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
+			panel.Size = new Vector2(0.75f, panel.Size.Y);
+			closeButton.Anchor = Anchor.Auto;
+
+			dataParagraph.Text = DumpObjectDataToString(animal, animal.Species.GetAnimalType());
+			dataParagraph.Text += DumpObjectDataToString(animal.Group);
+		} else {
+			dataParagraph.WrapWords = false;
+			panel.Draggable = false;
+			panel.LimitDraggingToParentBoundaries = true;
+			panel.PanelOverflowBehavior = PanelOverflowBehavior.Overflow;
+			panel.Size = BASE_SIZE;
+			closeButton.Anchor = Anchor.BottomCenter;
+
+			dataParagraph.Text = $"Age: {animal.Age:0} days\n" +
+				$"Sex: {animal.Gender}\n" +
+				$"State: {(animal.Group != null ? animal.State : "Caught")}\n" +
+				$"Hunger: {animal.HungerLevel:0} / 100\n" +
+				$"Thirst: {animal.ThirstLevel:0} / 100\n" +
+				$"Group Size: {animal.Group?.Size ?? 1} / {AnimalGroup.MAX_SIZE}\n" +
+				$"Has Microchip: {(animal.HasChip ? "Yes" : "No")}";
+		}
 		dataParagraph.Scale = SettingsMenu.Scale;
 	}
 

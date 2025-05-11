@@ -228,9 +228,15 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("cycle-build-mode", new InputAction(keys: [Keys.D9]));
 
         // debug
+        InputManager.Keyboard.OnPressed(Keys.Escape, () => {
+			if (EntityControllerMenu.Active != null) {
+				EntityControllerMenu.Active.Hide();
+			} else {
+				PauseMenu.Instance.TogglePauseMenu();
+			}
+		});
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
         InputManager.Keyboard.OnPressed(Keys.F2, () => Statusbar.Instance.Toggle());
-        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.Space, () => Statusbar.Instance.SetSpeed(GameSpeed.Paused));
         InputManager.Keyboard.OnPressed(Keys.D1, () => Statusbar.Instance.SetSpeed(GameSpeed.Slow));
         InputManager.Keyboard.OnPressed(Keys.D2, () => Statusbar.Instance.SetSpeed(GameSpeed.Medium));

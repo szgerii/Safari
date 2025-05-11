@@ -55,6 +55,11 @@ public class CameraControllerCmp : Component, IUpdatable {
 			GameScene.Active.MouseDragLock = false;
 		}
 
+		if (DebugMode.IsFlagActive("no-drag")) {
+			canEnterDragMode = false;
+			GameScene.Active.MouseDragLock = false;
+		}
+
 		Vector2 prevPos = Owner.Position;
 
 		// pos
