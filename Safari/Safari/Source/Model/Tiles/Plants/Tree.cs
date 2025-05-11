@@ -2,6 +2,7 @@ using Engine.Components;
 using Engine.Collision;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using Engine;
 
 namespace Safari.Model.Tiles;
 
@@ -73,6 +74,6 @@ public class Tree : Tile {
 	}
 
 	public override void UpdateYSortOffset() {
-		Sprite.YSortOffset = Texture.Height;
+		Sprite.YSortOffset = Type.GetYSortOffset();
 	}
 }

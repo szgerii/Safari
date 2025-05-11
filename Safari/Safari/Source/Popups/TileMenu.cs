@@ -55,7 +55,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                 Shop.CHelper.SelectedIndex = ConstructionHelperCmp.TREE;
             }
             Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].SelectPrev();
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         treeTypePlus = new Button(">", ButtonSkin.Default, Anchor.BottomRight, new Vector2(0.2f, 0));
@@ -65,7 +65,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                 Shop.CHelper.SelectedIndex = ConstructionHelperCmp.TREE;
             }
             Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].SelectNext();
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         treeTypeDisplayPanel.AddChild(treeTypeLabel);
@@ -114,7 +114,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent == null) {
                 UserInterface.Active.AddEntity(treeTypePanel);
             }
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         Label treeLabel = new Label("Tree" + "(" + Shop.TREE_COST + ")", Anchor.Center, new Vector2(0));

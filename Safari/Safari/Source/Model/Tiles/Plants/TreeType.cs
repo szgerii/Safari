@@ -27,13 +27,13 @@ public static class TreeTypeExtensions {
 	/// <returns>The display name of the type</returns>
 	public static string GetDisplayName(this TreeType type) {
 		return type switch {
-			TreeType.Digitata => "Adansonia Digitata",
-			TreeType.Grandideri => "Adansonia Grandideri",
-			TreeType.ShortGrandideri => "Adansonia Grandideri (short)",
-			TreeType.Gregorii => "Adansonia Gregorii",
-			TreeType.Rubrostipa => "Adansonia Rubrostipa",
-			TreeType.Suarazensis => "Adansonia Suarazensis",
-			TreeType.Za => "Adansonia Za",
+			TreeType.Digitata => "Digitata",
+			TreeType.Grandideri => "Grandideri",
+			TreeType.ShortGrandideri => "Grandideri (short)",
+			TreeType.Gregorii => "Gregorii",
+			TreeType.Rubrostipa => "Rubrostipa",
+			TreeType.Suarazensis => "Suarazensis",
+			TreeType.Za => "Za",
 			_ => "UNKNOWN TREE TYPE",
 		};
 	}
@@ -66,6 +66,19 @@ public static class TreeTypeExtensions {
 			TreeType.Suarazensis => new(44, 69, 12, 15),
 			TreeType.Za => new(38, 130, 21, 20),
 			_ => Vectangle.Empty
+		};
+	}
+
+	public static float GetYSortOffset(this TreeType type) {
+		return type switch {
+			TreeType.Digitata => 128,
+			TreeType.Grandideri => 144,
+			TreeType.ShortGrandideri => 122,
+			TreeType.Gregorii => 122,
+			TreeType.Rubrostipa => 122,
+			TreeType.Suarazensis => 82,
+			TreeType.Za => 149,
+			_ => type.GetTexture().Height
 		};
 	}
 }
