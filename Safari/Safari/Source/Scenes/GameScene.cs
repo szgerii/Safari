@@ -75,7 +75,7 @@ public class GameScene : Scene {
 	public GameScene(string parkName, GameDifficulty difficulty) : base() {
 		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 		startDate = startDate.AddHours(6);
-		model = new GameModel(parkName, 6000, difficulty, startDate, StrippedInit);
+		model = new GameModel(parkName, 6000, difficulty, startDate);
 	}
 
 	public GameScene(GameModel model) : base() {
@@ -401,7 +401,6 @@ public class GameScene : Scene {
 				if (e) {
 					SceneManager.Load(MainMenu.Instance);
 				} else {
-					model.PostWin = true;
 					model.Resume();
 				}
 			};

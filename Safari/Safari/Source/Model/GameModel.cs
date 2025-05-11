@@ -54,24 +54,24 @@ public class GameModel {
 	/// <summary>
 	/// How much faster 'medium' speed is compared to 'slow'
 	/// </summary>
-	private const int MEDIUM_FRAMES = 8;
+	public const int MEDIUM_FRAMES = 8;
 	/// <summary>
 	/// The component of medium speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int MEDIUM_FAKE = 4;
+	public const int MEDIUM_FAKE = 4;
 	/// <summary>
 	/// How much faster 'fast' speed is compared to 'slow'
 	/// </summary>
-	private const int FAST_FRAMES = 36;
+	public const int FAST_FRAMES = 36;
 	/// <summary>
 	/// The component of fast speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int FAST_FAKE = 12;
+	public const int FAST_FAKE = 12;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double DAY_LENGTH = 210.0;
+	public const double DAY_LENGTH = 210.0;
 
 	public const double SUNRISE_START = 0.98;
 	public const double SUNRISE_END = 0.02;
@@ -355,7 +355,7 @@ public class GameModel {
 		CheckWinLose = false;
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
@@ -426,6 +426,7 @@ public class GameModel {
 
 	private void TriggerWin() {
 		GameWon?.Invoke(this, EventArgs.Empty);
+		PostWin = true;
 	}
 
 	private void WinUpdate() {
