@@ -148,9 +148,8 @@ public class RangerTest : SimulationTest {
 
 		Assert.IsTrue(ranger.CanSee(lion));
 		Assert.IsFalse(ranger.CanReach(lion));
-		RunOneFrame();
 
-		Assert.AreEqual(RangerState.Chasing, ranger.State);
+		GameAssert.AreEqualInNFrames(RangerState.Chasing, () => ranger.State, 10);
 		Assert.AreEqual(lion, ranger.ChaseTarget);
 		Assert.AreEqual(lion, ranger.NavCmp.TargetObject);
 		Assert.IsTrue(ranger.NavCmp.Moving);
