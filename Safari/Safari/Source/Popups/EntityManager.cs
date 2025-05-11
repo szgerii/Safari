@@ -487,7 +487,6 @@ class EntityManager : PopupMenu {
     }
 
     private void UpdateOtherList() {
-        //throw new NotImplementedException();
     }
 
     private void UpdateRangerList() {

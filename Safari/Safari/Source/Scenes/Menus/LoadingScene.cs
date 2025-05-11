@@ -4,12 +4,17 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
 using Safari.Model;
+using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 
 public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 	private static LoadingScene instance;
 	private static GameScene gameToLoad = null;
+	private static string parkNameToLoad = null;
+	private static int parkSlotToLoad = -1;
+	private static bool newGame;
 	private static bool loadGame = false;
 	public static LoadingScene Instance {
 		get {
@@ -28,6 +33,16 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 		gameToLoad = new GameScene(parkName, difficulty);
 		SceneManager.Load(instance);
         loadGame = true;
+		newGame = true;
+	}
+
+	public void LoadSave(string parkName, int slotNumber) {
+		parkNameToLoad = parkName;
+        parkSlotToLoad = slotNumber;
+		DebugConsole.Instance.Write(slotNumber.ToString());
+        SceneManager.Load(instance);
+        loadGame = true;
+		newGame = false;
 	}
 
     protected override void ConstructUI() {
@@ -43,9 +58,14 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 
     public override void Update(GameTime gameTime) {
         if (loadGame) {
-            SceneManager.Load(gameToLoad);
-            loadGame = false;
-			gameToLoad = null;
+			if (newGame) {
+				SceneManager.Load(gameToLoad);
+				loadGame = false;
+				gameToLoad = null;
+			} else {
+				new GameModelPersistence(parkNameToLoad).Load(parkSlotToLoad);
+				loadGame = false;
+			}
         }
     }
 }

@@ -5,6 +5,7 @@ using Safari.Popups;
 using Engine;
 using Safari.Helpers;
 using Safari.Model;
+using Safari.Persistence;
 
 namespace Safari.Scenes.Menus;
 
@@ -76,7 +77,12 @@ public class NewGameMenu : MenuScene, IResettableSingleton {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        LoadingScene.Instance.LoadNewGame(input.Value, radioEasy.Checked ? GameDifficulty.Easy : radioMedium.Checked ? GameDifficulty.Normal : GameDifficulty.Hard);
+        if (GameModelPersistence.IsNameAvailable(input.Value)) {
+            LoadingScene.Instance.LoadNewGame(input.Value, radioEasy.Checked ? GameDifficulty.Easy : radioMedium.Checked ? GameDifficulty.Normal : GameDifficulty.Hard);
+        } else {
+            new AlertMenu("Safari name", "This name is already in use!").Show();
+            return;
+        }
     }
 
     private void MenuButtonClicked(Entity entity) {
