@@ -13,6 +13,7 @@ public class TigerWhite : Animal {
 	
 	public TigerWhite(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.TigerWhite, gender) {
 		DisplayName = "White Tiger";
+		SightDistance = 8;
 
 		InitSprite();
 	}

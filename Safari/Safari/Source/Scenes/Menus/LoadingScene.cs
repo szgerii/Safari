@@ -41,7 +41,6 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 	public void LoadSave(string parkName, int slotNumber) {
 		parkNameToLoad = parkName;
         parkSlotToLoad = slotNumber;
-		DebugConsole.Instance.Write(slotNumber.ToString());
         SceneManager.Load(instance);
         loadGame = true;
 		newGame = false;

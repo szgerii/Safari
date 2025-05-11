@@ -240,11 +240,6 @@ public abstract class Entity : GameObject, ISpatial {
 		base.Unload();
 	}
 
-	public override void Update(GameTime gameTime) {
-		DateTime ingameDate = GameScene.Active.Model.IngameDate;
-		base.Update(gameTime);
-	}
-
 	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (!Visible) {
@@ -254,6 +249,13 @@ public abstract class Entity : GameObject, ISpatial {
 		if (IsBeingInspected) {
 			float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
 			Sprite.Tint = Color.White * (0.5f + fadeFactor);
+
+			if (DebugMode.IsFlagActive("draw-paths")) {
+				NavCmp.DrawPath();
+				if (this is Animal animal && animal.Group != null) {
+					animal.Group.NavCmp.DrawPath();
+				}
+			}
 		} else {
 			Sprite.Tint = Color.White;
 		}

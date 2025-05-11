@@ -13,8 +13,9 @@ public class Lion : Animal {
 
 	public Lion(Vector2 pos, Gender gender) : base(pos, AnimalSpecies.Lion, gender) {
 		DisplayName = "Lion";
+		SightDistance = 8;
 
-		InitSprite();	
+		InitSprite();
 	}
 
 	private void InitSprite() {

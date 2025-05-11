@@ -63,7 +63,8 @@ public class GameScene : Scene {
 			if (Active == null) return;
 
 			foreach (GameObject obj in Active.GameObjects) {
-				string objStr = obj is Entity e ? e.ToString() : obj.ToString();
+				if (obj is Tile) continue;
+				string objStr = obj.ToString();
 
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
@@ -124,7 +125,8 @@ public class GameScene : Scene {
 
 				EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
 					EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
-					EntityCount = () => model.PoacherCount // use PoacherCount to determine number of poachers on the map
+					EntityCount = () => model.PoacherCount, // use PoacherCount to determine number of poachers on the map
+					ExtraCondition = () => !DebugMode.IsFlagActive("no-poachers")
 				};
 				Game.AddObject(poacherSpawner);
 
@@ -237,14 +239,19 @@ public class GameScene : Scene {
 	}
 
 	public void UpdateInspect() {
+		Entity entity = Entity.GetEntityOnMouse();
+
 		if (InputManager.Mouse.JustReleased(MouseButtons.LeftButton) && !MouseDragLock) {
-			Entity entity = Entity.GetEntityOnMouse();
 			if (entity != null && entity is Ranger ranger) {
 				EntityControllerMenu controller = new RangerControllerMenu(ranger);
 				controller.Show();
 			} else if (entity != null && entity is Animal animal) {
 				EntityControllerMenu controller = new AnimalControllerMenu(animal);
 				controller.Show();
+			}
+		} else if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton) && !MouseDragLock) {
+			if (entity is not Animal && entity is not Ranger) {
+				EntityControllerMenu.Active?.Hide();
 			}
 		}
 	}

@@ -1,10 +1,14 @@
 ﻿using Engine;
 using Engine.Components;
+using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using Microsoft.Xna.Framework.Graphics;
 using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
+using Safari.Scenes;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Components;
 
@@ -229,6 +233,30 @@ public class NavigationCmp : Component, IUpdatable {
 		}
 
 		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
+	}
+
+	private readonly static ITexture2D pinTex = Utils.GenerateTexture(16, 16, Color.Purple);
+	private ITexture2D pathLineTex = null;
+	[ExcludeFromCodeCoverage]
+	public void DrawPath() {
+		if (Target != null) {
+
+			Vector2 pos = ownerEntity?.CenterPosition ?? Owner.Position;
+			Vector2 target = Target.Value;
+			pathLineTex ??= Utils.GenerateTexture(1, 1, Color.Purple);
+			float length = Vector2.Distance(pos, target);
+			float angle = (float)Math.Atan2(target.Y - pos.Y, target.X - pos.X);
+			Vector2 scale = new(length, 2f);
+
+			Game.SpriteBatch.Draw(pathLineTex.ToTexture2D(), pos, null, Color.White, angle, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+			Vector2 pinPos = Target.Value - (pinTex.Bounds.Size.ToVector2() / 2f);
+			Game.SpriteBatch.Draw(pinTex.ToTexture2D(), pinPos, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+		}
+	}
+
+	public override string ToString() {
+		return $"Target: {Target}";
 	}
 
 	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);

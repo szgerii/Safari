@@ -172,6 +172,41 @@ public class Level : GameObject {
 
 	public Vector2 GetTileCenter(Point p) => new Vector2(p.X * TileSize + TileSize / 2.0f, p.Y * TileSize + TileSize / 2.0f);
 
+	public List<Point> GetTileBlob(Point tilemapPos) {
+		if (IsOutOfBounds(tilemapPos))
+			throw new ArgumentException(null, nameof(tilemapPos));
+
+		if (GetTile(tilemapPos) == null)
+			return [ tilemapPos ];
+
+		Type tileType = GetTile(tilemapPos).GetType();
+		List<Point> result = [];
+		Stack<Point> traversalQueue = new();
+		traversalQueue.Push(tilemapPos);
+		while (traversalQueue.Count > 0) {
+			Point current = traversalQueue.Pop();
+
+			result.Add(current);
+
+			void TryQueue(Point pos) {
+				Tile tile = GetTile(pos);
+
+				if (tile != null && !IsOutOfBounds(pos) && !(result.Contains(pos) || traversalQueue.Contains(pos))
+					&& tile.GetType() == tileType)
+				{
+					traversalQueue.Push(pos);
+				}
+			}
+
+			TryQueue(current + new Point(1, 0));
+			TryQueue(current + new Point(-1, 0));
+			TryQueue(current + new Point(0, 1));
+			TryQueue(current + new Point(0, -1));
+		}
+
+		return result;
+	}
+
 	/// <summary>
 	/// Places or modifies a tile at a tilemap position
 	/// </summary>
@@ -259,6 +294,13 @@ public class Level : GameObject {
 	public bool IsOutOfBounds(int x, int y) {
 		return x < 0 || y < 0 || x >= MapWidth || y >= MapHeight;
 	}
+
+	/// <summary>
+	/// Checks if a given tilemap position falls outside of the tilemap grid
+	/// </summary>
+	/// <param name="tilemapPos">A point for the observed tilemap position</param>
+	/// <returns>Whether the position is considered out of bounds</returns>
+	public bool IsOutOfBounds(Point tilemapPos) => IsOutOfBounds(tilemapPos.X, tilemapPos.Y);
 
 	/// <summary>
 	/// Checks if a given tilemap position falls outside of the playable area

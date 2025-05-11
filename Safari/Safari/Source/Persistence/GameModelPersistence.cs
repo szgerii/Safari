@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Debug;
 using Engine.Graphics.Stubs.Texture;
 using Engine.Objects;
 using Engine.Scenes;
@@ -74,6 +75,7 @@ public class GameModelPersistence {
 		new((obj, scene) => {
 			EntitySpawner<Poacher> spawner = obj as EntitySpawner<Poacher>;
 			spawner.EntityCount = () => GameScene.Active.Model.PoacherCount;
+			spawner.ExtraCondition = () => !DebugMode.IsFlagActive("no-poachers");
 			scene.AddObject(spawner);
 		}, (obj, scene) => obj is EntitySpawner<Poacher>),
 		// tile initializer
