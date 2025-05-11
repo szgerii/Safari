@@ -123,39 +123,12 @@ public class Jeep : Entity {
 	[StaticSavedProperty]
 	private static bool someoneWaitingForJeep = false;
 
-	private static bool debugAutoFill = false;
-	private static bool debugAutoRequest = false;
-
 	[JsonProperty]
 	private int color;
 
 	static Jeep() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("request-jeep", () => RequestNextJeep()));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("fill-jeep", () => {
-			DebugFill();
-		}));
-
 		DebugMode.AddFeature(new ExecutedDebugFeature("add-jeep", () => {
 			Jeep.SpawnJeep();
-		}));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("add-to-jeep", () => {
-			DebugAdd();
-		}));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-jeep-autofill", () => {
-			debugAutoFill = !debugAutoFill;
-			if (debugAutoFill) {
-				DebugFill();
-			}
-		}));
-
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-jeep-autorequest", () => {
-			debugAutoRequest = !debugAutoRequest;
-			if (debugAutoRequest) {
-				RequestNextJeep();
-			}
 		}));
 	}
 
@@ -164,16 +137,11 @@ public class Jeep : Entity {
 	/// </summary>
 	public static void Init(int baseRentFee) {
 		someoneWaitingForJeep = false;
-		debugAutoFill = false;
-		debugAutoRequest = false;
 		WaitingJeep = null;
 		RentFee = baseRentFee;
 		for (int i = 0; i < TEXTURE_COUNT; i++) {
-			if (textures[i] == null) {
-				textures[i] = Game.LoadTexture("Assets/Jeep/Jeep" + textureNames[i]);
-			}
+			textures[i] = Game.LoadTexture("Assets/Jeep/Jeep" + textureNames[i]);
 		}
-		JeepReadyToFill += DebugReadyToFill;
 		jeepEntering = false;
 		garage = new();
 	}
@@ -189,24 +157,6 @@ public class Jeep : Entity {
 		}
 	}
 
-	private static void DebugReadyToFill(object sender, EventArgs e) {
-		if (debugAutoFill) {
-			DebugFill();
-		}
-	}
-
-	private static void DebugFill() {
-		for (int i = 0; i < CAPACITY; i++) {
-			DebugAdd();
-		}
-	}
-
-	private static void DebugAdd() {
-		if (WaitingJeep != null) {
-			WaitingJeep.AddTourist(new Tourist(new Vector2(40, 40)));
-		}
-	}
-
 	[JsonConstructor]
 	public Jeep(int color) : base() {
 		SetupSprite(color);
@@ -216,7 +166,9 @@ public class Jeep : Entity {
 	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
 		occupants = new List<Tourist>();
 		foreach (GameObject go in refObjs["occupants"]) {
-			occupants.Add((Tourist)go);
+			if (go != null) {
+				occupants.Add((Tourist)go);
+			}
 		}
 
 		if (StateMachine.CurrentState == JeepState.Entering) {
@@ -313,9 +265,6 @@ public class Jeep : Entity {
 				goal = CurrentLevel.Network.End;
 				postGoal = DropOffSpot;
 				postState = JeepState.Emptying;
-				if (debugAutoRequest) {
-					RequestNextJeep();
-				}
 			}
 			return true;
 		}
@@ -404,9 +353,6 @@ public class Jeep : Entity {
 			goal = CurrentLevel.Network.End;
 			postGoal = DropOffSpot;
 			postState = JeepState.Emptying;
-			if (debugAutoRequest) {
-				RequestNextJeep();
-			}
 		}
 	}
 
