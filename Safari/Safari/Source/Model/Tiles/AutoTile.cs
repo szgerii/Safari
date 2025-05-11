@@ -12,7 +12,7 @@ namespace Safari.Model.Tiles;
 /// A tile that automatically adjusts its texture based on its neighbors
 /// </summary>
 [JsonObject(MemberSerialization.OptIn)]
-public partial class AutoTile : Tile {
+public abstract partial class AutoTile : Tile {
 	/// <summary>
 	/// A dictionary mapping the possible bitmask values to their offsets inside the atlas texture
 	/// </summary>

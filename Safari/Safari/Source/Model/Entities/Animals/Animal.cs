@@ -267,6 +267,10 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Load() {
+		if (Sprite is AnimatedSpriteCmp animSprite && animSprite.Animations.ContainsKey("idle-right")) {
+			animSprite.CurrentAnimation = "idle-right";
+		}
+
 		GameModel model = GameScene.Active.Model;
 
 		model.AnimalCount++;

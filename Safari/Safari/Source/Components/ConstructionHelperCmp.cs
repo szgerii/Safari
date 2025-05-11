@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Components;
 using Microsoft.Xna.Framework;
 using Safari.Debug;
 using Safari.Model;
@@ -166,19 +167,28 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	}
 
 	/// <summary>
-	/// Checks whether a tile can be built at the given coordinates
+	/// Checks whether a tile can be built at the given bounds
 	/// </summary>
-	public bool CanBuild(Point p, Tile tile) {
+	/// <param name="p">The origin point of the area to check</param>
+	/// <param name="offsets">The offsets that the area spans</param>
+	/// <returns>True if the area can be built, false otherwise</returns>
+	public bool CanBuild(Point p, Point[] offsets) {
 		if (!Check(p)) {
 			return false;
 		}
-		foreach (Point offset in tile.ConstructionBlockOffsets) {
+		foreach (Point offset in offsets) {
 			if (!Check(p + offset)) {
 				return false;
 			}
 		}
 		return true;
 	}
+
+	/// <summary>
+	/// Checks whether a tile can be built at the given coordinates
+	/// </summary>
+	public bool CanBuild(Point p, Tile tile) => CanBuild(p, tile.ConstructionBlockOffsets);
+
 	/// <summary>
 	/// Checks whether a tile can be built at the given coordinates
 	/// </summary>

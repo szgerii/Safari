@@ -41,7 +41,7 @@ public class Shop : PopupMenu, IResettableSingleton {
             return;
         }
         Type animalType = type.GetAnimalType();
-        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level), gender };
+        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level, type.GetSize()), gender };
         Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs);
         Game.AddObject(temp);
         GameScene.Active.Model.Funds -= type.GetPrice();
