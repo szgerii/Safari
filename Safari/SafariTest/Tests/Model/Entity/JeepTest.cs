@@ -35,6 +35,7 @@ public class JeepTest : SimulationTest {
 
 	[TestMethod]
 	public void JeepWait() {
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f) { Active = false };
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -144,6 +145,7 @@ public class JeepTest : SimulationTest {
 
 	[TestMethod]
 	public void JeepFailTour() {
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -197,6 +199,7 @@ public class JeepTest : SimulationTest {
 
 	[TestMethod]
 	public void JeepReturnFromTour() {
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();

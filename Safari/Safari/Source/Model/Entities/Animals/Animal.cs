@@ -52,7 +52,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
-	private const int MATING_COOLDOWN_DAYS = 4;
+	private const int MATING_COOLDOWN_DAYS = 6;
 	/// <summary>
 	/// The number of days an animal can live
 	/// </summary>
@@ -60,7 +60,7 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The age (in days) after which the animal is considered mature and is allowed to mate
 	/// </summary>
-	public const int MATURE_AGE = 9;
+	public const int MATURE_AGE = 12;
 
 	/// <summary>
 	/// The amount of hunger level that is restored in a (real) second
