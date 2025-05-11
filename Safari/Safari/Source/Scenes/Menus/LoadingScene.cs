@@ -73,7 +73,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 				} catch {
 					loadGame = false;
 
-					AlertMenu am = new AlertMenu("Corrupt save file", "An unexpected error occured when trying to read a corrupt save file");
+					AlertMenu am = new AlertMenu("Corrupted save file", "Cannot open the selected save file because it is either corrupted, or was created with a different version of the game");
 					am.Chosen += (object sender, bool choice) => {
 						SceneManager.Load(MainMenu.Instance);
 					};

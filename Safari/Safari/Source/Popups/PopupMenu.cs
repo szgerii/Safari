@@ -21,10 +21,10 @@ public abstract class PopupMenu : IUpdatable {
         if (background != null) {
             UserInterface.Active.AddEntity(background);
             maskArea = this.background.CalcDestRect();
-            GameScene.Active.MaskedAreas.Add(maskArea);
+            GameScene.Active?.MaskedAreas.Add(maskArea);
         } else {
             maskArea = this.panel.CalcDestRect();
-            GameScene.Active.MaskedAreas.Add(maskArea);
+            GameScene.Active?.MaskedAreas.Add(maskArea);
         }
         UserInterface.Active.AddEntity(panel);
 
@@ -36,9 +36,9 @@ public abstract class PopupMenu : IUpdatable {
     /// </summary>
     public virtual void Hide() {
         if(background == null && panel.Parent != null) {
-            GameScene.Active.MaskedAreas.Remove(maskArea);
+            GameScene.Active?.MaskedAreas.Remove(maskArea);
         } else if (background != null && background.Parent != null) {
-            GameScene.Active.MaskedAreas.Remove(maskArea);
+            GameScene.Active?.MaskedAreas.Remove(maskArea);
         }
 
         if (background != null && panel?.Parent != null) {
