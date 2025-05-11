@@ -6,32 +6,33 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Helpers;
 using Safari.Model;
+using Safari.Persistence;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
-using Safari.Persistence;
 
 namespace Safari.Popups;
 
 public class PauseMenu : PopupMenu, IResettableSingleton {
-	private static PauseMenu instance;
-	public static PauseMenu Instance {
-		get {
-			instance ??= new();
-			return instance;
-		}
-	}
-	public static void ResetSingleton() {
+    private static PauseMenu instance;
+    public static PauseMenu Instance {
+        get {
+            instance ??= new();
+            return instance;
+        }
+    }
+    public static void ResetSingleton() {
         instance?.Hide();
-		instance = null;
-	}
+        instance = null;
+    }
 
-	private readonly Header Title;
+    private readonly Header Title;
     private readonly Panel ButtonPanel;
     private readonly Button ResumeButton;
     private readonly Button SaveButton;
     private readonly Button SaveAndExitButton;
     private readonly Button ExitButton;
-    private bool visible;       
+    private bool visible;
+    private GameSpeed prevSpeed;
 
     public static bool Visible => Instance.visible;
 
@@ -85,13 +86,13 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
     }
 
     private void SaveAndExitButtonClicked(Entity entity) {
-		GameModel model = GameScene.Active.Model;
-		new GameModelPersistence(model.ParkName).Save(model);
-		var am = new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!", "Return to main menu");
+        GameModel model = GameScene.Active.Model;
+        new GameModelPersistence(model.ParkName).Save(model);
+        var am = new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!", "Return to main menu");
         am.Chosen += (object _, bool _) => {
-			TogglePauseMenu();
-			SceneManager.Load(MainMenu.Instance);
-		};
+            TogglePauseMenu();
+            SceneManager.Load(MainMenu.Instance);
+        };
         am.Show();
     }
 
@@ -107,8 +108,11 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         if (visible) {
             base.Hide();
             visible = false;
-            GameScene.Active.Model.Resume();
+            if (prevSpeed != GameSpeed.Paused) {
+                GameScene.Active.Model.Resume();
+            }
         } else {
+            prevSpeed = GameScene.Active.Model.GameSpeed;
             GameScene.Active.Model.Pause();
             base.Show();
             visible = true;

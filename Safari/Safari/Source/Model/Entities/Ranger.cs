@@ -2,6 +2,7 @@
 using Engine.Components;
 using Engine.Helpers;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
@@ -9,6 +10,7 @@ using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Safari.Model.Entities;
 
@@ -328,7 +330,15 @@ public class Ranger : Entity {
 		}
 
 		StateMachine.Transition(RangerState.Wandering);
-	}
+    }
+
+	public static int SalaryIfHiredNow() {
+		DateTime date = GameScene.Active.Model.IngameDate;
+        int monthDays = DateTime.DaysInMonth(date.Year, date.Month);
+        float salaryRatio = (float)(monthDays - date.Day + 1) / monthDays;
+        int result =  (int)(SALARY * salaryRatio);
+		return result;
+    }
 
 	private void TryGetPaid() {
 		DateTime date = GameScene.Active.Model.IngameDate;

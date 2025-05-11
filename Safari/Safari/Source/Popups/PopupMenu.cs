@@ -35,9 +35,12 @@ public abstract class PopupMenu : IUpdatable {
     /// Hides the popup.
     /// </summary>
     public virtual void Hide() {
-        if (background == null) {
+        if(background == null && panel.Parent != null) {
+            GameScene.Active.MaskedAreas.Remove(maskArea);
+        } else if (background != null && background.Parent != null) {
             GameScene.Active.MaskedAreas.Remove(maskArea);
         }
+
         if (background != null && panel?.Parent != null) {
             UserInterface.Active.RemoveEntity(background);
         }

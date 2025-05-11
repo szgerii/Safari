@@ -24,6 +24,8 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
     private readonly Button destroyButton;
 
+    private Rectangle extrasMaskArea;
+
     public TileMenu() : base("Tiles and plants") {
         //grass
         //water
@@ -84,6 +86,9 @@ public class TileMenu : CategoryMenu, IUpdatable {
         destroyButton.Padding = new Vector2(0);
         destroyButton.ToggleMode = true;
         destroyButton.OnClick = (Entity entity) => {
+            if (treeTypePanel.Parent != null) {
+                extrasPanel.RemoveChild(treeTypePanel);
+            }
             if (GameScene.Active.MouseMode != MouseMode.Demolish) {
                 GameScene.Active.MouseMode = MouseMode.Demolish;
                 destroyButton.Checked = true;
@@ -132,7 +137,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
         waterPanel.SetStyleProperty("FillColor", hover, EntityState.MouseHover);
         waterPanel.SetStyleProperty("FillColor", click, EntityState.MouseDown);
         waterPanel.OnClick = (Entity entity) => {
-            if(treeTypePanel.Parent != null) {
+            if (treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
             destroyButton.Checked = false;
@@ -291,6 +296,8 @@ public class TileMenu : CategoryMenu, IUpdatable {
         destroyButton.Checked = false;
         base.Show();
         extrasPanel.Offset = new Vector2(0, panel.Offset.Y);
+        extrasMaskArea = extrasPanel.CalcDestRect();
+        GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }
 
     public override void Hide() {
@@ -298,6 +305,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
         if (extrasPanel.Parent != null) {
             UserInterface.Active.RemoveEntity(extrasPanel);
         }
+        GameScene.Active.MaskedAreas.Remove(extrasMaskArea);
         base.Hide();
     }
 
