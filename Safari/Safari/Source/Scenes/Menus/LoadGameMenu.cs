@@ -91,5 +91,6 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
         panel = null;
         title = null;
         menuButton = null;
+        savesPanel = null;
     }
 }

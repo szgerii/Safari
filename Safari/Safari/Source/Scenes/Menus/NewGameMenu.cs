@@ -32,7 +32,6 @@ public class NewGameMenu : MenuScene, IResettableSingleton {
     private RadioButton radioEasy;
     private RadioButton radioMedium;
     private RadioButton radioHard;
-    private bool loadGame = false;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);

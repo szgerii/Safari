@@ -92,6 +92,7 @@ class SaveSelectMenu : MenuScene, IResettableSingleton{
         title = null;
         saveSelectButton = null;
         park = null;
-    }
+        savesPanel = null;
+}
 }
 
