@@ -481,22 +481,22 @@ public static class MapBuilder {
 
 		// animals (at random positions)
 		for (int i = 0; i < ZEBRA_COUNT; i++) {
-			Game.AddObject(new Zebra(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Zebra(GetRandomSpawn(level, AnimalSpecies.Lion.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < GIRAFFE_COUNT; i++) {
-			Game.AddObject(new Giraffe(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Giraffe(GetRandomSpawn(level, AnimalSpecies.Giraffe.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < ELEPHANT_COUNT; i++) {
-			Game.AddObject(new Elephant(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Elephant(GetRandomSpawn(level, AnimalSpecies.Elephant.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < LION_COUNT; i++) {
-			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Lion(GetRandomSpawn(level, AnimalSpecies.Lion.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_COUNT; i++) {
-			Game.AddObject(new Tiger(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Tiger(GetRandomSpawn(level, AnimalSpecies.Tiger.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
-			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new TigerWhite(GetRandomSpawn(level, AnimalSpecies.TigerWhite.GetSize()), IntegerToGender(i)));
 		}
 
 		for (int i = 0; i < Jeep.STARTING_JEEPS; i++) {
@@ -516,17 +516,28 @@ public static class MapBuilder {
 
 	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;
 
-	public static Vector2 GetRandomSpawn(Level level) {
+	public static Vector2 GetRandomSpawn(Level level, Point? size = null) {
+		size ??= new Point(1);
+
 		int minTX = Level.PLAY_AREA_CUTOFF_X + 3;
 		int maxTX = level.MapWidth - Level.PLAY_AREA_CUTOFF_X - 3;
 		int minTY = Level.PLAY_AREA_CUTOFF_Y + 3;
 		int maxTY = level.MapHeight - Level.PLAY_AREA_CUTOFF_Y - 3;
 
+		Point[] offsets = new Point[size.Value.X * size.Value.Y - 1];
+		for (int x = 0; x < size.Value.X; x++) {
+			for (int y = 0; y < size.Value.Y; y++) {
+				if (x == 0 && y == 0) continue;
+
+				offsets[x * size.Value.Y + y - 1] = new Point(x, y);
+			}
+		}
+
 		Point p = new Point();
 		do {
 			p = new Point(Game.Random.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
-		} while (level.GetTile(p) != null);
+		} while (!level.ConstructionHelperCmp.CanBuild(p, offsets));
 
-		return new Vector2(p.X * level.TileSize + Game.Random.Next(32), p.Y * level.TileSize + Game.Random.Next(32));
+		return new Vector2(p.X * level.TileSize, p.Y * level.TileSize);
 	}
 }
