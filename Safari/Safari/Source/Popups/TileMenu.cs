@@ -288,21 +288,16 @@ public class TileMenu : CategoryMenu, IUpdatable {
     public override void Show() {
         GameScene.Active.MouseMode = MouseMode.Build;
         UserInterface.Active.AddEntity(extrasPanel);
-        base.Show();
         destroyButton.Checked = false;
+        base.Show();
         extrasPanel.Offset = new Vector2(0, panel.Offset.Y);
-        GameScene.Active.MaskedAreas.Add(extrasPanel.CalcDestRect());
     }
 
     public override void Hide() {
-        if (panel.Parent == null) {
-            return;
-        }
         GameScene.Active.MouseMode = MouseMode.Inspect;
         if (extrasPanel.Parent != null) {
             UserInterface.Active.RemoveEntity(extrasPanel);
         }
-        GameScene.Active.MaskedAreas.Remove(extrasPanel.CalcDestRect());
         base.Hide();
     }
 

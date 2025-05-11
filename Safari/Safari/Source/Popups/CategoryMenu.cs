@@ -9,8 +9,6 @@ public abstract class CategoryMenu : PopupMenu {
     private bool visible = false;
     private readonly Header header;
 
-    private Rectangle maskArea;
-
     public bool Visible => visible;
 
     public CategoryMenu(string categoryName) {
@@ -26,22 +24,13 @@ public abstract class CategoryMenu : PopupMenu {
     }
 
     public override void Show() {
-        if (panel.Parent != null) {
-            return;
-        }
         visible = true;
         panel.Offset = new Vector2(0, Statusbar.Instance.Size.Height - 45);
-        maskArea = panel.CalcDestRect();
-        GameScene.Active.MaskedAreas.Add(maskArea);
         base.Show();
     }
 
     public override void Hide() {
-        if (panel.Parent == null) {
-            return;
-        }
         visible = false;
-        GameScene.Active.MaskedAreas.Remove(maskArea);
         base.Hide();
     }
 

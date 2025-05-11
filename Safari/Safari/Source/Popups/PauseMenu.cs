@@ -40,9 +40,6 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         panel = new Panel(new Vector2(0.4f, 0.7f), PanelSkin.Default, Anchor.Center);
         panel.MaxSize = new Vector2(400, 600);
         panel.Padding = new Vector2(10);
-        Panel bg = new Panel(new Vector2(0, 0));
-        bg.Opacity = (byte)0.5f;
-        panel.Background = bg;
 
         Title = new Header("Safari", Anchor.TopCenter);
         panel.AddChild(Title);

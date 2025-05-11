@@ -11,7 +11,6 @@ public class EntityControllerMenu : PopupMenu {
 	private Button closeButton;
 	private readonly Image image;
 	private Header header;
-	private Rectangle maskArea;
 	protected Safari.Model.Entities.Entity controlledEntity;
 
 	public EntityControllerMenu(Safari.Model.Entities.Entity entity) {
@@ -65,9 +64,6 @@ public class EntityControllerMenu : PopupMenu {
 		controlledEntity.Died += OnEntityDied;
 		controlledEntity.IsBeingInspected = true;
 		base.Show();
-		maskArea = this.panel.CalcDestRect();
-
-		GameScene.Active.MaskedAreas.Add(maskArea);
 	}
 
 	public override void Hide() {
@@ -76,8 +72,6 @@ public class EntityControllerMenu : PopupMenu {
 		controlledEntity.IsBeingInspected = false;
 		base.Hide();
 		Active = null;
-		
-		GameScene.Active.MaskedAreas.Remove(maskArea);
 	}
 
 	public override void Update(GameTime gameTime) {

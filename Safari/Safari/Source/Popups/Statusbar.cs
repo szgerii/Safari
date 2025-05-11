@@ -258,39 +258,25 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     public void Load() {
         visible = true;
-        UserInterface.Active.AddEntity(panel);
+        base.Show();
         AdjustSpeedButtons();
         ScaleText(null, EventArgs.Empty);
-
-        maskArea = panel.CalcDestRect();
-        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public void Unload() {
         visible = false;
-        if (panel.Parent != null) {
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
-        }
+        base.Hide();
         EntityManager.Instance.Unload();
         animals.Hide();
         tiles.Hide();
         others.Hide();
-
-        this.Hide();
     }
 
     public void Toggle() {
         if (visible) {
-            visible = false;
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
+            Unload();
         } else {
-            visible = true;
-            UserInterface.Active.AddEntity(panel);
-            maskArea = panel.CalcDestRect();
-            GameScene.Active.MaskedAreas.Add(maskArea);
-            panel.SendToBack();
+            Load();
         }
     }
 
