@@ -63,8 +63,18 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 				loadGame = false;
 				gameToLoad = null;
 			} else {
-				new GameModelPersistence(parkNameToLoad).Load(parkSlotToLoad);
-				loadGame = false;
+				try {
+					new GameModelPersistence(parkNameToLoad).Load(parkSlotToLoad);
+					loadGame = false;
+				} catch {
+					loadGame = false;
+
+					AlertMenu am = new AlertMenu("Corrupt save file", "An unexpected error occured when trying to read a corrupt save file");
+					am.Chosen += (object sender, bool choice) => {
+						SceneManager.Load(MainMenu.Instance);
+					};
+					am.Show();
+				}
 			}
         }
     }

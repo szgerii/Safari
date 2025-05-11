@@ -44,6 +44,7 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
             savesPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
             StyleProperty hover = new StyleProperty(Color.LightGray);
             StyleProperty click = new StyleProperty(Color.LightSlateGray);
+            int parkCount = 0;
             foreach (string park in GameModelPersistence.ListExistingParkNames()) {
                 Panel tempPanel = new Panel(new Vector2(0, 0.25f), PanelSkin.Simple, Anchor.Auto);
 
@@ -53,7 +54,11 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
                     SceneManager.Load(SaveSelectMenu.Instance);
                 };
 
-                var tempSave = new GameModelPersistence(park).Saves[0].MetaData;
+                var temp = new GameModelPersistence(park);
+                if (temp.Saves.Count <= 0) {
+                    continue;
+                }
+                var tempSave = temp.Saves[0].MetaData;
 
                 Label tempLabelName = new Label($"{tempSave.ParkName}{(tempSave.GameAlreadyWon ? "(won)" : "")}", Anchor.CenterLeft, new Vector2(0.3f, 0));
                 tempLabelName.ClickThrough = true;
@@ -74,7 +79,13 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
                 tempPanel.AddChild(tempLabelSaveDate);
                 tempPanel.AddChild(tempLabelIngameDate);
                 savesPanel.AddChild(tempPanel);
+                parkCount++;
             }
+            if (parkCount == 0) {
+				Label noSaveLabel = new Label("You don't have a saved game to load.", Anchor.Center, new Vector2(0));
+				noSaveLabel.Scale = SettingsMenu.Scale;
+				savesPanel.AddChild(noSaveLabel);
+			}
         }
 
         menuButton = new Button("Back to Menu", ButtonSkin.Default, Anchor.BottomRight, new Vector2(250, 60));

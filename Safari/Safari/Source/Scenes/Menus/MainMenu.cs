@@ -4,6 +4,7 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
 using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
@@ -80,7 +81,11 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void ContinueGameClicked(Entity entity) {
-        LoadingScene.Instance.LoadSave(GameModelPersistence.ListExistingParkNames()[0], 0);
+        try {
+            LoadingScene.Instance.LoadSave(GameModelPersistence.ListExistingParkNames()[0], 0);
+        } catch {
+            new AlertMenu("Corrupt save file", "An unexpected error occured when trying to read a corrupt save file").Show();
+        }
     }
 
     private void LoadGameClicked(Entity entity) {
