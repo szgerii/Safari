@@ -54,12 +54,12 @@ public static class AnimalSpeciesExtensions {
 	/// <returns>The base price of the species</returns>
 	public static int GetPrice(this AnimalSpecies species) {
 		return species switch {
-			AnimalSpecies.Zebra => 100,
-			AnimalSpecies.Elephant => 100,
-			AnimalSpecies.Giraffe => 100,
-			AnimalSpecies.Lion => 100,
-			AnimalSpecies.Tiger => 100,
-			AnimalSpecies.TigerWhite => 100,
+			AnimalSpecies.Zebra => 400,
+			AnimalSpecies.Elephant => 500,
+			AnimalSpecies.Giraffe => 600,
+			AnimalSpecies.Lion => 400,
+			AnimalSpecies.Tiger => 500,
+			AnimalSpecies.TigerWhite => 700,
 			_ => 0,
 		};
 	}

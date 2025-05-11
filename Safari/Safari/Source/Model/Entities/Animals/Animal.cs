@@ -22,6 +22,9 @@ public enum Gender {
 	Female
 }
 
+/// <summary>
+/// A class for representing general animal information (most behaviour logic is container in the AnimalGroup class)
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class Animal : Entity {
 	/// <summary>
@@ -35,17 +38,17 @@ public abstract class Animal : Entity {
 	/// The level of hunger at which a herbivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_HERB = 50;
-	private const float INITIAL_HUNGER_DECAY_HERB = 0.1f;
+	private const float INITIAL_HUNGER_DECAY_HERB = 0.26f;
 	/// <summary>
 	/// The level of hunger at which a carnivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_CARN = 45;
-	private const float INITIAL_HUNGER_DECAY_CARN = 0.2f;
+	private const float INITIAL_HUNGER_DECAY_CARN = 0.17f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.2f;
+	private const float INITIAL_THIRST_DECAY = 0.32f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>

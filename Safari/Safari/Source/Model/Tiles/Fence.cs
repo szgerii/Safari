@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework;
 
 namespace Safari.Model.Tiles;
 
+/// <summary>
+/// A class representing the fence separating the play area from the rest of the map
+/// </summary>
 public class Fence : AutoTile {
 	public Fence() : base(Game.LoadTexture("Assets/Fence/Fence")) {
 		Layout[0] = new Point(0, 0);

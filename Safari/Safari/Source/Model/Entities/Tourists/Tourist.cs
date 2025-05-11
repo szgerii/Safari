@@ -12,6 +12,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities.Tourists;
 
+/// <summary>
+/// The possible states of the tourist entity
+/// </summary>
 public enum TouristState {
 	Entering,
 	Leaving,
@@ -19,14 +22,28 @@ public enum TouristState {
 	InJeep
 };
 
+/// <summary>
+/// A class representing the tourists visiting our park
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Tourist : Entity {
-	public const int RATING_MEMORY = 80;
+	/// <summary>
+	/// The number of old reviews that determine the rating of the park
+	/// (The larger this number, the harder it is to increase rating)
+	/// </summary>
 	[StaticSavedProperty]
-	private static double[] recentRatings = new double[RATING_MEMORY];
+	public static int RatingMemory { get; set; }
+	[StaticSavedProperty]
+	private static double[] recentRatings;
 	[StaticSavedProperty]
 	private static int ratingCount = 0;
+	/// <summary>
+	/// The spawner responsible for "creating" tourists
+	/// </summary>
 	public static EntitySpawner<Tourist> Spawner { get; set; }
+	/// <summary>
+	/// The tourists that are currently waiting in the line
+	/// </summary>
 	[StaticSavedReference]
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
 
@@ -77,7 +94,13 @@ public class Tourist : Entity {
 	/// The spot at which the tourists get picked up
 	/// </summary>
 	public static Point PickupSpot { get; set; }
+	/// <summary>
+	/// Shorthand for the current gamescenes level object
+	/// </summary>
 	public static Level CurrentLevel => GameScene.Active.Model.Level;
+	/// <summary>
+	/// The space in the line between tourists
+	/// </summary>
 	public static double QueueOffset => CurrentLevel.TileSize / 1.23;
 
 	/// <summary>
@@ -119,18 +142,28 @@ public class Tourist : Entity {
 	[GameobjectReferenceProperty]
 	public Jeep Vehicle { get; set; }
 
-	public static void Init() {
+	/// <summary>
+	/// Initialize the static state of tourists
+	/// </summary>
+	public static void Init(int memory) {
 		Queue = new List<Tourist>();
-		recentRatings = new double[RATING_MEMORY];
+		RatingMemory = memory;
+		recentRatings = new double[RatingMemory];
 		ratingCount = 0;
 	}
 
+	/// <summary>
+	/// Update the tourist queue (so that everyone knows what spot they should walk to)
+	/// </summary>
 	public static void UpdateQueue() {
 		for (int i = 0; i < Queue.Count; i++) {
 			Queue[i].queueIndex = i;
 		}
 	}
 
+	/// <summary>
+	/// Add a review to the overall rating of the park
+	/// </summary>
 	public static void AddReview(double review) {
 		if (ratingCount < recentRatings.Length) {
 			recentRatings[ratingCount] = review;
@@ -144,6 +177,9 @@ public class Tourist : Entity {
 		UpdateSpawner();
 	}
 
+	/// <summary>
+	/// Update the tourist spawners frequency based on the rating of the park
+	/// </summary>
 	public static void UpdateSpawner() {
 		Spawner.Frequency = 1.0f / (SpawnRate);
 	}
@@ -361,17 +397,26 @@ public class Tourist : Entity {
 		}
 	}
 
+	/// <summary>
+	/// Remove this tourist from their vehicle, and prompt them to walk out of the park
+	/// </summary>
 	public void LeaveJeep() {
 		Vehicle = null;
 		shouldDraw = true;
 		StateMachine.Transition(TouristState.Leaving);
 	}
 
+	/// <summary>
+	/// Notify this tourist that the tour has successfully concluded, and they may leave a review
+	/// </summary>
 	public void TourFinished() {
 		rating = Math.Clamp(rating, 1.0, 5.0);
 		AddReview(rating);
 	}
 
+	/// <summary>
+	/// Notify this tourist that unfortunately their jeep got "destroyed", and they must leave immediately
+	/// </summary>
 	public void TourFailed() {
 		AddReview(1.0f);
 	}
@@ -411,6 +456,9 @@ public class Tourist : Entity {
 		Die();
 	}
 
+	/// <summary>
+	/// Notifies the tourist that it's time to pay for the ride
+	/// </summary>
 	public void Pay() {
 		GameScene.Active.Model.Funds += Jeep.RentFee;
 		payedAmount = Jeep.RentFee;

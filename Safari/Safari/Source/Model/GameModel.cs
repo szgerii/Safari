@@ -12,12 +12,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model;
 
+/// <summary>
+/// The possible difficulty levels the game can be played at
+/// </summary>
 public enum GameDifficulty {
 	Easy,
 	Normal,
 	Hard
 }
 
+/// <summary>
+/// The possible rate the game can be advanced at
+/// </summary>
 public enum GameSpeed {
 	Paused,
 	Slow,
@@ -25,31 +31,69 @@ public enum GameSpeed {
 	Fast
 }
 
+/// <summary>
+/// The possible reasons the player has lost the game
+/// </summary>
 public enum LoseReason {
 	Money,
 	Animals
 }
 
+/// <summary>
+/// The class responsible for the general state of the game (like funds, winning, losing, time management, etc.)
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class GameModel {
-	// constants for money requirements for winning
-	public const int WIN_FUNDS_EASY = 30000;
-	public const int WIN_FUNDS_NORMAL = 80000;
-	public const int WIN_FUNDS_HARD = 150000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_FUNDS_EASY = 50000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on normal difficulty
+	/// </summary>
+	public const int WIN_FUNDS_NORMAL = 120000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on hard difficulty
+	/// </summary>
+	public const int WIN_FUNDS_HARD = 200000;
 
-	// constants for herbivore count requirements for winning
-	public const int WIN_HERB_EASY = 5;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_HERB_EASY = 20;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_HERB_NORMAL = 40;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_HERB_HARD = 80;
 
-	// constants for carnivore count requirements for winning
-	public const int WIN_CARN_EASY = 5;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_CARN_EASY = 20;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_CARN_NORMAL = 40;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_CARN_HARD = 80;
 
-	// constants storing how long the player has to keep the winning conditions
-	public const int WIN_DAYS_EASY = 3;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_DAYS_EASY = 5;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_DAYS_NORMAL = 30;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_DAYS_HARD = 60;
 
 	/// <summary>
@@ -74,9 +118,21 @@ public class GameModel {
 	/// </summary>
 	public const double DAY_LENGTH = 210.0;
 
+	/// <summary>
+	/// The relative time in a day when sunrise should start
+	/// </summary>
 	public const double SUNRISE_START = 0.98;
+	/// <summary>
+	/// The relative time in a day when sunrise should end
+	/// </summary>
 	public const double SUNRISE_END = 0.02;
+	/// <summary>
+	/// The relative time in a day when sunset should start
+	/// </summary>
 	public const double SUNSET_START = 0.62;
+	/// <summary>
+	/// The relative time in a day when sunset should end
+	/// </summary>
 	public const double SUNSET_END = 0.66;
 
 	private GameSpeed prevSpeed;
@@ -123,6 +179,9 @@ public class GameModel {
 		GameSpeed.Fast => FAST_FRAMES / FAST_FAKE,
 		_ => 0
 	};
+	/// <summary>
+	/// The number by which the gametime's delta should be multiplied at the current gamespeed
+	/// </summary>
 	public double FakeFrameMul => GameSpeed switch {
 		GameSpeed.Medium => MEDIUM_FAKE,
 		GameSpeed.Fast => FAST_FAKE,
@@ -379,6 +438,9 @@ public class GameModel {
 		}
 	}
 
+	/// <summary>
+	/// Pause the game (the simulation does not advance)
+	/// </summary>
 	public void Pause() {
 		if (GameSpeed != GameSpeed.Paused) {
 			prevSpeed = GameSpeed;
@@ -386,12 +448,18 @@ public class GameModel {
 		}
 	}
 
+	/// <summary>
+	/// Resume the game (the simulation runs normally)
+	/// </summary>
 	public void Resume() {
 		if (GameSpeed == GameSpeed.Paused) {
 			GameSpeed = prevSpeed;
 		}
 	}
 
+	/// <summary>
+	/// Print various information regarding the current state of the game model
+	/// </summary>
 	[ExcludeFromCodeCoverage]
 	public void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;

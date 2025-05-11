@@ -18,6 +18,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities;
 
+/// <summary>
+/// A class that contains general behaviour and properties of all entities (animals, jeeps, poachers, rangers, etc.)
+/// </summary>
 [SimulationActor]
 [JsonObject(MemberSerialization.OptIn)]
 public abstract class Entity : GameObject, ISpatial {
@@ -202,6 +205,9 @@ public abstract class Entity : GameObject, ISpatial {
 		return true;
 	}
 
+	/// <summary>
+	/// Fetches the entity currently hovered on (or null)
+	/// </summary>
 	public static Entity GetEntityOnMouse() {
 		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
 		Entity result = null;
@@ -321,6 +327,11 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
 	public virtual bool CanSee(GameObject obj) => CanSee(obj.Position);
+	/// <summary>
+	/// Checks if the entity can see a given game object
+	/// </summary>
+	/// <param name="e">The Entity to check</param>
+	/// <returns>Whether the object is inside the entity's sight</returns>
 	public virtual bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
@@ -334,6 +345,11 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's reach</returns>
 	public virtual bool CanReach(GameObject obj) => CanReach(obj.Position);
+	/// <summary>
+	/// Checks if the entity can reach a given game object
+	/// </summary>
+	/// <param name="obj">The entity to check</param>
+	/// <returns>Whether the object is inside the entity's reach</returns>
 	public virtual bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
 
 	/// <summary>

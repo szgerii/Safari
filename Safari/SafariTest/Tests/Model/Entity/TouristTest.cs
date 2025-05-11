@@ -20,7 +20,7 @@ public class TouristTest : SimulationTest {
 	[TestMethod]
 	public void TouristStaticState() {
 		// Queue init, queue update
-		Tourist.Init();
+		Tourist.Init(60);
 		Assert.IsNotNull(Tourist.Queue);
 		Assert.AreEqual(0, Tourist.Queue.Count);
 		Tourist t1 = SpawnT(new(0, 0));
@@ -35,7 +35,7 @@ public class TouristTest : SimulationTest {
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 		Assert.AreEqual(1 / 0.7f, tSpawner.Frequency, acc);
-		for (int i = 0; i < Tourist.RATING_MEMORY / 2; i++) {
+		for (int i = 0; i < Tourist.RatingMemory / 2; i++) {
 			Tourist.AddReview(4.0f);
 		}
 		Assert.AreEqual(3.0f, Tourist.AvgRating, acc);
@@ -50,7 +50,7 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
 		Assert.AreEqual(0, Model.TouristCount);
-		Tourist.Init();
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -99,7 +99,7 @@ public class TouristTest : SimulationTest {
 
 		Tourist.PickupSpot = new Point(3, 3);
 		Vector2 PickupCenter = Model.Level.GetTileCenter(new Point(3, 3));
-		Tourist.Init();
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -133,7 +133,7 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
 		Vector2 PickupCenter = Model.Level.GetTileCenter(Tourist.PickupSpot);
-		Tourist.Init();
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();

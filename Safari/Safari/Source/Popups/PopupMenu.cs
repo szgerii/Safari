@@ -12,7 +12,7 @@ public abstract class PopupMenu : IUpdatable {
 
     private Rectangle maskArea;
     /// <summary>
-    /// Shows the popup.
+    /// Shows the popup and handles background logic.
     /// </summary>
     public virtual void Show() {
         if (panel.Parent != null) {
@@ -32,7 +32,7 @@ public abstract class PopupMenu : IUpdatable {
     }
 
     /// <summary>
-    /// Hides the popup.
+    /// Hides the popup and handles background logic.
     /// </summary>
     public virtual void Hide() {
         if(background == null && panel.Parent != null) {

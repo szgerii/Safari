@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 
 namespace Safari.Model.Entities.Animals;
 
+/// <summary>
+/// A class representing lions
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Lion : Animal {
 	[JsonConstructor]

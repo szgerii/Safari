@@ -23,6 +23,9 @@ public enum RoadState {
 	FromNone
 }
 
+/// <summary>
+/// The details of the change in the network
+/// </summary>
 public class RoadChangedEventArgs : EventArgs {
 	/// <summary>
 	/// The tilemap coordinates of the changed point
@@ -39,6 +42,9 @@ public class RoadChangedEventArgs : EventArgs {
 	}
 };
 
+/// <summary>
+/// The class responsible for managing tour routes in a network of roads
+/// </summary>
 public class RoadNetwork {
 	private readonly int width;
 	private readonly int height;
@@ -48,7 +54,13 @@ public class RoadNetwork {
 	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 
+	/// <summary>
+	/// The coordinates from which all normal routes should start
+	/// </summary>
 	public Point Start { get; set; }
+	/// <summary>
+	/// The coordinates at which all normal routes should end
+	/// </summary>
 	public Point End { get; set; }
 
 	/// <summary>
@@ -83,6 +95,10 @@ public class RoadNetwork {
 		}
 	}
 
+	/// <summary>
+	/// Retrieve the shortest path from the end of the map to the start of the map
+	/// (Use this instead of a regular route, because return routes are cached)
+	/// </summary>
 	public List<Point> ReturnRoute {
 		get {
 			if (!upToDate) {

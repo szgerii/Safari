@@ -34,6 +34,9 @@ public abstract class CategoryMenu : PopupMenu {
         base.Hide();
     }
 
+    /// <summary>
+    /// Toggles the category menu's visibility.
+    /// </summary>
     public void ToggleCategoryMenu() {
         if (visible) {
             Hide();

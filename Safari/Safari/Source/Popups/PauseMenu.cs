@@ -101,6 +101,9 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         SceneManager.Load(MainMenu.Instance);
     }
 
+    /// <summary>
+    /// Toggles Pause menu's visibility and handles game pausing.
+    /// </summary>
     public void TogglePauseMenu() {
         if (SceneManager.Active is not GameScene) {
             return;

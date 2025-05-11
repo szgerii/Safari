@@ -2,6 +2,9 @@
 
 namespace Safari.Model.Tiles;
 
+/// <summary>
+/// A class representing grass tiles, one of the main food sources for animals
+/// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Grass : AutoTile {
 	[JsonConstructor]

@@ -229,7 +229,7 @@ public class GameModelPersistence {
 		GameModel model = JsonConvert.DeserializeObject<GameModel>(head.GameCoreSerialized);
 		
 		Jeep.Init(400);
-		Tourist.Init();
+		Tourist.Init(60);
 		Ranger.Init();
 
 		GameScene scene = new GameScene(model);

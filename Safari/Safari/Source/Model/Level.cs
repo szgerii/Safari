@@ -23,7 +23,13 @@ namespace Safari.Model;
 /// </summary>
 [JsonObject(MemberSerialization.OptIn)]
 public class Level : GameObject {
+	/// <summary>
+	/// The number of tiles at the east and west sides of the map that are not playable
+	/// </summary>
 	public static int PLAY_AREA_CUTOFF_X { get; set; } = 8;
+	/// <summary>
+	/// The number of tiles at the north and south sides of the map that are not playable
+	/// </summary>
 	public static int PLAY_AREA_CUTOFF_Y { get; set; } = 8;
 
 	/// <summary>
@@ -170,8 +176,14 @@ public class Level : GameObject {
 		return GetTilesInArea(tilemapArea);
 	}
 
+	/// <summary>
+	/// Calculate the center of a tile at the given coordinates in world position
+	/// </summary>
 	public Vector2 GetTileCenter(Point p) => new Vector2(p.X * TileSize + TileSize / 2.0f, p.Y * TileSize + TileSize / 2.0f);
 
+	/// <summary>
+	/// Fetch a blob of positions centered around the given coordinates
+	/// </summary>
 	public List<Point> GetTileBlob(Point tilemapPos) {
 		if (IsOutOfBounds(tilemapPos))
 			throw new ArgumentException(null, nameof(tilemapPos));
