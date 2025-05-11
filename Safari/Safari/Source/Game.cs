@@ -163,7 +163,7 @@ public class Game : Engine.Game {
 			AlertMenu.Adjust();
 			PauseMenu.Instance.Update(gameTime);
 			MainMenu.Instance.Update(gameTime);
-			NewGameMenu.Instance.Update(gameTime);
+			LoadingScene.Instance.Update(gameTime);
 			EntityControllerMenu.Active?.Update(gameTime);
 
 			UserInterface.Active.Update(gameTime);

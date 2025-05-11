@@ -4,10 +4,11 @@ using Microsoft.Xna.Framework;
 using Safari.Popups;
 using Engine;
 using Safari.Helpers;
+using Safari.Model;
 
 namespace Safari.Scenes.Menus;
 
-public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
+public class NewGameMenu : MenuScene, IResettableSingleton {
 	private static NewGameMenu instance;
 	public static NewGameMenu Instance {
 		get {
@@ -75,8 +76,7 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        SceneManager.Load(LoadingScene.Instance);
-        loadGame = true;
+        LoadingScene.Instance.LoadNewGame(input.Value, radioEasy.Checked ? GameDifficulty.Easy : radioMedium.Checked ? GameDifficulty.Normal : GameDifficulty.Hard);
     }
 
     private void MenuButtonClicked(Entity entity) {
@@ -95,12 +95,5 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
         radioEasy = null;
         radioMedium = null;
         radioHard = null;
-    }
-
-    public override void Update(GameTime gameTime) {
-        if (loadGame) {
-            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
-            loadGame = false;
-        }
     }
 }
