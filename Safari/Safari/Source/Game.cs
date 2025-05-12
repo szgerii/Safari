@@ -241,7 +241,7 @@ public class Game : Engine.Game {
         InputManager.Keyboard.OnPressed(Keys.D1, () => Statusbar.Instance.SetSpeed(GameSpeed.Slow));
         InputManager.Keyboard.OnPressed(Keys.D2, () => Statusbar.Instance.SetSpeed(GameSpeed.Medium));
         InputManager.Keyboard.OnPressed(Keys.D3, () => Statusbar.Instance.SetSpeed(GameSpeed.Fast));
-        InputManager.Keyboard.OnPressed(Keys.Tab, () => EntityManager.Instance.Toggle());
+        InputManager.Keyboard.OnPressed(Keys.Tab, () => Statusbar.Instance.ToggleEntityManager());
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("draw-colliders"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));

@@ -18,6 +18,8 @@ public class AnimalMenu : CategoryMenu {
     private readonly Button maleButton;
     private readonly Button femaleButton;
 
+    private Rectangle extrasMaskArea;
+
     public Gender SelectedGender { get; private set; } = Gender.Female;
 
     public AnimalMenu() : base("Animal") {
@@ -82,12 +84,15 @@ public class AnimalMenu : CategoryMenu {
         }
         base.Show();
         genderPanel.Offset = new Vector2(0, panel!.Offset.Y);
+        extrasMaskArea = genderPanel.CalcDestRect();
+        GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }
 
     public override void Hide() {
         if (genderPanel.Parent != null) {
             UserInterface.Active.RemoveEntity(genderPanel);
         }
+        GameScene.Active.MaskedAreas.Remove(extrasMaskArea);
         base.Hide();
     }
 }

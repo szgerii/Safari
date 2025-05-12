@@ -55,6 +55,7 @@ class EntityManager : PopupMenu {
     private readonly Button jeepRentFeePlusButton;
 
     private readonly DefaultAnimalSelectorPopup defaultSelector = DefaultAnimalSelectorPopup.Instance;
+    public bool Visible => visible;
 
     public static EntityManager Instance => instance;
 
