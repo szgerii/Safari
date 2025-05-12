@@ -130,7 +130,7 @@ public class SafariSettings
         DefaultResolution = (1280, 720);
         DefaultWindowType = WindowType.WINDOWED;
 #else
-        DisplayMode native = Game.Graphics.GraphicsDevice.Adapter.CurrentDisplayMode;
+        DisplayMode native = Game.Graphics!.GraphicsDevice.Adapter.CurrentDisplayMode;
         DefaultResolution = DisplayManager.IsSupported(native.Width, native.Height) ? (native.Width, native.Height) : (1920, 1080);
         DefaultWindowType = WindowType.FULL_SCREEN;
 #endif
