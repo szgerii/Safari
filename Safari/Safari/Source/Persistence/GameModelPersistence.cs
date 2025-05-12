@@ -98,6 +98,10 @@ public class GameModelPersistence {
 	public List<SafariSaveHead> Saves { get; private init; } = new();
 
 	static GameModelPersistence() {
+		if (!Directory.Exists(SavePath)) {
+			Directory.CreateDirectory(SavePath);
+		}
+
 		foreach (MethodInfo mi in typeof(JsonConvert).GetRuntimeMethods()) {
 			ParameterInfo[] ps = mi.GetParameters();
 			if (mi.Name == "DeserializeObject" && mi.IsStatic && mi.IsGenericMethod && ps.Length == 1) {
