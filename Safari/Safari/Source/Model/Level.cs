@@ -201,11 +201,13 @@ public class Level : GameObject {
 			result.Add(current);
 
 			void TryQueue(Point pos) {
+				if (IsOutOfBounds(pos)) {
+					return;
+				}
+
 				Tile? tile = GetTile(pos);
 
-				if (tile != null && !IsOutOfBounds(pos) && !(result.Contains(pos) || traversalQueue.Contains(pos))
-					&& tile.GetType() == tileType)
-				{
+				if (tile != null && !(result.Contains(pos) || traversalQueue.Contains(pos)) && tile.GetType() == tileType) {
 					traversalQueue.Push(pos);
 				}
 			}
