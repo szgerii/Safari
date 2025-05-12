@@ -212,7 +212,9 @@ public class TileMenu : CategoryMenu, IUpdatable {
             destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.BUSH;
-            Shop.CHelper.SelectedItem.VariantChoice = 0;
+            if (Shop.CHelper.SelectedItem != null) {
+                Shop.CHelper.SelectedItem.VariantChoice = 0;
+            }
         };
 
         Label bushLabel = new Label("Bush" + "(" + Shop.BUSH_COST + ")", Anchor.Center, new Vector2(0));
