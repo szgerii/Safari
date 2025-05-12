@@ -19,7 +19,7 @@ public class AnimalBaseTest : SimulationTest {
 	public void InitAnimal() {
 		animal = AddAnimalToGame();
 		animalPO = new(animal);
-		groupPO = new(animal.Group);
+		groupPO = new(animal.Group!);
 	}
 
 	[TestMethod("Properties Test")]
@@ -200,7 +200,7 @@ public class AnimalBaseTest : SimulationTest {
 
 	[TestMethod("World Interaction Test")]
 	public void TestInteraction() {
-		Point tilemapPos = (animal!.Position / Model.Level.TileSize).ToPoint();
+		Point tilemapPos = (animal!.Position / Model.Level!.TileSize).ToPoint();
 
 		Model.Level.SetTile(tilemapPos, new Grass());
 		animal.Update(unitGT);

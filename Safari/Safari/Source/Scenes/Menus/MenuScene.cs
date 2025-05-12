@@ -4,7 +4,7 @@ using GeonBit.UI.Entities;
 
 namespace Safari.Scenes.Menus;
 public abstract class MenuScene : Scene {
-    protected Panel panel;
+    protected Panel? panel;
 
     public override void Load() {
         base.Load();

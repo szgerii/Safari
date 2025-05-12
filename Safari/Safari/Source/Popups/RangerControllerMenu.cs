@@ -27,7 +27,7 @@ public class RangerControllerMenu : EntityControllerMenu {
 		dropDown.AddItem("Default", nullValue);
 		dropDown.SelectedIndex = ranger.TargetSpecies != null ? (int)ranger.TargetSpecies : nullValue;
 		
-		panel.AddChild(dropDown);
+		panel!.AddChild(dropDown);
 
         StyleProperty deleteBase = new StyleProperty(Color.Red);
         StyleProperty deleteHover = new StyleProperty(Color.DarkRed);

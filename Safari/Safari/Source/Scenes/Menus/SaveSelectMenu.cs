@@ -4,13 +4,14 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
 using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 
 class SaveSelectMenu : MenuScene, IResettableSingleton{
-    private static SaveSelectMenu instance;
-    private string park = null;
-    public string Park { get => park; set => park = value; }
+    private static SaveSelectMenu? instance;
+    private string? park = null;
+    public string? Park { get => park; set => park = value; }
     public static SaveSelectMenu Instance {
         get {
             instance ??= new();
@@ -22,13 +23,14 @@ class SaveSelectMenu : MenuScene, IResettableSingleton{
         instance = null;
     }
 
-    private Header title;
-    private Panel savesPanel;
-    private Button saveSelectButton;
+    private Header? title;
+    private Panel? savesPanel;
+    private Button? saveSelectButton;
 
     protected override void ConstructUI() {
         if(park == null) {
             SceneManager.Load(LoadGameMenu.Instance);
+            return;
         }
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
 
@@ -53,7 +55,12 @@ class SaveSelectMenu : MenuScene, IResettableSingleton{
 
             var tempSave = save.MetaData;
 
-            Label tempLabelName = new Label($"{counter}# {tempSave.ParkName}{(tempSave.GameAlreadyWon ? "(won)" : "")}", Anchor.CenterLeft, new Vector2(0.3f, 0));
+			if (tempSave == null) {
+				new AlertMenu("Corrupted Save", "One of your save files contains corrupted data and its metadata couldn't be read").Show();
+				continue;
+			}
+
+			Label tempLabelName = new Label($"{counter}# {tempSave.ParkName}{(tempSave.GameAlreadyWon ? "(won)" : "")}", Anchor.CenterLeft, new Vector2(0.3f, 0));
             tempLabelName.ClickThrough = true;
             tempLabelName.Scale = SettingsMenu.Scale;
 

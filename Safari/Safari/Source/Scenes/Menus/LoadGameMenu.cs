@@ -11,7 +11,7 @@ using Safari.Popups;
 namespace Safari.Scenes.Menus;
 
 public class LoadGameMenu : MenuScene, IResettableSingleton {
-    private static LoadGameMenu instance;
+    private static LoadGameMenu? instance;
     public static LoadGameMenu Instance {
         get {
             instance ??= new();
@@ -23,9 +23,9 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
         instance = null;
     }
 
-    private Header title;
-    private Panel savesPanel;
-    private Button menuButton;
+    private Header? title;
+    private Panel? savesPanel;
+    private Button? menuButton;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
@@ -59,6 +59,11 @@ public class LoadGameMenu : MenuScene, IResettableSingleton {
                     continue;
                 }
                 var tempSave = temp.Saves[0].MetaData;
+
+                if (tempSave == null) {
+                    new AlertMenu("Corrupted Save", "One of your save files contains corrupted data and its metadata couldn't be read").Show();
+                    continue;
+                }
 
                 Label tempLabelName = new Label($"{tempSave.ParkName}{(tempSave.GameAlreadyWon ? "(won)" : "")}", Anchor.CenterLeft, new Vector2(0.3f, 0));
                 tempLabelName.ClickThrough = true;

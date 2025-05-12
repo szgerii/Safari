@@ -14,7 +14,7 @@ namespace Engine.Objects;
 
 [JsonObject(MemberSerialization.OptIn)]
 public class Camera : GameObject {
-	public static Camera Active { get; set; }
+	public static Camera? Active { get; set; }
 
 	[JsonProperty]
 	public float Zoom { get; set; } = 1.0f;
@@ -30,7 +30,7 @@ public class Camera : GameObject {
 
 	public Matrix TransformMatrix { get; private set; }
 
-	public Point ScreenSize => Game.RenderTarget.Bounds.Size;
+	public Point ScreenSize => Game.RenderTarget!.Bounds.Size;
 	public int ScreenWidth => ScreenSize.X;
 	public int ScreenHeight => ScreenSize.Y;
 	public Vector2 RealViewportSize => ScreenSize.ToVector2() * (1f / Zoom);
@@ -51,16 +51,16 @@ public class Camera : GameObject {
 		DebugInfoManager.AddInfo("cam", $"{Position.Format(false, false)}, x{Zoom:0.00}, {Rotation:0.00} rad", DebugInfoPosition.BottomRight);
 	}
 
-	private ITexture2D tex;
+	private ITexture2D? tex;
 	public override void Draw(GameTime gameTime) {
 		if (DebugMode.IsFlagActive("cam-indicators")) {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			tex ??= Utils.GenerateTexture(tileSize, tileSize, Color.Red, true);
 
 			int halfTileSize = Utils.Round(tileSize / 2f);
 			Vectangle destRect = new Vectangle(RealViewportBounds.Center, new Vector2(tileSize));
 			destRect.Offset(-halfTileSize, -halfTileSize);
-			Game.SpriteBatch.Draw(tex.ToTexture2D(), (Rectangle)destRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(tex.ToTexture2D(), (Rectangle)destRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 			destRect = new Vectangle(InputManager.Mouse.GetWorldPos(), new Vector2(tileSize));
 			destRect.Offset(-halfTileSize, -halfTileSize);
 			Game.SpriteBatch.Draw(tex.ToTexture2D(), (Rectangle)destRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);

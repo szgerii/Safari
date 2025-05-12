@@ -29,9 +29,9 @@ public class Animation {
 	/// Overwrites the spritesheet of the AnimatedSpriteCmp this animation is registered to
 	/// The AnimatedSpriteCmp will use this instead for drawing
 	/// </summary>
-	public ITexture2D Texture { get; set; }
+	public ITexture2D? Texture { get; set; }
 
-	public Animation(int row, int length, bool loop = false, int offset = 0, ITexture2D texture = null) {
+	public Animation(int row, int length, bool loop = false, int offset = 0, ITexture2D? texture = null) {
 		Row = row;
 		Length = length;
 		Loop = loop;
@@ -48,7 +48,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	/// Runs when the component has finished playing an animation
 	/// Callback gets a string param that is the animation's name
 	/// </summary>
-	public event EventHandler<string> AnimationFinished;
+	public event EventHandler<string>? AnimationFinished;
 
 	/// <summary>
 	/// The collection of animations registered to this AnimatedSpriteCmp
@@ -56,7 +56,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	/// </summary>
 	public Dictionary<string, Animation> Animations { get; set; } = new Dictionary<string, Animation>();
 
-	public override ITexture2D Texture {
+	public override ITexture2D? Texture {
 		get => base.Texture;
 		set {
 			base.Texture = value;
@@ -64,18 +64,18 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 	}
 
-	protected Animation currentAnim;
-	protected string currentAnimationName;
+	protected Animation? currentAnim;
+	protected string? currentAnimationName;
 	/// <summary>
 	/// The name of the current animation
 	/// This can also be used for playing a new animation
 	/// TODO: func for q-ing new anim
 	/// </summary>
-	public string CurrentAnimation {
+	public string? CurrentAnimation {
 		get => currentAnimationName;
 		set {
 			currentAnimationName = value;
-			currentAnim = Animations[value];
+			currentAnim = value == null ? null : Animations[value];
 			CurrentFrame = 0;
 			frameTime = 0;
 		}
@@ -138,7 +138,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 
 	protected float frameTime;
 
-	public AnimatedSpriteCmp(ITexture2D texture, int columnCount, int rowCount, int fps) : base(texture) {
+	public AnimatedSpriteCmp(ITexture2D? texture, int columnCount, int rowCount, int fps) : base(texture) {
 		ColumnCount = columnCount;
 		RowCount = rowCount;
 		FPS = fps;
@@ -146,7 +146,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	}
 
 	public void Update(GameTime gameTime) {
-		if (currentAnim == null) {
+		if (currentAnim == null || CurrentAnimation == null) {
 			IsPlaying = false;
 			return;
 		}
@@ -173,6 +173,10 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 	}
 
 	public Rectangle CalculateSrcRec() {
+		if (currentAnim == null) {
+			return Rectangle.Empty;
+		}
+
 		return new Rectangle(currentAnim.Offset * FrameWidth + FrameWidth * CurrentFrame, FrameHeight * currentAnim.Row, FrameWidth, FrameHeight);
 	}
 
@@ -182,7 +186,7 @@ public class AnimatedSpriteCmp : SpriteCmp, IUpdatable {
 		}
 
 		// draw the current frame
-		Game.SpriteBatch.Draw(currentAnim?.Texture?.ToTexture2D() ?? Texture.ToTexture2D(), Owner.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
+		Game.SpriteBatch!.Draw(currentAnim?.Texture?.ToTexture2D() ?? Texture!.ToTexture2D(), Owner!.Position, CalculateSrcRec(), Tint, Rotation, Origin, Scale, Flip, RealLayerDepth);
 	}
 
 	private void UpdateFrameSize() {

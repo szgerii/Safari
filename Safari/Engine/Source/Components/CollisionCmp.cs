@@ -7,13 +7,13 @@ using System;
 namespace Engine.Components;
 
 public class CollisionCmp : Component, ISpatial {
-	public event EventHandler<CollisionCmp> CollisionEnter;
-	public event EventHandler<CollisionCmp> CollisionStay;
-	public event EventHandler<CollisionCmp> CollisionLeave;
+	public event EventHandler<CollisionCmp>? CollisionEnter;
+	public event EventHandler<CollisionCmp>? CollisionStay;
+	public event EventHandler<CollisionCmp>? CollisionLeave;
 
 	public bool HasActiveCollisionEvents => CollisionEnter != null || CollisionStay != null || CollisionLeave != null;
 
-	public ITexture2D ColliderTex { get; private set; }
+	public ITexture2D? ColliderTex { get; private set; }
 	private Vectangle collider;
 	public Vectangle Collider {
 		get => collider;
@@ -27,10 +27,10 @@ public class CollisionCmp : Component, ISpatial {
 			collider = value;
 		}
 	}
-	public Vectangle AbsoluteCollider => Collider + Owner.Position;
+	public Vectangle AbsoluteCollider => Collider + (Owner?.Position ?? Vector2.Zero);
 	public Vectangle Bounds => AbsoluteCollider;
 
-	public Vectangle ScreenCollider => Collider + Owner.ScreenPosition;
+	public Vectangle ScreenCollider => Collider + (Owner?.ScreenPosition ?? Vector2.Zero);
 
 	public CollisionTags Tags { get; set; }
 	public CollisionTags Targets { get; set; }
@@ -70,7 +70,7 @@ public class CollisionCmp : Component, ISpatial {
 		for (int i = 0; i < STEP_COUNT && movedInPrevStep; i++) {
 			movedInPrevStep = false;
 
-			Owner.Position += stepX;
+			Owner!.Position += stepX;
 			if (!CollisionManager.IsOutOfBounds(this) && !CollisionManager.Collides(this)) {
 				sum += stepX;
 				movedInPrevStep = true;

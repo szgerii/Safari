@@ -43,7 +43,7 @@ public static class TreeTypeExtensions {
 	/// </summary>
 	/// <param name="type">The tree type</param>
 	/// <returns>The texture that represents the type</returns>
-	public static ITexture2D GetTexture(this TreeType type) {
+	public static ITexture2D? GetTexture(this TreeType type) {
 		return type switch {
 			TreeType.Digitata => Game.LoadTexture("Assets/Trees/Digitata"),
 			TreeType.Grandideri => Game.LoadTexture("Assets/Trees/Grandideri1"),
@@ -78,7 +78,7 @@ public static class TreeTypeExtensions {
 			TreeType.Rubrostipa => 122,
 			TreeType.Suarazensis => 82,
 			TreeType.Za => 149,
-			_ => type.GetTexture().Height
+			_ => type.GetTexture()?.Height ?? 0
 		};
 	}
 }

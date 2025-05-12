@@ -18,10 +18,12 @@ public class AnimalMenu : CategoryMenu {
     private readonly Button maleButton;
     private readonly Button femaleButton;
 
+    private Rectangle extrasMaskArea;
+
     public Gender SelectedGender { get; private set; } = Gender.Female;
 
     public AnimalMenu() : base("Animal") {
-        panel.Size = new Vector2(0.6f, 0.25f);
+        panel!.Size = new Vector2(0.6f, 0.25f);
 
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);
         itemsPanel.Padding = new Vector2(0);
@@ -38,7 +40,7 @@ public class AnimalMenu : CategoryMenu {
         maleButton.Padding = new Vector2(0);
         maleButton.ToggleMode = true;
         maleButton.OnClick = (Entity entity) => {
-            femaleButton.Checked = false;
+            femaleButton!.Checked = false;
             maleButton.Checked = true;
             SelectedGender = Gender.Male;
         };
@@ -81,13 +83,16 @@ public class AnimalMenu : CategoryMenu {
             UserInterface.Active.AddEntity(genderPanel);
         }
         base.Show();
-        genderPanel.Offset = new Vector2(0, panel.Offset.Y);
+        genderPanel.Offset = new Vector2(0, panel!.Offset.Y);
+        extrasMaskArea = genderPanel.CalcDestRect();
+        GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }
 
     public override void Hide() {
         if (genderPanel.Parent != null) {
             UserInterface.Active.RemoveEntity(genderPanel);
         }
+        GameScene.Active.MaskedAreas.Remove(extrasMaskArea);
         base.Hide();
     }
 }

@@ -35,7 +35,7 @@ public class Level : GameObject {
 	/// <summary>
 	/// The image to draw as a background to the tiles
 	/// </summary>
-	public ITexture2D Background { get; set; }
+	public ITexture2D? Background { get; set; }
 	/// <summary>
 	/// The dimension of a single cell inside the tilemap grid
 	/// </summary>
@@ -68,7 +68,7 @@ public class Level : GameObject {
 	/// </summary>
 	public ConstructionHelperCmp ConstructionHelperCmp { get; init; }
 
-	private readonly Tile[,] tiles;
+	private readonly Tile?[,] tiles;
 
 	private readonly ITexture2D debugGridTex;
 
@@ -124,7 +124,7 @@ public class Level : GameObject {
 	/// <param name="y">The tilemap row the tile is in inside the grid</param>
 	/// <returns>The tile at the given position, or null if the cell's empty</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public Tile GetTile(int x, int y) {
+	public Tile? GetTile(int x, int y) {
 		if (IsOutOfBounds(x, y)) {
 			throw new ArgumentException("Given tilemap position is outside the bounds of the level");
 		}
@@ -138,7 +138,7 @@ public class Level : GameObject {
 	/// <param name="pos">The tilemap position the tile is in inside the grid</param>
 	/// <returns>The tile at the given position, or null if the cell's empty</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public Tile GetTile(Point pos) => GetTile(pos.X, pos.Y);
+	public Tile? GetTile(Point pos) => GetTile(pos.X, pos.Y);
 
 	/// <summary>
 	/// Returns a list of tiles that are inside the given tilemap area
@@ -154,7 +154,7 @@ public class Level : GameObject {
 			for (int y = tilemapArea.Y; y < yMax; y++) {
 				if (IsOutOfPlayArea(x, y)) continue;
 
-				Tile tile = GetTile(x, y);
+				Tile? tile = GetTile(x, y);
 
 				if (tile == null) continue;
 
@@ -191,7 +191,7 @@ public class Level : GameObject {
 		if (GetTile(tilemapPos) == null)
 			return [ tilemapPos ];
 
-		Type tileType = GetTile(tilemapPos).GetType();
+		Type tileType = GetTile(tilemapPos)!.GetType();
 		List<Point> result = [];
 		Stack<Point> traversalQueue = new();
 		traversalQueue.Push(tilemapPos);
@@ -201,11 +201,13 @@ public class Level : GameObject {
 			result.Add(current);
 
 			void TryQueue(Point pos) {
-				Tile tile = GetTile(pos);
+				if (IsOutOfBounds(pos)) {
+					return;
+				}
 
-				if (tile != null && !IsOutOfBounds(pos) && !(result.Contains(pos) || traversalQueue.Contains(pos))
-					&& tile.GetType() == tileType)
-				{
+				Tile? tile = GetTile(pos);
+
+				if (tile != null && !(result.Contains(pos) || traversalQueue.Contains(pos)) && tile.GetType() == tileType) {
 					traversalQueue.Push(pos);
 				}
 			}
@@ -275,7 +277,7 @@ public class Level : GameObject {
 
 		if (tiles[x, y] == null) return;
 
-		Tile t = tiles[x, y];
+		Tile t = tiles[x, y]!;
 		if (t is Road) {
 			Network.ClearRoad(x, y);
 		}
@@ -345,13 +347,13 @@ public class Level : GameObject {
 		}
 
 		return new Vector2(
-			Game.Random.Next(minX, maxX),
+			Game.Random!.Next(minX, maxX),
 			Game.Random.Next(minY, maxY)
 		);
 	}
 
 	public override void Load() {
-		foreach (Tile tile in tiles) {
+		foreach (Tile? tile in tiles) {
 			if (tile == null) continue;
 
 			if (!tile.Loaded) {
@@ -365,7 +367,7 @@ public class Level : GameObject {
 	}
 
 	public override void Unload() {
-		foreach (Tile tile in tiles) {
+		foreach (Tile? tile in tiles) {
 			if (tile == null) continue;
 			Game.RemoveObject(tile);
 		}
@@ -383,14 +385,14 @@ public class Level : GameObject {
 	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
-			Game.SpriteBatch.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+			Game.SpriteBatch!.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 		}
 		base.Draw(gameTime);
 	}
 
 	[ExcludeFromCodeCoverage]
-	public void PostDraw(object _, GameTime gameTime) {
-		Game.SpriteBatch.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+	public void PostDraw(object? _, GameTime gameTime) {
+		Game.SpriteBatch!.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 	}
 
 	/// <summary>

@@ -13,7 +13,7 @@ using System;
 namespace Safari.Popups;
 
 public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
-    private static Statusbar instance;
+    private static Statusbar? instance;
 	public static Statusbar Instance {
 		get {
 			instance ??= new();
@@ -65,7 +65,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private readonly Button entityManagerButton;
 
-    public Rectangle Size => panel.CalcDestRect();
+    public Rectangle Size => panel?.CalcDestRect() ?? Rectangle.Empty;
 
     private Statusbar() {
         background = null;
@@ -122,10 +122,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.25f, 0.3f), new Vector2(20));
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
-            EntityManager.Instance.Toggle();
-			animals.Hide();
-			tiles.Hide();
-			others.Hide();
+            ToggleEntityManager();
 		};
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
@@ -201,6 +198,17 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         panel.AddChild(shopPanel);
         panel.AddChild(indicatorPanel);
         panel.AddChild(speedButtonPanel);
+    }
+
+    public void ToggleEntityManager() {
+        if (EntityManager.Instance.Visible) {
+            EntityManager.Instance.Hide();
+        } else {
+            EntityManager.Instance.Show();
+            animals?.Hide();
+            tiles?.Hide();
+            others?.Hide();
+        }
     }
 
     private void AnimalButton(Entity entity) {
@@ -330,7 +338,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         AdjustSpeedButtons();
     }
 
-    private void ScaleText(object sender, EventArgs e) {
+    private void ScaleText(object? sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;

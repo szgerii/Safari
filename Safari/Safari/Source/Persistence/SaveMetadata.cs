@@ -15,7 +15,7 @@ public class SaveMetadata {
 	/// The name of the park
 	/// </summary>
 	[JsonProperty]
-	public string ParkName { get; set; }
+	public string? ParkName { get; set; }
 
 	/// <summary>
 	/// The playtime on this save (sped up gameplay counts as more playtime)

@@ -107,17 +107,13 @@ public class Keyboard {
 	/// Removes all callbacks associated with the pressed event of a given key
 	/// </summary>
 	public void ClearPressedCallbacks(Keys key) {
-		if (pressedCallbacks.ContainsKey(key)) {
-			pressedCallbacks.Remove(key);
-		}
+		pressedCallbacks.Remove(key);
 	}
 
 	/// <summary>
 	/// Removes all callbacks associated with the released event of a given key
 	/// </summary>
 	public void ClearReleasedCallbacks(Keys key) {
-		if (releasedCallbacks.ContainsKey(key)) {
-			releasedCallbacks.Remove(key);
-		}
+		releasedCallbacks.Remove(key);
 	}
 }

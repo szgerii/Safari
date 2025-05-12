@@ -30,7 +30,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 	public Rectangle? Bounds { get; set; } = null;
 
 	private bool canEnterDragMode = false;
-	private Camera Camera => Owner as Camera;
+	private Camera Camera => (Camera)Owner!;
 
 	public CameraControllerCmp() { }
 
@@ -60,7 +60,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 			GameScene.Active.MouseDragLock = false;
 		}
 
-		Vector2 prevPos = Owner.Position;
+		Vector2 prevPos = Owner!.Position;
 
 		// pos
 		CalcInputPan();
@@ -103,8 +103,8 @@ public class CameraControllerCmp : Component, IUpdatable {
 
 		if (GameScene.Active.MouseDragLock) {
 			if (mouseMovementOverThreshold) {
-				float xDiff = Camera.RealViewportSize.X / (Game.RenderTarget.Width * Game.RenderTargetScale);
-				float yDiff = Camera.RealViewportSize.Y / (Game.RenderTarget.Height * Game.RenderTargetScale);
+				float xDiff = Camera.RealViewportSize.X / (Game.RenderTarget!.Width * Game.RenderTargetScale);
+				float yDiff = Camera.RealViewportSize.Y / (Game.RenderTarget!.Height * Game.RenderTargetScale);
 
 				currentSpeed = -InputManager.Mouse.Movement * new Vector2(xDiff, yDiff);
 			} else {
@@ -237,7 +237,7 @@ public class CameraControllerCmp : Component, IUpdatable {
 	/// </summary>
 	/// <param name="position"></param>
 	public void CenterOnPosition(Vector2 position) {
-		Owner.Position = position;
+		Owner!.Position = position;
 
 		ClampToBounds();
 	}
@@ -257,6 +257,6 @@ public class CameraControllerCmp : Component, IUpdatable {
 		Point realSize = new Point(realWidth, realHeight);
 		Rectangle realBounds = new Rectangle(bounds.Location + (Camera.RealViewportSize / 2f).ToPoint(), realSize);
 
-		Owner.Position = realBounds.Clamp(Owner.Position);
+		Owner!.Position = realBounds.Clamp(Owner.Position);
 	}
 }

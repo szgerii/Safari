@@ -27,7 +27,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Invoked exactly once at the end of an entity's lifetime
 	/// </summary>
-	public event EventHandler Died;
+	public event EventHandler? Died;
 
 	private static readonly List<Entity> activeEntities = [];
 	/// <summary>
@@ -39,7 +39,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// Entity name to display in the shop / manager screens
 	/// </summary>
 	[JsonProperty]
-	public string DisplayName { get; protected init; }
+	public string DisplayName { get; protected init; } = "Entity";
 
 	/// <summary>
 	/// The calculated bounds for the current frame, invalidated (set to null) on PreUpdate
@@ -86,12 +86,12 @@ public abstract class Entity : GameObject, ISpatial {
 	public virtual bool Visible {
 		get {
 			GameModel model = GameScene.Active.Model;
-			Level level = model.Level;
+			Level level = model.Level!;
 			Vector2 offset = Bounds.Size / 2;
 			Vector2 centerPoint = Position + offset;
 			int map_x = (int)(centerPoint.X / level.TileSize);
 			int map_y = (int)(centerPoint.Y / level.TileSize);
-			if (!model.IsDaytime && !VisibleAtNight && !model.Level.LightManager.CheckLight(map_x, map_y)) {
+			if (!model.IsDaytime && !VisibleAtNight && !level.LightManager.CheckLight(map_x, map_y)) {
 				return false;
 			}
 			return true;
@@ -103,7 +103,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	public Vectangle SightArea {
 		get {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			Vector2 centerOffset = Bounds.Size / 2;
 			Vector2 startPoint = Position + centerOffset - new Vector2(SightDistance * tileSize);
 			float size = 2 * SightDistance * tileSize;
@@ -116,7 +116,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	public Vectangle ReachArea {
 		get {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			Vector2 centerOffset = Bounds.Size / 2;
 			Vector2 startPoint = Position + centerOffset - new Vector2(ReachDistance * tileSize);
 			float size = 2 * ReachDistance * tileSize;
@@ -140,7 +140,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// The sprite component of the entity used for rendering
 	/// </summary>
-	public SpriteCmp Sprite { get; protected set; }
+	public SpriteCmp? Sprite { get; protected set; }
 
 	/// <summary>
 	/// Whether the entity is currently being inspected through the entity controller
@@ -155,7 +155,7 @@ public abstract class Entity : GameObject, ISpatial {
 	}
 
 	static Entity() {
-		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", [ExcludeFromCodeCoverage] (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", [ExcludeFromCodeCoverage] (object? sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				e.DrawInteractBounds(gameTime);
 			}
@@ -183,7 +183,7 @@ public abstract class Entity : GameObject, ISpatial {
 		} else if (Sprite is AnimatedSpriteCmp animSprite) {
 			result = new Vectangle(Position - animSprite.Origin, new Vector2(animSprite.FrameWidth, animSprite.FrameHeight));
 		} else {
-			Vector2 size = Sprite.SourceRectangle?.Size.ToVector2() ?? Sprite.Texture.Bounds.Size.ToVector2();
+			Vector2 size = Sprite!.SourceRectangle?.Size.ToVector2() ?? Sprite.Texture!.Bounds.Size.ToVector2();
 			result = new Vectangle(Position - Sprite.Origin, size);
 		}
 
@@ -208,9 +208,9 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Fetches the entity currently hovered on (or null)
 	/// </summary>
-	public static Entity GetEntityOnMouse() {
+	public static Entity? GetEntityOnMouse() {
 		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
-		Entity result = null;
+		Entity? result = null;
 
 		foreach (Entity e in Entity.ActiveEntities) {
 			if (!e.IsDead && e.Bounds.Contains(mouseWorldPos) && e.Visible) {
@@ -254,7 +254,7 @@ public abstract class Entity : GameObject, ISpatial {
 
 		if (IsBeingInspected) {
 			float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
-			Sprite.Tint = Color.White * (0.5f + fadeFactor);
+			Sprite!.Tint = Color.White * (0.5f + fadeFactor);
 
 			if (DebugMode.IsFlagActive("draw-paths")) {
 				NavCmp.DrawPath();
@@ -263,13 +263,13 @@ public abstract class Entity : GameObject, ISpatial {
 				}
 			}
 		} else {
-			Sprite.Tint = Color.White;
+			Sprite!.Tint = Color.White;
 		}
 
 		base.Draw(gameTime);
 	}
 
-	private ITexture2D sightAreaTex = null, reachAreaTex = null, boundsTex = null;
+	private ITexture2D? sightAreaTex = null, reachAreaTex = null, boundsTex = null;
 	/// <summary>
 	/// Draws the bounds of the entity's vision and reach to the screen (debug feature)
 	/// </summary>
@@ -280,14 +280,14 @@ public abstract class Entity : GameObject, ISpatial {
 			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size.ToPoint()) {
 				sightAreaTex = Utils.GenerateTexture((int)SightArea.Width, (int)SightArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(sightAreaTex.ToTexture2D(), (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(sightAreaTex.ToTexture2D(), (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (ReachArea.Width != 0 && ReachArea.Height != 0) {
 			if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size.ToPoint()) {
 				reachAreaTex = Utils.GenerateTexture((int)ReachArea.Width, (int)ReachArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(reachAreaTex.ToTexture2D(), (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(reachAreaTex.ToTexture2D(), (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (boundsTex?.Bounds.Size != Bounds.Size.ToPoint()) {
@@ -299,7 +299,7 @@ public abstract class Entity : GameObject, ISpatial {
 		}
 
 		if (boundsTex != null) {
-			Game.SpriteBatch.Draw(boundsTex.ToTexture2D(), (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth + 0.01f);
+			Game.SpriteBatch!.Draw(boundsTex.ToTexture2D(), (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite!.RealLayerDepth + 0.01f);
 		}
 	}
 
@@ -370,12 +370,12 @@ public abstract class Entity : GameObject, ISpatial {
 	/// Retrieves a list of the non-empty tiles inside the entity's sight
 	/// </summary>
 	/// <returns>A list of the tiles inside the entity's vision</returns>
-	public virtual List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)SightArea);
+	public virtual List<Tile> GetTilesInSight() => GameScene.Active.Model.Level!.GetTilesInWorldArea((Rectangle)SightArea);
 	/// <summary>
 	/// Retrieves a list of the non-empty tiles inside the entity's reach
 	/// </summary>
 	/// <returns>A list of the tiles that the entity can interact with</returns>
-	public virtual List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)ReachArea);
+	public virtual List<Tile> GetTilesInReach() => GameScene.Active.Model.Level!.GetTilesInWorldArea((Rectangle)ReachArea);
 
 	public override string ToString() {
 		return DisplayName;

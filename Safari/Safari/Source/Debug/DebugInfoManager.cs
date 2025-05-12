@@ -12,7 +12,7 @@ public static class DebugInfoManager {
 	private static readonly Dictionary<DebugInfoPosition, Paragraph> infoParagraphs = new();
 
 	static DebugInfoManager() {
-		if (Game.Instance.IsHeadless) return;
+		if (Game.Instance?.IsHeadless ?? true) return;
 
 		foreach (DebugInfoPosition pos in Enum.GetValues(typeof(DebugInfoPosition))) {
 			Paragraph p = new Paragraph();

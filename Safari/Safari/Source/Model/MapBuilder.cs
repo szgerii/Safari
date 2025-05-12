@@ -525,7 +525,7 @@ public static class MapBuilder {
 
 		Point p = new Point();
 		do {
-			p = new Point(Game.Random.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
+			p = new Point(Game.Random!.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
 		} while (!level.ConstructionHelperCmp.CanBuild(p, offsets));
 
 		return new Vector2(p.X * level.TileSize, p.Y * level.TileSize);

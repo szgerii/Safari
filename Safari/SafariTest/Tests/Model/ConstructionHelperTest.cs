@@ -85,7 +85,7 @@ public class ConstructionHelperTest : SimulationTest {
 		Assert.IsInstanceOfType<Water>(ch.SelectedInstance);
 		ch.SelectedIndex = ConstructionHelperCmp.BUSH;
 		Assert.IsInstanceOfType<Bush>(ch.SelectedInstance);
-		ch.SelectedItem.SelectNext();
+		ch.SelectedItem!.SelectNext();
 		Assert.IsInstanceOfType<WideBush>(ch.SelectedInstance);
 		ch.SelectedIndex = ConstructionHelperCmp.TREE;
 		Assert.IsInstanceOfType<Tree>(ch.SelectedInstance);
@@ -102,7 +102,7 @@ public class ConstructionHelperTest : SimulationTest {
 	public void CHBuild() {
 		Level.PLAY_AREA_CUTOFF_X = 2;
 		Level.PLAY_AREA_CUTOFF_Y = 2;
-		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance.GraphicsDevice, 3200, 3200);
+		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance?.GraphicsDevice, 3200, 3200);
 		Level l = new Level(32, 10, 10, tex);
 		ConstructionHelperCmp ch = new ConstructionHelperCmp(10, 10);
 		ch.Owner = l;
@@ -136,7 +136,7 @@ public class ConstructionHelperTest : SimulationTest {
 
 		// large tile (tree is 3x3)
 		ch.SelectedIndex = ConstructionHelperCmp.TREE;
-		ch.SelectedItem.SelectNext();
+		ch.SelectedItem!.SelectNext();
 		ch.SelectedItem.SelectNext();
 		ch.SelectedItem.SelectNext(); // some treetype
 		Assert.IsTrue(ch.CanBuildCurrent(3, 4));

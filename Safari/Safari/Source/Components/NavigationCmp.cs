@@ -23,7 +23,7 @@ public class NavigationTargetEventArgs : EventArgs {
 	/// <summary>
 	/// The target object that has been reached (if the cmp was approaching an object)
 	/// </summary>
-	public GameObject TargetObject { get; init; } = null;
+	public GameObject? TargetObject { get; init; } = null;
 
 	public NavigationTargetEventArgs(GameObject obj) {
 		TargetObject = obj;
@@ -46,8 +46,8 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// Fired when the cmp owner reaches their destination
 	/// </summary>
-	public event EventHandler<NavigationTargetEventArgs> ReachedTarget;
-	public event EventHandler<NavigationTargetEventArgs> TargetInSight;
+	public event EventHandler<NavigationTargetEventArgs>? ReachedTarget;
+	public event EventHandler<NavigationTargetEventArgs>? TargetInSight;
 
 	[JsonProperty]
 	private Vector2? targetPosition = null;
@@ -67,13 +67,13 @@ public class NavigationCmp : Component, IUpdatable {
 		}
 	}
 
-	private GameObject targetObject = null;
+	private GameObject? targetObject = null;
 	/// <summary>
 	/// The object the component is approaching
 	/// <br />
 	/// Sets TargetPosition to null (unless value is null)
 	/// </summary>
-	public GameObject TargetObject {
+	public GameObject? TargetObject {
 		get => targetObject;
 		set {
 			targetObject = value;
@@ -119,8 +119,8 @@ public class NavigationCmp : Component, IUpdatable {
 	[JsonProperty]
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
 	
-	private Entity ownerEntity;
-	private CollisionCmp collCmp;
+	private Entity? ownerEntity;
+	private CollisionCmp? collCmp;
 
 	[JsonProperty]
 	public bool AccountForBounds { get; set; } = true;
@@ -165,7 +165,7 @@ public class NavigationCmp : Component, IUpdatable {
 				if (targetPos.Y < 0) targetPos.Y = 0;
 			}
 
-			Vector2 delta = Target.Value - Owner.Position;
+			Vector2 delta = Target.Value - Owner!.Position;
 			Vector2 deltaSaved = delta;
 			Vector2 oldPos = Owner.Position;
 
@@ -220,7 +220,7 @@ public class NavigationCmp : Component, IUpdatable {
 			return ownerGroup.CanAnybodyReach(pos);
 		}
 
-		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_REACH_THRESHOLD * FALLBACK_REACH_THRESHOLD);
+		return Vector2.DistanceSquared(Owner!.Position, pos) < (FALLBACK_REACH_THRESHOLD * FALLBACK_REACH_THRESHOLD);
 	}
 
 	private bool CanSee(Vector2 pos) {
@@ -232,23 +232,23 @@ public class NavigationCmp : Component, IUpdatable {
 			return ownerGroup.CanAnybodySee(pos);
 		}
 
-		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
+		return Vector2.DistanceSquared(Owner!.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
 	}
 
 	private readonly static ITexture2D pinTex = Utils.GenerateTexture(16, 16, Color.Purple);
-	private ITexture2D pathLineTex = null;
+	private ITexture2D? pathLineTex = null;
 	[ExcludeFromCodeCoverage]
 	public void DrawPath() {
 		if (Target != null) {
 
-			Vector2 pos = ownerEntity?.CenterPosition ?? Owner.Position;
+			Vector2 pos = ownerEntity?.CenterPosition ?? Owner!.Position;
 			Vector2 target = Target.Value;
 			pathLineTex ??= Utils.GenerateTexture(1, 1, Color.Purple);
 			float length = Vector2.Distance(pos, target);
 			float angle = (float)Math.Atan2(target.Y - pos.Y, target.X - pos.X);
 			Vector2 scale = new(length, 2f);
 
-			Game.SpriteBatch.Draw(pathLineTex.ToTexture2D(), pos, null, Color.White, angle, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(pathLineTex.ToTexture2D(), pos, null, Color.White, angle, Vector2.Zero, scale, SpriteEffects.None, 0f);
 
 			Vector2 pinPos = Target.Value - (pinTex.Bounds.Size.ToVector2() / 2f);
 			Game.SpriteBatch.Draw(pinTex.ToTexture2D(), pinPos, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
@@ -259,5 +259,5 @@ public class NavigationCmp : Component, IUpdatable {
 		return $"Target: {Target}";
 	}
 
-	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
+	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition!.Value) : new(TargetObject);
 }

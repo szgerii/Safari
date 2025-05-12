@@ -92,7 +92,7 @@ public class DebugMode {
 	public static void ToggleFlag(string name) => SetFlag(name, !IsFlagActive(name));
 
 	private static LoopedDebugFeature GetLoopedFeature(string name) {
-		LoopedDebugFeature feature = null;
+		LoopedDebugFeature? feature = null;
 		foreach (LoopedDebugFeature df in LoopedFeatures) {
 			if (df.Name == name) {
 				feature = df;
@@ -107,7 +107,7 @@ public class DebugMode {
 	}
 
 	private static ExecutedDebugFeature GetExecutedFeature(string name) {
-		ExecutedDebugFeature feature = null;
+		ExecutedDebugFeature? feature = null;
 		foreach (ExecutedDebugFeature edf in ExecutedFeatures) {
 			if (edf.Name == name) {
 				feature = edf;
@@ -124,19 +124,19 @@ public class DebugMode {
 	private static void RegisterHandler(GameLoopStage runStage, EventHandler<GameTime> handler) {
 		switch (runStage) {
 			case GameLoopStage.PRE_UPDATE:
-				SceneManager.Active.PreUpdate += handler;
+				SceneManager.Active!.PreUpdate += handler;
 				break;
 
 			case GameLoopStage.POST_UPDATE:
-				SceneManager.Active.PostUpdate += handler;
+				SceneManager.Active!.PostUpdate += handler;
 				break;
 
 			case GameLoopStage.PRE_DRAW:
-				SceneManager.Active.PreDraw += handler;
+				SceneManager.Active!.PreDraw += handler;
 				break;
 
 			case GameLoopStage.POST_DRAW:
-				SceneManager.Active.PostDraw += handler;
+				SceneManager.Active!.PostDraw += handler;
 				break;
 		}
 	}
@@ -144,19 +144,19 @@ public class DebugMode {
 	private static void UnregisterHandler(GameLoopStage runStage, EventHandler<GameTime> handler) {
 		switch (runStage) {
 			case GameLoopStage.PRE_UPDATE:
-				SceneManager.Active.PreUpdate -= handler;
+				SceneManager.Active!.PreUpdate -= handler;
 				break;
 
 			case GameLoopStage.POST_UPDATE:
-				SceneManager.Active.PostUpdate -= handler;
+				SceneManager.Active!.PostUpdate -= handler;
 				break;
 
 			case GameLoopStage.PRE_DRAW:
-				SceneManager.Active.PreDraw -= handler;
+				SceneManager.Active!.PreDraw -= handler;
 				break;
 
 			case GameLoopStage.POST_DRAW:
-				SceneManager.Active.PostDraw -= handler;
+				SceneManager.Active!.PostDraw -= handler;
 				break;
 		}
 	}

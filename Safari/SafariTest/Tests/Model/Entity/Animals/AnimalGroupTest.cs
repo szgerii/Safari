@@ -29,7 +29,7 @@ public class AnimalGroupTest : SimulationTest {
 		RunOneFrame();
 
 		group = animal.Group;
-		groupPO = new(animal.Group);
+		groupPO = new(animal.Group!);
 	}
 
 	[TestMethod("Initialization Test")]
@@ -68,7 +68,7 @@ public class AnimalGroupTest : SimulationTest {
 		group!.AddWaterSpot(new Point(1, 1));
 
 		Animal animal2 = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), animal!.Species, Gender.Female);
-		animal2.Group.AddFoodSpot(new Point(1, 1));
+		animal2.Group!.AddFoodSpot(new Point(1, 1));
 		animal2.Group.AddFoodSpot(new Point(2, 2));
 		animal2.Group.AddWaterSpot(new Point(2, 2));
 		Assert.IsTrue(group.CanMergeWith(animal2.Group));
@@ -85,21 +85,21 @@ public class AnimalGroupTest : SimulationTest {
 
 		while (group.Size < AnimalGroup.MAX_SIZE) {
 			Animal anim = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), animal.Species, Gender.Female);
-			Assert.IsTrue(group.CanMergeWith(anim.Group));
-			group.MergeWith(anim.Group);
+			Assert.IsTrue(group.CanMergeWith(anim.Group!));
+			group.MergeWith(anim.Group!);
 		}
 
 		Animal animal3 = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), animal.Species, Gender.Female);
-		Assert.IsFalse(group.CanMergeWith(animal3.Group));
+		Assert.IsFalse(group.CanMergeWith(animal3.Group!));
 
 		group.Leave(group.Members[^1]);
-		Assert.IsTrue(group.CanMergeWith(animal3.Group));
+		Assert.IsTrue(group.CanMergeWith(animal3.Group!));
 
 		Assert.ThrowsException<InvalidOperationException>(() => group.Leave(animal3));
 
 		AnimalSpecies otherSpecies = animal.Species == 0 ? (animal.Species + 1) : (animal.Species - 1);
 		Animal diffAnimal = Substitute.ForPartsOf<Animal>(new Vector2(200, 300), otherSpecies, Gender.Female);
-		Assert.IsFalse(group.CanMergeWith(diffAnimal.Group));
+		Assert.IsFalse(group.CanMergeWith(diffAnimal.Group!));
 	}
 
 	[TestMethod("Detection Test")]
@@ -110,7 +110,7 @@ public class AnimalGroupTest : SimulationTest {
 		animal2.ReachDistance = 10;
 		animal2.Bounds = new Vectangle(0, 0, 100, 100);
 		animal2.UpdateBounds();
-		group!.MergeWith(animal2.Group);
+		group!.MergeWith(animal2.Group!);
 
 		Assert.IsFalse(group.CanAnybodyReach(target));
 		Assert.IsFalse(group.CanAnybodySee(target));
@@ -195,7 +195,7 @@ public class AnimalGroupTest : SimulationTest {
 			PrivateObject animPO = new(anim);
 			animPO!.SetField("birthTime", Model.IngameDate - TimeSpan.FromDays(Animal.MATURE_AGE + 1));
 
-			animal.Group.MergeWith(anim.Group);
+			animal.Group!.MergeWith(anim.Group!);
 		}
 
 		group!.StateMachine.Transition(AnimalGroupState.Idle);
@@ -210,7 +210,7 @@ public class AnimalGroupTest : SimulationTest {
 	[TestMethod("SeekingFood State Test")]
 	public void TestSeekingFood() {
 		Vector2 target = new Vector2(1500, 1500);
-		Point tilemapPos = (target / Model.Level.TileSize).ToPoint();
+		Point tilemapPos = (target / Model.Level!.TileSize).ToPoint();
 		Model.Level.SetTile(tilemapPos, new Grass());
 		group!.AddFoodSpot(tilemapPos);
 
@@ -224,7 +224,7 @@ public class AnimalGroupTest : SimulationTest {
 		Assert.AreEqual(tilemapPos.ToVector2() * Model.Level.TileSize, group.NavCmp.Target);
 		Assert.AreEqual(true, group.NavCmp.Moving);
 
-		EntityBoundsManager.RemoveEntity(animal);
+		EntityBoundsManager.RemoveEntity(animal!);
 		animal!.Position = tilemapPos.ToVector2() * Model.Level.TileSize;
 		animal.UpdateBounds();
 		EntityBoundsManager.AddEntity(animal);
@@ -235,7 +235,7 @@ public class AnimalGroupTest : SimulationTest {
 	[TestMethod("SeekingWater State Test")]
 	public void TestSeekingWater() {
 		Vector2 target = new Vector2(1500, 1500);
-		Point tilemapPos = (target / Model.Level.TileSize).ToPoint();
+		Point tilemapPos = (target / Model.Level!.TileSize).ToPoint();
 		Model.Level.SetTile(tilemapPos, new Water());
 		group!.AddWaterSpot(tilemapPos);
 
@@ -249,7 +249,7 @@ public class AnimalGroupTest : SimulationTest {
 		Assert.AreEqual(tilemapPos.ToVector2() * Model.Level.TileSize, group.NavCmp.Target);
 		Assert.AreEqual(true, group.NavCmp.Moving);
 
-		EntityBoundsManager.RemoveEntity(animal);
+		EntityBoundsManager.RemoveEntity(animal!);
 		animal!.Position = tilemapPos.ToVector2() * Model.Level.TileSize;
 		animal.UpdateBounds();
 		EntityBoundsManager.AddEntity(animal);

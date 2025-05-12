@@ -10,8 +10,8 @@ namespace Safari.Popups;
 	
 public class AnimalControllerMenu : EntityControllerMenu {
 	private readonly Button sellButton;
-	private Button chipButton = null;
-	private readonly Paragraph dataParagraph = null;
+	private Button? chipButton = null;
+	private readonly Paragraph? dataParagraph = null;
 	private readonly Animal animal;
 
 	public AnimalControllerMenu(Animal animal) : base(animal) {
@@ -21,7 +21,7 @@ public class AnimalControllerMenu : EntityControllerMenu {
 		dataParagraph.AlignToCenter = true;
 		dataParagraph.Padding = new Vector2(0, 16);
 		dataParagraph.Scale = 0.97f;
-		panel.AddChild(dataParagraph);
+		panel!.AddChild(dataParagraph);
 
         StyleProperty deleteBase = new StyleProperty(Color.Red);
         StyleProperty deleteHover = new StyleProperty(Color.DarkRed);
@@ -68,6 +68,8 @@ public class AnimalControllerMenu : EntityControllerMenu {
 	}
 
 	protected override void UpdateData() {
+		if (panel == null || dataParagraph == null || closeButton == null) return;
+
 		sellButton.ButtonParagraph.Text = $"Sell (+{animal.Price})";
 
 		if (DebugMode.IsFlagActive("rich-controllers")) {
@@ -79,7 +81,9 @@ public class AnimalControllerMenu : EntityControllerMenu {
 			closeButton.Anchor = Anchor.Auto;
 
 			dataParagraph.Text = DumpObjectDataToString(animal, animal.Species.GetAnimalType());
-			dataParagraph.Text += DumpObjectDataToString(animal.Group);
+			if (animal.Group != null) {
+				dataParagraph.Text += DumpObjectDataToString(animal.Group);
+			}
 		} else {
 			dataParagraph.WrapWords = false;
 			panel.Draggable = false;
@@ -107,7 +111,7 @@ public class AnimalControllerMenu : EntityControllerMenu {
 		}
 		GameScene.Active.Model.Funds -= 250;
 		this.animal.HasChip = true;
-		panel.RemoveChild(chipButton);
+		panel!.RemoveChild(chipButton);
 		chipButton = null;
 	}
 

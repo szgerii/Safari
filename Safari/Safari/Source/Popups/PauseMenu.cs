@@ -13,7 +13,7 @@ using Safari.Scenes.Menus;
 namespace Safari.Popups;
 
 public class PauseMenu : PopupMenu, IResettableSingleton {
-    private static PauseMenu instance;
+    private static PauseMenu? instance;
     public static PauseMenu Instance {
         get {
             instance ??= new();
@@ -89,7 +89,7 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         GameModel model = GameScene.Active.Model;
         new GameModelPersistence(model.ParkName).Save(model);
         var am = new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!", "Return to main menu");
-        am.Chosen += (object _, bool _) => {
+        am.Chosen += (object? _, bool _) => {
             TogglePauseMenu();
             SceneManager.Load(MainMenu.Instance);
         };

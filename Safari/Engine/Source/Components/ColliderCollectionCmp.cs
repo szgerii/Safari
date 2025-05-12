@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace Engine.Components;
 
-// TODO: global collision events
 public class ColliderCollectionCmp : Component {
 	public CollisionTags DefaultTag { get; set; }
 	public CollisionTags DefaultTargets { get; set; }
@@ -22,13 +21,13 @@ public class ColliderCollectionCmp : Component {
 		cmp.Owner = Owner;
 		components.Add(cmp);
 
-		if (Owner.Loaded) {
+		if (Owner!.Loaded) {
 			cmp.Load();
 		}
 	}
 
 	public void RemoveCollider(CollisionCmp cmp) {
-		if (Owner.Loaded) {
+		if (Owner!.Loaded) {
 			cmp.Unload();
 		}
 		
@@ -37,7 +36,7 @@ public class ColliderCollectionCmp : Component {
 	}
 
 	public void Clear() {
-		if (Owner.Loaded) {
+		if (Owner!.Loaded) {
 			foreach (CollisionCmp cmp in components) {
 				cmp.Unload();
 			}

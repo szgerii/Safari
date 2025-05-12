@@ -5,10 +5,10 @@ namespace Safari.Persistence;
 [JsonObject(MemberSerialization.OptIn)]
 public class SafariSaveRefNode {
 	[JsonProperty]
-	public string Name { get; set; }
+	public string? Name { get; set; }
 
 	[JsonProperty]
-	public string ContentSerialized { get; set; }
+	public string? ContentSerialized { get; set; }
 
 	[JsonConstructor]
 	public SafariSaveRefNode() { }

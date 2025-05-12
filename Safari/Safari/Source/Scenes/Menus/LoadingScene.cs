@@ -10,9 +10,9 @@ using Safari.Popups;
 namespace Safari.Scenes.Menus;
 
 public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
-	private static LoadingScene instance;
-	private static GameScene gameToLoad = null;
-	private static string parkNameToLoad = null;
+	private static LoadingScene? instance;
+	private static GameScene? gameToLoad = null;
+	private static string? parkNameToLoad = null;
 	private static int parkSlotToLoad = -1;
 	private static bool newGame;
 	private static bool loadGame = false;
@@ -28,11 +28,11 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 		instance = null;
 	}
 
-	private Label text = null;
+	private Label? text = null;
 
 	public void LoadNewGame(string parkName, GameDifficulty difficulty) {
 		gameToLoad = new GameScene(parkName, difficulty);
-		SceneManager.Load(instance);
+		SceneManager.Load(Instance);
         loadGame = true;
 		newGame = true;
 		updates = 0;
@@ -41,7 +41,7 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 	public void LoadSave(string parkName, int slotNumber) {
 		parkNameToLoad = parkName;
         parkSlotToLoad = slotNumber;
-        SceneManager.Load(instance);
+        SceneManager.Load(Instance);
         loadGame = true;
 		newGame = false;
 		updates = 0;
@@ -62,18 +62,18 @@ public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
 		if (updates == 0) { updates++; return; }
         if (loadGame) {
 			if (newGame) {
-				SceneManager.Load(gameToLoad);
+				SceneManager.Load(gameToLoad!);
 				loadGame = false;
 				gameToLoad = null;
 			} else {
 				try {
-					new GameModelPersistence(parkNameToLoad).Load(parkSlotToLoad);
+					new GameModelPersistence(parkNameToLoad!).Load(parkSlotToLoad);
 					loadGame = false;
 				} catch {
 					loadGame = false;
 
 					AlertMenu am = new AlertMenu("Corrupted save file", "Cannot open the selected save file because it is either corrupted, or was created with a different version of the game");
-					am.Chosen += (object sender, bool choice) => {
+					am.Chosen += (object? sender, bool choice) => {
 						SceneManager.Load(MainMenu.Instance);
 					};
 					am.Show();

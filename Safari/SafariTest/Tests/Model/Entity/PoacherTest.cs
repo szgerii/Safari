@@ -81,11 +81,11 @@ public class PoacherTest : SimulationTest {
 		poacher.GetEntitiesInSight().Returns([animal]);
 
 		// add another animal so the game doesnt enter the lose state
-		Zebra animal2 = new(poacher.CenterPosition + new Vector2(poacher.ReachDistance + 1 * Model.Level.TileSize), Gender.Male);
+		Zebra animal2 = new(poacher.CenterPosition + new Vector2(poacher.ReachDistance + 1 * Model.Level!.TileSize), Gender.Male);
 		Safari.Game.AddObject(animal2);
 
 		// force smuggling
-		Safari.Game.Random.NextSingle().Returns(1f);
+		Safari.Game.Random!.NextSingle().Returns(1f);
 		
 		RunOneFrame();
 
@@ -122,7 +122,7 @@ public class PoacherTest : SimulationTest {
 		Safari.Game.AddObject(animal);
 		
 		// force smuggling
-		Safari.Game.Random.NextSingle().Returns(1f);
+		Safari.Game.Random!.NextSingle().Returns(1f);
 
 		RunOneFrame();
 
@@ -157,13 +157,13 @@ public class PoacherTest : SimulationTest {
 		Safari.Game.AddObject(animal);
 
 		// add another animal so the game doesnt enter the lose state
-		Zebra animal2 = new(poacher.CenterPosition + new Vector2(poacher.ReachDistance + 1 * Model.Level.TileSize), Gender.Male);
+		Zebra animal2 = new(poacher.CenterPosition + new Vector2(poacher.ReachDistance + 1 * Model.Level!.TileSize), Gender.Male);
 		Safari.Game.AddObject(animal2);
 
 		RunOneFrame();
 
 		// force shooting
-		Safari.Game.Random.NextSingle().Returns(0f);
+		Safari.Game.Random!.NextSingle().Returns(0f);
 
 		RunOneFrame();
 

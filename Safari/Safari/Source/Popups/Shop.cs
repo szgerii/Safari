@@ -20,7 +20,7 @@ public class Shop : PopupMenu, IResettableSingleton {
     public const int BUSH_COST = 80;
     public const int JEEP_COST = 5000;
 
-    private static Shop instance;
+    private static Shop? instance;
     public static Shop Instance {
         get {
             instance ??= new();
@@ -28,7 +28,7 @@ public class Shop : PopupMenu, IResettableSingleton {
         }
     }
 
-    public static ConstructionHelperCmp CHelper => GameScene.Active.Model.Level.ConstructionHelperCmp;
+    public static ConstructionHelperCmp CHelper => GameScene.Active.Model.Level!.ConstructionHelperCmp;
 
     public static void ResetSingleton() {
         instance?.Hide();
@@ -45,9 +45,9 @@ public class Shop : PopupMenu, IResettableSingleton {
             new AlertMenu("Funds", $"You don't have enough money to buy this {type.GetDisplayName()}").Show();
             return;
         }
-        Type animalType = type.GetAnimalType();
-        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level, type.GetSize()), gender };
-        Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs);
+        Type animalType = type.GetAnimalType()!;
+        object[] constructorArgs = { MapBuilder.GetRandomSpawn(GameScene.Active.Model.Level!, type.GetSize()), gender };
+        Animal temp = (Animal)Activator.CreateInstance(animalType, constructorArgs)!;
         Game.AddObject(temp);
         GameScene.Active.Model.Funds -= type.GetPrice();
     }

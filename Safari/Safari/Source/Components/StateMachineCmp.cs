@@ -54,15 +54,15 @@ public class StateMachineCmp<T> : Component, IUpdatable where T : Enum {
 	/// </summary>
 	public Type BaseType => typeof(T);
 
-	private readonly Dictionary<T, BeginStateHandler> beginStateHandlers = [];
-	private readonly Dictionary<T, EndStateHandler> endStateHandlers = [];
-	private readonly Dictionary<T, UpdateStateHandler> updateStateHandlers = [];
+	private readonly Dictionary<T, BeginStateHandler?> beginStateHandlers = [];
+	private readonly Dictionary<T, EndStateHandler?> endStateHandlers = [];
+	private readonly Dictionary<T, UpdateStateHandler?> updateStateHandlers = [];
 	private readonly Array enumValues;
 	
 	private bool loadInit = false;
 
 	[JsonConstructor]
-	public StateMachineCmp() : this((T)Enum.GetValues(typeof(T)).GetValue(0), true){ }
+	public StateMachineCmp() : this((T)Enum.GetValues(typeof(T)).GetValue(0)!, true){ }
 
 	/// <param name="startState">The state to start the state machine in. Note that the start state's begin handlers will only be invoked when the component gets loaded.</param>
 	public StateMachineCmp(T startState, bool loadInit = false) {
@@ -78,10 +78,10 @@ public class StateMachineCmp<T> : Component, IUpdatable where T : Enum {
 
 	// NOTE: the state machine will invoke the begin handlers of the state that is currently in use when the component gets loaded
 	public override void Load() {
-		foreach (MethodInfo methodInfo in Owner.GetType().GetMethods()) {
-			StateBeginAttribute beginAttr = (StateBeginAttribute)methodInfo.GetCustomAttribute(typeof(StateBeginAttribute));
-			StateEndAttribute endAttr = (StateEndAttribute)methodInfo.GetCustomAttribute(typeof(StateEndAttribute));
-			StateUpdateAttribute updateAttr = (StateUpdateAttribute)methodInfo.GetCustomAttribute(typeof(StateUpdateAttribute));
+		foreach (MethodInfo methodInfo in Owner!.GetType().GetMethods()) {
+			StateBeginAttribute? beginAttr = (StateBeginAttribute?)methodInfo.GetCustomAttribute(typeof(StateBeginAttribute));
+			StateEndAttribute? endAttr = (StateEndAttribute?)methodInfo.GetCustomAttribute(typeof(StateEndAttribute));
+			StateUpdateAttribute? updateAttr = (StateUpdateAttribute?)methodInfo.GetCustomAttribute(typeof(StateUpdateAttribute));
 
 			if (beginAttr != null) {
 				beginStateHandlers[(T)beginAttr.TargetState] += () => methodInfo?.Invoke(Owner, []);

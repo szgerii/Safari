@@ -142,8 +142,8 @@ public class GameModel {
 	/// <summary>
 	/// The name of the park (used when saving the park)
 	/// </summary>
-	[JsonProperty]
-	public string ParkName { get; init; }
+	[JsonProperty(Required = Required.DisallowNull)]
+	public required string ParkName { get; init; }
 	[JsonProperty]
 	private int funds;
 	/// <summary>
@@ -218,7 +218,7 @@ public class GameModel {
 	/// The current game level's tilemap
 	/// </summary>
 	[JsonProperty]
-	public Level Level { get; set; }
+	public Level? Level { get; set; }
 
 	/// <summary>
 	/// The total number of entities in the game
@@ -342,11 +342,11 @@ public class GameModel {
 	/// <summary>
 	/// Invoked when the player has lost the game
 	/// </summary>
-	public event EventHandler<LoseReason> GameLost;
+	public event EventHandler<LoseReason>? GameLost;
 	/// <summary>
 	/// Invoked when the player has won the game
 	/// </summary>
-	public event EventHandler GameWon;
+	public event EventHandler? GameWon;
 
 	static GameModel() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", [ExcludeFromCodeCoverage] () => {
@@ -415,6 +415,7 @@ public class GameModel {
 		CheckWinLose = false;
 	}
 
+	[SetsRequiredMembers]
 	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		ParkName = parkName;
 		Funds = funds;
@@ -461,7 +462,7 @@ public class GameModel {
 	/// Print various information regarding the current state of the game model
 	/// </summary>
 	[ExcludeFromCodeCoverage]
-	public void PrintModelDebugInfos() {
+	public static void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;
 
 		string speedName = "";

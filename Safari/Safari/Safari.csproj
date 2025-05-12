@@ -12,6 +12,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="Icon.ico" />

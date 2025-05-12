@@ -2,24 +2,25 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Popups;
 
 public class AlertMenu : PopupMenu {
-    private Header header;
-    private Paragraph paragraph;
+    private Header? header;
+    private Paragraph? paragraph;
     private readonly Button button1;
-    private readonly Button button2 = null;
+    private readonly Button? button2 = null;
     private static readonly Queue<AlertMenu> queue = new Queue<AlertMenu>();
     private static int waitCounter = 0;
     private static bool waitNeeded = false;
-    private static AlertMenu Active = null;
+    private static AlertMenu? Active = null;
     private static bool nextAlertShowable = false;
 
     /// <summary>
     /// Returns the user's choice.
     /// </summary>
-    public event EventHandler<bool> Chosen;
+    public event EventHandler<bool>? Chosen;
 
     /// <summary>
     /// Creates a popup alert with one button. When the button is pressed Chosen event is called with the value true.
@@ -37,7 +38,7 @@ public class AlertMenu : PopupMenu {
         button1.Padding = new Vector2(0);
         button1.MaxSize = new Vector2(200, 100);
 
-        panel.AddChild(header);
+        panel!.AddChild(header);
         panel.AddChild(paragraph);
         panel.AddChild(button1);
     }
@@ -69,13 +70,14 @@ public class AlertMenu : PopupMenu {
         button2.MaxSize = new Vector2(200, 100);
 
         //Adding items to the panel
-        panel.AddChild(paragraph);
+        panel!.AddChild(paragraph);
         panel.AddChild(header);
         panel.AddChild(button1);
         panel.AddChild(button2);
     }
 
     //Prepares the static elements that doesn't depend on the number of buttons.
+    [MemberNotNull(nameof(header), nameof(paragraph))]
     private void PrepareUIElements(string headerText, string text) {
         header = new Header(headerText, Anchor.TopCenter);
         header.Size = new Vector2(0f, 0.2f);
@@ -119,8 +121,8 @@ public class AlertMenu : PopupMenu {
 
     //shows the next alert in the queue
     private static void ShowNextAlert() {
-        if (Active == null && queue.TryDequeue(out AlertMenu nextAlert)) {
-            nextAlert.Show();
+        if (Active == null && queue.TryDequeue(out AlertMenu? nextAlert)) {
+            nextAlert?.Show();
         }
     }
 

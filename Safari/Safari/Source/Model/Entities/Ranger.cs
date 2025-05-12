@@ -61,12 +61,12 @@ public class Ranger : Entity {
     }
 
     [GameobjectReferenceProperty]
-    private Entity chaseTargetBuffer = null;
+    private Entity? chaseTargetBuffer = null;
     /// <summary>
     /// The Animal or Poacher the ranger is currently chasing
     /// </summary>
     [GameobjectReferenceProperty]
-    public Entity ChaseTarget { get; private set; } = null;
+    public Entity? ChaseTarget { get; private set; } = null;
 
     /// <summary>
     /// The in-game date of the last successful animal killing
@@ -81,7 +81,7 @@ public class Ranger : Entity {
     /// <summary>
     /// The animated sprite component of the ranger
     /// </summary>
-    public AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
+    public AnimatedSpriteCmp AnimatedSprite => (AnimatedSpriteCmp)Sprite!;
     /// <summary>
     /// The state machine used for transitioning between the different ranger behavior types
     /// </summary>
@@ -105,6 +105,7 @@ public class Ranger : Entity {
     [JsonConstructor]
     public Ranger() : base() {
         SetupSprite();
+        StateMachine = new();
     }
 
     public Ranger(Vector2 pos) : base(pos) {
@@ -158,7 +159,7 @@ public class Ranger : Entity {
 
         Attach(StateMachine);
 
-        LightEntityCmp lightCmp = new(GameScene.Active.Model.Level, 5);
+        LightEntityCmp lightCmp = new(GameScene.Active.Model.Level!, 5);
         Attach(lightCmp);
 
         base.Load();
@@ -177,7 +178,7 @@ public class Ranger : Entity {
             bool right = NavCmp.LastIntendedDelta.X > -0.075f;
             string anim = $"walk-{(right ? "right" : "left")}";
 
-            if (!AnimatedSprite.IsPlaying || (AnimatedSprite.CurrentAnimation != anim && AnimatedSprite.CurrentAnimation.StartsWith("walk"))) {
+            if (!AnimatedSprite.IsPlaying || (AnimatedSprite.CurrentAnimation != anim && AnimatedSprite.CurrentAnimation!.StartsWith("walk"))) {
                 AnimatedSprite.CurrentAnimation = anim;
             }
         }
@@ -207,7 +208,7 @@ public class Ranger : Entity {
     /// </summary>
     [StateBegin(RangerState.Wandering)]
     public void StartWandering() {
-        NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
+        NavCmp.TargetPosition = GameScene.Active.Model.Level!.GetRandomPosition();
         NavCmp.Moving = true;
         NavCmp.ReachedTarget += OnWanderingTargetReached;
     }
@@ -244,8 +245,8 @@ public class Ranger : Entity {
         NavCmp.ReachedTarget -= OnWanderingTargetReached;
     }
 
-    private void OnWanderingTargetReached(object sender, NavigationTargetEventArgs e) {
-        NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
+    private void OnWanderingTargetReached(object? sender, NavigationTargetEventArgs e) {
+        NavCmp.TargetPosition = GameScene.Active.Model.Level!.GetRandomPosition();
         NavCmp.Moving = true;
     }
 
@@ -316,11 +317,11 @@ public class Ranger : Entity {
         NavCmp.ReachedTarget -= OnChaseTargetReached;
     }
 
-    private void OnChaseTargetDied(object sender, EventArgs e) {
+    private void OnChaseTargetDied(object? sender, EventArgs e) {
         StateMachine.Transition(RangerState.Wandering);
     }
 
-    private void OnChaseTargetReached(object sender, NavigationTargetEventArgs e) {
+    private void OnChaseTargetReached(object? sender, NavigationTargetEventArgs e) {
         if (ChaseTarget is Animal) {
             LastSuccessfulHunt = GameScene.Active.Model.IngameDate;
 

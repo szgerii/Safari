@@ -43,8 +43,8 @@ public class GamePad {
 	private readonly Dictionary<Buttons, PressedCallback> pressedCallbacks = new Dictionary<Buttons, PressedCallback>();
 	private readonly Dictionary<Buttons, ReleasedCallback> releasedCallbacks = new Dictionary<Buttons, ReleasedCallback>();
 	private readonly Dictionary<GamePadAxes, AxisChangedCallback> axisChangedCallbacks = new Dictionary<GamePadAxes, AxisChangedCallback>();
-	private ConnectedCallback connectedCallback = null;
-	private DisconnectedCallback disconnectedCallback = null;
+	private ConnectedCallback? connectedCallback = null;
+	private DisconnectedCallback? disconnectedCallback = null;
 
 	internal void UpdateEvents() {
 		foreach (Buttons button in pressedCallbacks.Keys) {
@@ -147,18 +147,14 @@ public class GamePad {
 	/// Removes all callbacks associated with the pressed event of a given gamepad button
 	/// </summary>
 	public void ClearPressedCallbacks(Buttons button) {
-		if (pressedCallbacks.ContainsKey(button)) {
-			pressedCallbacks.Remove(button);
-		}
+		pressedCallbacks.Remove(button);
 	}
 
 	/// <summary>
 	/// Removes all callbacks associated with the released event of a given gamepad button
 	/// </summary>s
 	public void ClearReleasedCallbacks(Buttons button) {
-		if (releasedCallbacks.ContainsKey(button)) {
-			releasedCallbacks.Remove(button);
-		}
+		releasedCallbacks.Remove(button);
 	}
 
 	/// <summary>
@@ -216,9 +212,7 @@ public class GamePad {
 	/// Removes all callbacks associated with the value changed event of a given gamepad axis
 	/// </summary>
 	public void ClearAxisChangedCallbacks(GamePadAxes axis) {
-		if (axisChangedCallbacks.ContainsKey(axis)) {
-			axisChangedCallbacks.Remove(axis);
-		}
+		axisChangedCallbacks.Remove(axis);
 	}
 
 	/// <summary>

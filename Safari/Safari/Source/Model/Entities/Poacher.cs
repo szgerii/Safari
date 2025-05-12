@@ -51,18 +51,18 @@ public class Poacher : Entity {
 	/// The currently chased animal (or null if not chasing any right now)
 	/// </summary>
 	[GameobjectReferenceProperty]
-	public Animal ChaseTarget { get; private set; } = null;
+	public Animal? ChaseTarget { get; private set; } = null;
 	/// <summary>
 	/// The animal that is currently being smuggled out of the park (or null if State != Smuggling)
 	/// </summary>
 	[GameobjectReferenceProperty]
-	public Animal CaughtAnimal { get; private set; } = null;
+	public Animal? CaughtAnimal { get; private set; } = null;
 
 	[JsonProperty]
 	private bool isRevealed = false;
 	public override bool Visible => isRevealed && base.Visible;
 
-	private AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
+	private AnimatedSpriteCmp AnimatedSprite => (AnimatedSpriteCmp)Sprite!;
 
 	/// <summary>
 	/// Whether to force reveal all poachers, regardless of not being seen by any friendly entity
@@ -72,6 +72,7 @@ public class Poacher : Entity {
 	[JsonConstructor]
 	public Poacher() : base() {
 		SetupSprite();
+		StateMachine = new();
 	}
 
 	[PostPersistenceSetup]
@@ -122,13 +123,6 @@ public class Poacher : Entity {
 		Attach(Sprite);
 
 		animSprite.CurrentAnimation = "walk-right";
-
-		/*Collider collider = (new Collider(6, 54, 20, 12)).WithSpriteScale(Sprite.Scale);
-		CollisionCmp collisionCmp = new CollisionCmp(collider) {
-			Tags = CollisionTags.Poacher,
-			Targets = CollisionTags.World
-		};
-		Attach(collisionCmp);*/
 	}
 
 	static Poacher() {
@@ -165,7 +159,7 @@ public class Poacher : Entity {
 			bool right = NavCmp.LastIntendedDelta.X > 0;
 			string anim = $"walk-{(right ? "right" : "left")}";
 
-			if (!AnimatedSprite.IsPlaying || (AnimatedSprite.CurrentAnimation != anim && AnimatedSprite.CurrentAnimation.StartsWith("walk"))) {
+			if (!AnimatedSprite.IsPlaying || (AnimatedSprite.CurrentAnimation != anim && AnimatedSprite.CurrentAnimation!.StartsWith("walk"))) {
 				AnimatedSprite.CurrentAnimation = anim;
 			}
 		}
@@ -176,9 +170,9 @@ public class Poacher : Entity {
 	public override string ToString() {
 		string target;
 		target = State switch {
-			PoacherState.Wandering => Utils.Format(NavCmp.Target.Value, false, false),
-			PoacherState.Chasing => ChaseTarget.ToString(),
-			PoacherState.Smuggling => $"{Utils.Format(NavCmp.Target.Value, false, false)} [{CaughtAnimal}]",
+			PoacherState.Wandering => Utils.Format(NavCmp.Target!.Value, false, false),
+			PoacherState.Chasing => ChaseTarget!.ToString(),
+			PoacherState.Smuggling => $"{Utils.Format(NavCmp.Target!.Value, false, false)} [{CaughtAnimal}]",
 			_ => ""
 		};
 
@@ -198,7 +192,7 @@ public class Poacher : Entity {
 	/// </summary>
 	[StateBegin(PoacherState.Wandering)]
 	public void StartWandering() {
-		NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
+		NavCmp.TargetPosition = GameScene.Active.Model.Level!.GetRandomPosition();
 		NavCmp.ReachedTarget += OnWanderingTargetReached;
 		NavCmp.StopOnTargetReach = false;
 		NavCmp.Moving = true;
@@ -230,9 +224,9 @@ public class Poacher : Entity {
 		NavCmp.Moving = false;
 	}
 
-	private void OnWanderingTargetReached(object sender, NavigationTargetEventArgs e) {
+	private void OnWanderingTargetReached(object? sender, NavigationTargetEventArgs e) {
 		if (e.TargetPosition != null) {
-			NavCmp.TargetPosition = GameScene.Active.Model.Level.GetRandomPosition();
+			NavCmp.TargetPosition = GameScene.Active.Model.Level!.GetRandomPosition();
 		}
 	}
 
@@ -253,8 +247,10 @@ public class Poacher : Entity {
 		ChaseTarget.Died += OnChaseTargetDied;
 	}
 
-	private void OnChaseTargetDied(object sender, EventArgs e) {
-		ChaseTarget.Died -= OnChaseTargetDied;
+	private void OnChaseTargetDied(object? sender, EventArgs e) {
+		if (ChaseTarget != null) {
+			ChaseTarget.Died -= OnChaseTargetDied;
+		}
 		ChaseTarget = null;
 		NavCmp.TargetObject = null;
 		StateMachine.Transition(PoacherState.Wandering);
@@ -267,7 +263,7 @@ public class Poacher : Entity {
 	[StateUpdate(PoacherState.Chasing)]
 	public void ChasingUpdate(GameTime gameTime) {
 		SightDistance++;
-		bool canSeeTarget = CanSee(ChaseTarget);
+		bool canSeeTarget = CanSee(ChaseTarget!);
 		SightDistance--;
 
 		if (!canSeeTarget) {
@@ -290,13 +286,13 @@ public class Poacher : Entity {
 		NavCmp.ReachedTarget -= OnChaseTargetReached;
 	}
 
-	private void OnChaseTargetReached(object sender, NavigationTargetEventArgs e) {
-		if (ChaseTarget.IsCaught || ChaseTarget.IsDead) {
+	private void OnChaseTargetReached(object? sender, NavigationTargetEventArgs e) {
+		if (ChaseTarget == null || ChaseTarget.IsCaught || ChaseTarget.IsDead) {
 			StateMachine.Transition(PoacherState.Wandering);
 			return;
 		}
 
-		bool shoot = Game.Random.NextSingle() <= SHOOT_CHANCE;
+		bool shoot = Game.Random!.NextSingle() <= SHOOT_CHANCE;
 
 		if (shoot) {
 			ChaseTarget.Die();
@@ -313,7 +309,7 @@ public class Poacher : Entity {
 	/// </summary>
 	[StateBegin(PoacherState.Smuggling)]
 	public void StartSmuggling() {
-		Rectangle lvlBounds = GameScene.Active.Model.Level.PlayAreaBounds;
+		Rectangle lvlBounds = GameScene.Active.Model.Level!.PlayAreaBounds;
 
 		Vector2[] potentialEscapes = [
 			new Vector2(lvlBounds.X, CenterPosition.Y),
@@ -341,13 +337,13 @@ public class Poacher : Entity {
 		Died += OnDiedWhileEscaping;
 	}
 
-	private void OnDiedWhileEscaping(object sender, EventArgs e) {
-		CaughtAnimal.Release(Position);
+	private void OnDiedWhileEscaping(object? sender, EventArgs e) {
+		CaughtAnimal?.Release(Position);
 		CaughtAnimal = null;
 	}
 
-	private void OnEscapeReached(object sender, NavigationTargetEventArgs e) {
-		CaughtAnimal.Die();
+	private void OnEscapeReached(object? sender, NavigationTargetEventArgs e) {
+		CaughtAnimal?.Die();
 		StateMachine.Transition(PoacherState.Wandering);
 		ReachDistance = 4;
 	}
@@ -366,7 +362,7 @@ public class Poacher : Entity {
 		}
 	}
 
-	private void HideOnPreUpdate(object sender, GameTime e) {
+	private void HideOnPreUpdate(object? sender, GameTime e) {
 		// keep last state during pause
 		if (GameScene.Active.Model.GameSpeed != GameSpeed.Paused) {
 			isRevealed = false;

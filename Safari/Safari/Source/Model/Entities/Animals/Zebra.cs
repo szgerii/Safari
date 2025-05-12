@@ -21,11 +21,13 @@ public class Zebra : Animal {
 	}
 
 	private void InitSprite() {
-		Sprite.Texture = Game.LoadTexture("Assets/Animals/Zebra");
+		Sprite!.Texture = Game.LoadTexture("Assets/Animals/Zebra");
 		Sprite.YSortOffset = 96;
 		Sprite.Scale = 2 / 3f;
 
-		Vectangle baseColl = new(5, 83, 78, 15);
-		collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		if (collisionCmp != null) {
+			Vectangle baseColl = new(5, 83, 78, 15);
+			collisionCmp.Collider = baseColl.WithSpriteScale(Sprite.Scale);
+		}
 	}
 }
