@@ -85,7 +85,7 @@ public class ConstructionHelperTest : SimulationTest {
 		Assert.IsInstanceOfType<Water>(ch.SelectedInstance);
 		ch.SelectedIndex = ConstructionHelperCmp.BUSH;
 		Assert.IsInstanceOfType<Bush>(ch.SelectedInstance);
-		ch.SelectedItem.SelectNext();
+		ch.SelectedItem!.SelectNext();
 		Assert.IsInstanceOfType<WideBush>(ch.SelectedInstance);
 		ch.SelectedIndex = ConstructionHelperCmp.TREE;
 		Assert.IsInstanceOfType<Tree>(ch.SelectedInstance);
@@ -136,7 +136,7 @@ public class ConstructionHelperTest : SimulationTest {
 
 		// large tile (tree is 3x3)
 		ch.SelectedIndex = ConstructionHelperCmp.TREE;
-		ch.SelectedItem.SelectNext();
+		ch.SelectedItem!.SelectNext();
 		ch.SelectedItem.SelectNext();
 		ch.SelectedItem.SelectNext(); // some treetype
 		Assert.IsTrue(ch.CanBuildCurrent(3, 4));

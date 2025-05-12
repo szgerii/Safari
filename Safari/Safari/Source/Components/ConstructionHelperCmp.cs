@@ -105,12 +105,12 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// <summary>
 	/// Fetch the currently selected palette item
 	/// </summary>
-	public PaletteItem SelectedItem {
+	public PaletteItem? SelectedItem {
 		get {
 			if (SelectedIndex >= 0) {
 				return Palette[SelectedIndex];
 			} else {
-				throw new InvalidOperationException("SelectedIndex is in an invalid state");
+				return null;
 			}
 		}
 	}
@@ -118,12 +118,12 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// <summary>
 	/// Fetch the tile instance of the currently selected item in the palette
 	/// </summary>
-	public Tile SelectedInstance {
+	public Tile? SelectedInstance {
 		get {
 			if (SelectedIndex >= 0 && Palette[SelectedIndex].Instance != null) {
 				return Palette[SelectedIndex].Instance!;
 			} else {
-				throw new InvalidOperationException("SelectedIndex is in an invalid state");
+				return null;
 			}
 		}
 	}
@@ -250,7 +250,7 @@ public class ConstructionHelperCmp : Component, IUpdatable {
 	/// Attempts placing the currently selected tile at the given coordinates
 	/// </summary>
 	public void BuildCurrent(Point p) {
-		Tile tile = SelectedInstance;
+		Tile? tile = SelectedInstance;
 		if (tile == null || !CanBuild(p, tile)) {
 			return;
 		}
