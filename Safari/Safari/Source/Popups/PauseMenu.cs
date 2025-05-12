@@ -5,31 +5,34 @@ using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Safari.Helpers;
+using Safari.Model;
+using Safari.Persistence;
 using Safari.Scenes;
 using Safari.Scenes.Menus;
 
 namespace Safari.Popups;
 
 public class PauseMenu : PopupMenu, IResettableSingleton {
-	private static PauseMenu instance;
-	public static PauseMenu Instance {
-		get {
-			instance ??= new();
-			return instance;
-		}
-	}
-	public static void ResetSingleton() {
+    private static PauseMenu? instance;
+    public static PauseMenu Instance {
+        get {
+            instance ??= new();
+            return instance;
+        }
+    }
+    public static void ResetSingleton() {
         instance?.Hide();
-		instance = null;
-	}
+        instance = null;
+    }
 
-	private readonly Header Title;
+    private readonly Header Title;
     private readonly Panel ButtonPanel;
     private readonly Button ResumeButton;
     private readonly Button SaveButton;
     private readonly Button SaveAndExitButton;
     private readonly Button ExitButton;
-    private bool visible;       
+    private bool visible;
+    private GameSpeed prevSpeed;
 
     public static bool Visible => Instance.visible;
 
@@ -38,9 +41,6 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         panel = new Panel(new Vector2(0.4f, 0.7f), PanelSkin.Default, Anchor.Center);
         panel.MaxSize = new Vector2(400, 600);
         panel.Padding = new Vector2(10);
-        Panel bg = new Panel(new Vector2(0, 0));
-        bg.Opacity = (byte)0.5f;
-        panel.Background = bg;
 
         Title = new Header("Safari", Anchor.TopCenter);
         panel.AddChild(Title);
@@ -80,12 +80,20 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
     }
 
     private void SaveButtonClicked(Entity entity) {
-        new AlertMenu("Feature", "This feature is currently WIP, check back another time").Show();
+        GameModel model = GameScene.Active.Model;
+        new GameModelPersistence(model.ParkName).Save(model);
+        new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!").Show();
     }
 
     private void SaveAndExitButtonClicked(Entity entity) {
-        TogglePauseMenu();
-        SceneManager.Load(MainMenu.Instance);
+        GameModel model = GameScene.Active.Model;
+        new GameModelPersistence(model.ParkName).Save(model);
+        var am = new AlertMenu("Save Complete!", $"Game {model.ParkName} successfully saved!", "Return to main menu");
+        am.Chosen += (object? _, bool _) => {
+            TogglePauseMenu();
+            SceneManager.Load(MainMenu.Instance);
+        };
+        am.Show();
     }
 
     private void ExitButtonClicked(Entity entity) {
@@ -93,6 +101,9 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         SceneManager.Load(MainMenu.Instance);
     }
 
+    /// <summary>
+    /// Toggles Pause menu's visibility and handles game pausing.
+    /// </summary>
     public void TogglePauseMenu() {
         if (SceneManager.Active is not GameScene) {
             return;
@@ -100,8 +111,11 @@ public class PauseMenu : PopupMenu, IResettableSingleton {
         if (visible) {
             base.Hide();
             visible = false;
-            GameScene.Active.Model.Resume();
+            if (prevSpeed != GameSpeed.Paused) {
+                GameScene.Active.Model.Resume();
+            }
         } else {
+            prevSpeed = GameScene.Active.Model.GameSpeed;
             GameScene.Active.Model.Pause();
             base.Show();
             visible = true;

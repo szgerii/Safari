@@ -7,15 +7,23 @@ using Safari.Model.Entities.Tourists;
 using Safari.Scenes;
 using System;
 using Engine.Graphics.Stubs.Texture;
+using Newtonsoft.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model;
 
+/// <summary>
+/// The possible difficulty levels the game can be played at
+/// </summary>
 public enum GameDifficulty {
 	Easy,
 	Normal,
 	Hard
 }
 
+/// <summary>
+/// The possible rate the game can be advanced at
+/// </summary>
 public enum GameSpeed {
 	Paused,
 	Slow,
@@ -23,66 +31,120 @@ public enum GameSpeed {
 	Fast
 }
 
+/// <summary>
+/// The possible reasons the player has lost the game
+/// </summary>
 public enum LoseReason {
 	Money,
 	Animals
 }
 
+/// <summary>
+/// The class responsible for the general state of the game (like funds, winning, losing, time management, etc.)
+/// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class GameModel {
-	// constants for money requirements for winning
-	public const int WIN_FUNDS_EASY = 30000;
-	public const int WIN_FUNDS_NORMAL = 80000;
-	public const int WIN_FUNDS_HARD = 150000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_FUNDS_EASY = 50000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on normal difficulty
+	/// </summary>
+	public const int WIN_FUNDS_NORMAL = 120000;
+	/// <summary>
+	/// The amount of money the player needs to hold in order to win on hard difficulty
+	/// </summary>
+	public const int WIN_FUNDS_HARD = 200000;
 
-	// constants for herbivore count requirements for winning
-	public const int WIN_HERB_EASY = 5;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_HERB_EASY = 20;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_HERB_NORMAL = 40;
+	/// <summary>
+	/// The amount of herbivore animals the player needs to have in their park in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_HERB_HARD = 80;
 
-	// constants for carnivore count requirements for winning
-	public const int WIN_CARN_EASY = 5;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_CARN_EASY = 20;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_CARN_NORMAL = 40;
+	/// <summary>
+	/// The amount of carnivore animals the player needs to have in their park in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_CARN_HARD = 80;
 
-	// constants storing how long the player has to keep the winning conditions
-	public const int WIN_DAYS_EASY = 3;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on easy difficulty
+	/// </summary>
+	public const int WIN_DAYS_EASY = 5;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on normal difficulty
+	/// </summary>
 	public const int WIN_DAYS_NORMAL = 30;
+	/// <summary>
+	/// The number of days, for which the player needs to meet all winning criteria in order to win on hard difficulty
+	/// </summary>
 	public const int WIN_DAYS_HARD = 60;
 
 	/// <summary>
 	/// How much faster 'medium' speed is compared to 'slow'
 	/// </summary>
-	private const int MEDIUM_FRAMES = 8;
+	public const int MEDIUM_FRAMES = 8;
 	/// <summary>
 	/// The component of medium speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int MEDIUM_FAKE = 4;
+	public const int MEDIUM_FAKE = 4;
 	/// <summary>
 	/// How much faster 'fast' speed is compared to 'slow'
 	/// </summary>
-	private const int FAST_FRAMES = 36;
+	public const int FAST_FRAMES = 36;
 	/// <summary>
 	/// The component of fast speed which is faked, sacrificing sim accuracy for speed
 	/// </summary>
-	private const int FAST_FAKE = 12;
+	public const int FAST_FAKE = 12;
 	/// <summary>
 	/// Length of an in-game day (irl seconds), when the game speed
 	/// is set to 'slow'
 	/// </summary>
-	private const double DAY_LENGTH = 210.0;
+	public const double DAY_LENGTH = 210.0;
 
+	/// <summary>
+	/// The relative time in a day when sunrise should start
+	/// </summary>
 	public const double SUNRISE_START = 0.98;
+	/// <summary>
+	/// The relative time in a day when sunrise should end
+	/// </summary>
 	public const double SUNRISE_END = 0.02;
+	/// <summary>
+	/// The relative time in a day when sunset should start
+	/// </summary>
 	public const double SUNSET_START = 0.62;
+	/// <summary>
+	/// The relative time in a day when sunset should end
+	/// </summary>
 	public const double SUNSET_END = 0.66;
 
 	private GameSpeed prevSpeed;
+	[JsonProperty]
 	private readonly DateTime startDate;
 
 	/// <summary>
 	/// The name of the park (used when saving the park)
 	/// </summary>
-	public string ParkName { get; init; }
+	[JsonProperty(Required = Required.DisallowNull)]
+	public required string ParkName { get; init; }
+	[JsonProperty]
 	private int funds;
 	/// <summary>
 	/// How much money ($?) the player currently has
@@ -102,6 +164,7 @@ public class GameModel {
 	/// <summary>
 	/// The selected difficulty for this park (easy, normal or hard)
 	/// </summary>
+	[JsonProperty]
 	public GameDifficulty Difficulty { get; init; }
 
 	/// <summary>
@@ -116,6 +179,9 @@ public class GameModel {
 		GameSpeed.Fast => FAST_FRAMES / FAST_FAKE,
 		_ => 0
 	};
+	/// <summary>
+	/// The number by which the gametime's delta should be multiplied at the current gamespeed
+	/// </summary>
 	public double FakeFrameMul => GameSpeed switch {
 		GameSpeed.Medium => MEDIUM_FAKE,
 		GameSpeed.Fast => FAST_FAKE,
@@ -124,6 +190,7 @@ public class GameModel {
 	/// <summary>
 	/// Time passed (in irl seconds) since the start of the game
 	/// </summary>
+	[JsonProperty]
 	public double CurrentTime { get; private set; } = 0.0f;
 	/// <summary>
 	/// Returns a value between 0 and 1, corresponding to the time of day
@@ -150,7 +217,8 @@ public class GameModel {
 	/// <summary>
 	/// The current game level's tilemap
 	/// </summary>
-	public Level Level { get; set; }
+	[JsonProperty]
+	public Level? Level { get; set; }
 
 	/// <summary>
 	/// The total number of entities in the game
@@ -245,7 +313,7 @@ public class GameModel {
 		GameDifficulty.Normal => WIN_DAYS_NORMAL,
 		_ => WIN_DAYS_HARD,
 	};
-
+	[JsonProperty]
 	private bool winTimerRunning = false;
 	/// <summary>
 	/// Whether the win criteria is met therefore the win countdown is running
@@ -254,6 +322,7 @@ public class GameModel {
 	/// <summary>
 	/// How many days are left until winning
 	/// </summary>
+	[JsonProperty]
 	public double WinTimerDays { get; private set; } = 0.0;
 	/// <summary>
 	/// How much time is left until winning
@@ -267,19 +336,20 @@ public class GameModel {
 	/// <summary>
 	/// Stores whether this save has been won
 	/// </summary>
+	[JsonProperty]
 	public bool PostWin { get; set; } = false;
 
 	/// <summary>
 	/// Invoked when the player has lost the game
 	/// </summary>
-	public event EventHandler<LoseReason> GameLost;
+	public event EventHandler<LoseReason>? GameLost;
 	/// <summary>
 	/// Invoked when the player has won the game
 	/// </summary>
-	public event EventHandler GameWon;
+	public event EventHandler? GameWon;
 
 	static GameModel() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("advance-gamespeed", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -290,28 +360,28 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-slow", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Slow;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-medium", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Medium;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("gamespeed-fast", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				model.GameSpeed = GameSpeed.Fast;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-simulation", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
 				GameModel model = GameScene.Active.Model;
 				switch (model.GameSpeed) {
@@ -321,58 +391,36 @@ public class GameModel {
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-gameover-checks", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.CheckWinLose = !gs.Model.CheckWinLose;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("add-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds += 10000;
 			}
 		}));
 
-		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("subtract-money", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene gs) {
 				gs.Model.Funds -= 10000;
 			}
 		}));
 	}
 
-	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate, bool strippedInit = false) {
+	[JsonConstructor]
+	public GameModel() {
+		CheckWinLose = false;
+	}
+
+	[SetsRequiredMembers]
+	public GameModel(string parkName, int funds, GameDifficulty difficulty, DateTime startDate) {
 		ParkName = parkName;
 		Funds = funds;
 		Difficulty = difficulty;
 		this.startDate = startDate;
-
-		ITexture2D staticBG = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
-		Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
-
-		Jeep.Init(400);
-		Tourist.Init();
-
-		Game.AddObject(Level);
-
-		if (!strippedInit) {
-			// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
-			EntitySpawner<Poacher> poacherSpawner = new(4, 0.5f, 0.05f) {
-				EntityLimit = 5, // don't spawn if there are >= 5 poachers on the map
-				EntityCount = () => PoacherCount // use PoacherCount to determine number of poachers on the map
-			};
-			Game.AddObject(poacherSpawner);
-
-			Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
-				EntityLimit = 30,
-				EntityCount = () => Tourist.Queue.Count,
-				SpawnArea = new Rectangle(-64, 512, 32, 320),
-				ExtraCondition = () => IsDaytime
-			};
-			Game.AddObject(Tourist.Spawner);
-			Tourist.UpdateSpawner();
-		}
-
-		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", Level.PostDraw, GameLoopStage.POST_DRAW));
 	}
 
 	/// <summary>
@@ -391,6 +439,9 @@ public class GameModel {
 		}
 	}
 
+	/// <summary>
+	/// Pause the game (the simulation does not advance)
+	/// </summary>
 	public void Pause() {
 		if (GameSpeed != GameSpeed.Paused) {
 			prevSpeed = GameSpeed;
@@ -398,13 +449,20 @@ public class GameModel {
 		}
 	}
 
+	/// <summary>
+	/// Resume the game (the simulation runs normally)
+	/// </summary>
 	public void Resume() {
 		if (GameSpeed == GameSpeed.Paused) {
 			GameSpeed = prevSpeed;
 		}
 	}
 
-	public void PrintModelDebugInfos() {
+	/// <summary>
+	/// Print various information regarding the current state of the game model
+	/// </summary>
+	[ExcludeFromCodeCoverage]
+	public static void PrintModelDebugInfos() {
 		GameModel model = GameScene.Active.Model;
 
 		string speedName = "";
@@ -439,10 +497,11 @@ public class GameModel {
 
 	private void TriggerWin() {
 		GameWon?.Invoke(this, EventArgs.Empty);
+		PostWin = true;
 	}
 
 	private void WinUpdate() {
-		if (WinConCheck()) {
+		if (WinConCheck() && !PostWin) {
 			if (!winTimerRunning) {
 				WinTimerDays = WinCriteriaDays;
 				winTimerRunning = true;

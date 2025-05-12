@@ -7,11 +7,12 @@ using Safari.Components;
 using Safari.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Scenes.Menus;
 
 public class SettingsMenu : MenuScene, IResettableSingleton {
-	private static SettingsMenu instance;
+	private static SettingsMenu? instance;
 	public static SettingsMenu Instance {
 		get {
 			instance ??= new();
@@ -23,45 +24,51 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         instance = null;
 	}
 
-	private Header title;
-    private Panel settingsPanel;
+	private Header? title;
+    private Panel? settingsPanel;
 
-    private Panel fpsPanel;
-    private Label fpsText;
-    private Slider fpsSlider;
+    private Panel? fpsPanel;
+    private Label? fpsText;
+    private Slider? fpsSlider;
 
-    private Panel vsyncPanel;
-    private Label vsyncText;
-    private Button vsyncButton;
+    private Panel? vsyncPanel;
+    private Label? vsyncText;
+    private Button? vsyncButton;
 
-    private Panel screenTypePanel;
-    private Label screenTypeText;
-    private Panel screenTypeButtonPanel;
-    private Button screenTypeWindowed;
-    private Button screenTypeBorderless;
-    private Button screenTypeFullscreen;
+    private Panel? screenTypePanel;
+    private Label? screenTypeText;
+    private Panel? screenTypeButtonPanel;
+    private Button? screenTypeWindowed;
+    private Button? screenTypeBorderless;
+    private Button? screenTypeFullscreen;
 
-    private Panel cameraSpeedPanel;
-    private Label cameraSpeedText;
-    private Slider cameraSpeedSlider;
-    private float cameraStoredValue;
+    private Panel? cameraSpeedPanel;
+    private Label? cameraSpeedText;
+    private Slider? cameraSpeedSlider;
+    private float cameraSpeedStoredValue;
 
-    private Panel resolutionPanel;
-    private Label resolutionText;
-    private Panel resolutionChangePanel;
-    private Label resolutionsDisplay;
-    private Button prevResolution;
-    private Button nextResolution;
-    private List<(int, int)> resolutions;
+    private Panel? cameraAccelPanel;
+    private Label? cameraAccelText;
+    private Slider? cameraAccelSlider;
+    private float cameraAccelStoredValue;
+
+    private Panel? resolutionPanel;
+    private Label? resolutionText;
+    private Panel? resolutionChangePanel;
+    private Label? resolutionsDisplay;
+    private Button? prevResolution;
+    private Button? nextResolution;
+    private List<(int, int)>? resolutions;
     private (int, int) selectedResolution;
     private int currentResolution;
+    private WindowType selectedWindowType;
 
-    private Panel buttonPanel;
-    private Button saveChangesButton;
-    private Button menuAndDiscardButton;
+    private Panel? buttonPanel;
+    private Button? saveAndExitButton;
+    private Button? discardAndExitButton;
 
     private static float scale = ((float)DisplayManager.Height / 1080f) * 1.2f;
-    public static event EventHandler ScaleChanged;
+    public static event EventHandler? ScaleChanged;
 
     /// <summary>
     /// Get the scaling for text that matches the resolution.
@@ -77,29 +84,33 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
     }
 
     protected override void ConstructUI() {
+        if (SafariSettings.Instance == null) {
+            throw new InvalidOperationException("Couldn't find an active settings instance");
+        }
+
         panel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.TopLeft);
 
         title = new Header("Safari", Anchor.TopCenter);
         panel.AddChild(title);
 
-        settingsPanel = new Panel(new Vector2(0, 0.8f), PanelSkin.None, Anchor.TopCenter);
+        settingsPanel = new Panel(new Vector2(0, 0.85f), PanelSkin.None, Anchor.TopCenter);
+        settingsPanel.PanelOverflowBehavior = PanelOverflowBehavior.VerticalScroll;
 
         #region FPS
         //FPS Settings
         fpsPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         fpsPanel.Padding = new Vector2(0);
 
-        fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.5f, -1));
+        fpsText = new Label("Frame rate:", Anchor.CenterLeft, new Vector2(0.45f, -1));
         fpsText.Padding = new Vector2(10);
 
-        fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
-        fpsSlider.Value = DisplayManager.TargetFPS == 0 ? 91 : DisplayManager.TargetFPS;
+        fpsSlider = new Slider(30, 91, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
+        fpsSlider.Value = SafariSettings.Instance.Fps == 0 ? 91 : SafariSettings.Instance.Fps;
 
         fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
 
         fpsSlider.OnValueChange = (Entity entity) => {
             fpsText.Text = "Frame rate: " + ((fpsSlider.Value == 91) ? "Unlimited" : fpsSlider.Value);
-            DisplayManager.SetTargetFPS(fpsSlider.Value == 91 ? 0 : fpsSlider.Value, false);
         };
 
         fpsPanel.AddChild(fpsText);
@@ -116,14 +127,13 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         vsyncText = new Label("VSync:", Anchor.CenterLeft, new Vector2(0.5f, -1));
         vsyncText.Padding = new Vector2(10);
 
-        vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50));
+        vsyncButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(150, 50), new Vector2(20, 0));
         vsyncButton.ToggleMode = true;
-        vsyncButton.Checked = DisplayManager.VSync;
+        vsyncButton.Checked = SafariSettings.Instance.VSync;
         vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
         vsyncButton.Padding = new Vector2(0);
         vsyncButton.OnValueChange = (Entity entity) => {
             vsyncButton.ButtonParagraph.Text = vsyncButton.Checked ? "VSync ON" : "VSync OFF";
-            DisplayManager.SetVSync(vsyncButton.Checked, false);
         };
 
         vsyncPanel.AddChild(vsyncText);
@@ -139,7 +149,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeText = new Label("Window mode: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         screenTypeText.Padding = new Vector2(10);
 
-        screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight);
+        screenTypeButtonPanel = new Panel(new Vector2(0.75f, 0), PanelSkin.None, Anchor.CenterRight, new Vector2(20, 0));
         screenTypeButtonPanel.Padding = new Vector2(0, 0.25f);
 
         screenTypeWindowed = new Button("Windowed", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.3f, 0.5f));
@@ -147,9 +157,9 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeWindowed.ToggleMode = true;
         screenTypeWindowed.OnClick = (Entity entity) => {
             screenTypeWindowed.Checked = true;
-            screenTypeBorderless.Checked = false;
-            screenTypeFullscreen.Checked = false;
-            DisplayManager.SetWindowType(WindowType.WINDOWED, false);
+            screenTypeBorderless!.Checked = false;
+            screenTypeFullscreen!.Checked = false;
+            selectedWindowType = WindowType.WINDOWED;
         };
         screenTypeButtonPanel.AddChild(screenTypeWindowed);
 
@@ -159,8 +169,8 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         screenTypeBorderless.OnClick = (Entity entity) => {
             screenTypeWindowed.Checked = false;
             screenTypeBorderless.Checked = true;
-            screenTypeFullscreen.Checked = false;
-            DisplayManager.SetWindowType(WindowType.BORDERLESS, false);
+            screenTypeFullscreen!.Checked = false;
+            selectedWindowType = WindowType.BORDERLESS;
         };
         screenTypeButtonPanel.AddChild(screenTypeBorderless);
 
@@ -171,10 +181,10 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
             screenTypeWindowed.Checked = false;
             screenTypeBorderless.Checked = false;
             screenTypeFullscreen.Checked = true;
-            DisplayManager.SetWindowType(WindowType.FULL_SCREEN, false);
+            selectedWindowType = WindowType.FULL_SCREEN;
         };
 
-        switch (DisplayManager.WindowType) {
+        switch (SafariSettings.Instance.WindowType) {
             case WindowType.WINDOWED: screenTypeWindowed.Checked = true; break;
             case WindowType.BORDERLESS: screenTypeBorderless.Checked = true; break;
             case WindowType.FULL_SCREEN: screenTypeFullscreen.Checked = true; break;
@@ -195,42 +205,55 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         cameraSpeedText = new Label("Camera speed: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         cameraSpeedText.Padding = new Vector2(10);
 
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraSpeedStoredValue = SafariSettings.Instance.CameraSpeed;
 
-        cameraSpeedSlider = new Slider(50, 300, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight);
-        cameraSpeedSlider.Value = (int)CameraControllerCmp.DefaultScrollSpeed;
-        cameraSpeedText.Text = "Camera speed: " + (float)cameraSpeedSlider.Value / 100f;
+        cameraSpeedSlider = new Slider((int)SafariSettings.CAMERA_SPEED_MIN, (int)SafariSettings.CAMERA_SPEED_MAX, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
+        cameraSpeedSlider.Value = (int)SafariSettings.Instance.CameraSpeed;
+        cameraSpeedText.Text = "Camera speed: " + cameraSpeedSlider.Value / 100f;
         cameraSpeedSlider.OnValueChange = (Entity entity) => {
-            cameraSpeedText.Text = "Camera speed: " + (float)cameraSpeedSlider.Value / 100f;
-            cameraStoredValue = (float)cameraSpeedSlider.Value;
+            cameraSpeedText.Text = "Camera speed: " + cameraSpeedSlider.Value / 100f;
+            cameraSpeedStoredValue = cameraSpeedSlider.Value;
         };
 
         cameraSpeedPanel.AddChild(cameraSpeedText);
         cameraSpeedPanel.AddChild(cameraSpeedSlider);
         settingsPanel.AddChild(cameraSpeedPanel);
-        #endregion
+		#endregion
 
-        #region RESOLUTION
-        //RESOLUTION Settings
-        resolutionPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+		#region CAMERA_ACCELERATION
+		//CAMERA ACCELERATION Settings
+		cameraAccelPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
+		cameraAccelPanel.Padding = new Vector2(0);
+
+		cameraAccelText = new Label("Camera speed: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
+		cameraAccelText.Padding = new Vector2(10);
+
+		cameraAccelStoredValue = SafariSettings.Instance.CameraAcceleration;
+
+		cameraAccelSlider = new Slider((int)SafariSettings.CAMERA_ACCEL_MIN, (int)SafariSettings.CAMERA_ACCEL_MAX, new Vector2(0.5f, 0.4f), SliderSkin.Default, Anchor.CenterRight, new Vector2(20, 0));
+		cameraAccelSlider.Value = (int)SafariSettings.Instance.CameraAcceleration;
+		cameraAccelText.Text = "Camera acceleration: " + (cameraAccelSlider.Value == 0 ? "OFF" : cameraAccelSlider.Value / 100f);
+		cameraAccelSlider.OnValueChange = (Entity entity) => {
+			cameraAccelText.Text = "Camera acceleration: " + (cameraAccelSlider.Value == 0 ? "OFF" : cameraAccelSlider.Value / 100f);
+			cameraAccelStoredValue = cameraAccelSlider.Value;
+		};
+
+		cameraAccelPanel.AddChild(cameraAccelText);
+		cameraAccelPanel.AddChild(cameraAccelSlider);
+		settingsPanel.AddChild(cameraAccelPanel);
+		#endregion
+
+		#region RESOLUTION
+		//RESOLUTION Settings
+		resolutionPanel = new Panel(new Vector2(0, 0.2f), PanelSkin.None, Anchor.AutoCenter);
         resolutionPanel.Padding = new Vector2(0);
 
         resolutionText = new Label("Resolution: ", Anchor.CenterLeft, new Vector2(0.5f, -1));
         resolutionText.Padding = new Vector2(10);
 
         resolutions = new List<(int, int)>();
-        bool addRest = false;
-        foreach (DisplayMode item in DisplayManager.SupportedResolutions) {
-            if (item.Width == 1280 && item.Height == 720) {
-                addRest = true;
-            }
-            if (item.Width == 1920 && item.Height == 1080) {
-                addRest = false;
-                resolutions.Add((item.Width, item.Height));
-            }
-            if (addRest) {
-                resolutions.Add((item.Width, item.Height));
-            }
+        foreach ((int width, int height) in SafariSettings.ResolutionOptions) {
+            resolutions.Add((width, height));
         }
 
         resolutionChangePanel = new Panel(new Vector2(0.5f, 0), PanelSkin.None, Anchor.CenterRight);
@@ -246,7 +269,6 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
             }
             resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
             selectedResolution = resolutions[currentResolution];
-            DisplayManager.SetResolution(resolutions[currentResolution].Item1, resolutions[currentResolution].Item2, false);
         };
 
         nextResolution = new Button("+", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.25f, 0));
@@ -257,7 +279,6 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
             }
             resolutionsDisplay.Text = resolutions[currentResolution].Item1 + "x" + resolutions[currentResolution].Item2;
             selectedResolution = resolutions[currentResolution];
-            DisplayManager.SetResolution(resolutions[currentResolution].Item1, resolutions[currentResolution].Item2, false);
         };
 
         resolutionChangePanel.AddChild(prevResolution);
@@ -272,16 +293,16 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         //button setup
         buttonPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.None, Anchor.BottomRight);
 
-        menuAndDiscardButton = new Button("Exit & Discard", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.55f, -1));
-        menuAndDiscardButton.Padding = new Vector2(10);
-        menuAndDiscardButton.OnClick = MenuAndDiscardButtonClicked;
+        discardAndExitButton = new Button("Discard & Exit", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(0.5f, -1));
+        discardAndExitButton.Padding = new Vector2(10);
+        discardAndExitButton.OnClick = ExitButtonClicked;
 
-        saveChangesButton = new Button("Save", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.3f, -1));
-        saveChangesButton.Padding = new Vector2(10);
-        saveChangesButton.OnClick = SaveChangesButtonClicked;
+        saveAndExitButton = new Button("Save & Exit", ButtonSkin.Default, Anchor.CenterRight, new Vector2(0.45f, -1));
+        saveAndExitButton.Padding = new Vector2(10);
+        saveAndExitButton.OnClick = SaveButtonClicked;
 
-        buttonPanel.AddChild(menuAndDiscardButton);
-        buttonPanel.AddChild(saveChangesButton);
+        buttonPanel.AddChild(discardAndExitButton);
+        buttonPanel.AddChild(saveAndExitButton);
 
         panel.AddChild(settingsPanel);
         panel.AddChild(buttonPanel);
@@ -289,29 +310,41 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         ScaleText();
     }
 
-    private void SaveChangesButtonClicked(Entity entity) {
-        CameraControllerCmp.DefaultScrollSpeed = cameraStoredValue;
+    private void SaveButtonClicked(Entity entity) {
+        if (SafariSettings.Instance == null) {
+            throw new InvalidOperationException("Couldn't find an active settings instance");
+        }
+        
+        SafariSettings.Instance.CameraSpeed = cameraSpeedStoredValue;
+        SafariSettings.Instance.CameraAcceleration = cameraAccelStoredValue;
+        SafariSettings.Instance.Resolution = selectedResolution;
+        SafariSettings.Instance.VSync = vsyncButton!.Checked;
+        SafariSettings.Instance.Fps = fpsSlider!.Value == 91 ? 0 : fpsSlider.Value;
+        SafariSettings.Instance.WindowType = selectedWindowType;
+		SafariSettings.Instance.Apply();
         ScaleText();
-        DisplayManager.ApplyChanges();
+        SceneManager.Load(MainMenu.Instance);
     }
 
-    private void MenuAndDiscardButtonClicked(Entity entity) {
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+    private void ExitButtonClicked(Entity entity) {
+        cameraSpeedStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraAccelStoredValue = CameraControllerCmp.DefaultAcceleration;
         DisplayManager.DiscardChanges();
         SceneManager.Load(MainMenu.Instance);
     }
 
     private void ScaleText() {
         Scale = ((float)selectedResolution.Item2 / 1080f) * 1.2f;
-        fpsText.Scale = Scale;
-        vsyncText.Scale = Scale;
-        screenTypeText.Scale = Scale;
-        cameraSpeedText.Scale = Scale;
-        resolutionText.Scale = Scale;
-        resolutionsDisplay.Scale = Scale;
+        fpsText!.Scale = Scale;
+        vsyncText!.Scale = Scale;
+        screenTypeText!.Scale = Scale;
+        cameraSpeedText!.Scale = Scale;
+        cameraAccelText!.Scale = Scale;
+        resolutionText!.Scale = Scale;
+        resolutionsDisplay!.Scale = Scale;
 
-        prevResolution.ButtonParagraph.Scale = Scale;
-        nextResolution.ButtonParagraph.Scale = Scale;
+        prevResolution!.ButtonParagraph.Scale = Scale;
+        nextResolution!.ButtonParagraph.Scale = Scale;
     }
 
     protected override void DestroyUI() {
@@ -333,7 +366,11 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         cameraSpeedPanel = null;
         cameraSpeedText = null;
         cameraSpeedSlider = null;
-        cameraStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraSpeedStoredValue = CameraControllerCmp.DefaultScrollSpeed;
+        cameraAccelPanel = null;
+        cameraAccelText = null;
+        cameraAccelSlider = null;
+        cameraAccelStoredValue = CameraControllerCmp.DefaultAcceleration;
         resolutionPanel = null;
         resolutionText = null;
         resolutionChangePanel = null;
@@ -342,7 +379,7 @@ public class SettingsMenu : MenuScene, IResettableSingleton {
         nextResolution = null;
         resolutions = null;
         buttonPanel = null;
-        menuAndDiscardButton = null;
-        saveChangesButton = null;
+        discardAndExitButton = null;
+        saveAndExitButton = null;
     }
 }

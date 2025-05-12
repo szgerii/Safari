@@ -5,7 +5,7 @@ namespace Safari.Model.Tiles;
 using BM = AutoTileBitmask;
 using BMH = AutoTileBitmaskHelper;
 
-public partial class AutoTile : Tile {
+public abstract partial class AutoTile : Tile {
 	/// <summary>
 	/// Sets up the Layout dictionary to use a pre-defined "default" layout
 	/// </summary>

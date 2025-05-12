@@ -1,9 +1,14 @@
 ﻿using Engine;
 using Engine.Components;
+using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using Microsoft.Xna.Framework.Graphics;
 using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
+using Safari.Scenes;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Components;
 
@@ -18,7 +23,7 @@ public class NavigationTargetEventArgs : EventArgs {
 	/// <summary>
 	/// The target object that has been reached (if the cmp was approaching an object)
 	/// </summary>
-	public GameObject TargetObject { get; init; } = null;
+	public GameObject? TargetObject { get; init; } = null;
 
 	public NavigationTargetEventArgs(GameObject obj) {
 		TargetObject = obj;
@@ -33,6 +38,7 @@ public class NavigationTargetEventArgs : EventArgs {
 /// Component for helping entities navigate through the game world
 /// </summary>
 [LimitCmpOwnerType(typeof(Entity), typeof(AnimalGroup))]
+[JsonObject(MemberSerialization.OptIn)]
 public class NavigationCmp : Component, IUpdatable {
 	private const float FALLBACK_REACH_THRESHOLD = 0.1f;
 	private const float FALLBACK_SIGHT_THRESHOLD = 0.2f;
@@ -40,9 +46,10 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// Fired when the cmp owner reaches their destination
 	/// </summary>
-	public event EventHandler<NavigationTargetEventArgs> ReachedTarget;
-	public event EventHandler<NavigationTargetEventArgs> TargetInSight;
+	public event EventHandler<NavigationTargetEventArgs>? ReachedTarget;
+	public event EventHandler<NavigationTargetEventArgs>? TargetInSight;
 
+	[JsonProperty]
 	private Vector2? targetPosition = null;
 	/// <summary>
 	/// The position the component is approaching
@@ -60,13 +67,13 @@ public class NavigationCmp : Component, IUpdatable {
 		}
 	}
 
-	private GameObject targetObject = null;
+	private GameObject? targetObject = null;
 	/// <summary>
 	/// The object the component is approaching
 	/// <br />
 	/// Sets TargetPosition to null (unless value is null)
 	/// </summary>
-	public GameObject TargetObject {
+	public GameObject? TargetObject {
 		get => targetObject;
 		set {
 			targetObject = value;
@@ -93,26 +100,35 @@ public class NavigationCmp : Component, IUpdatable {
 	/// <summary>
 	/// The speed at which the component's owner is moving
 	/// </summary>
+	[JsonProperty]
 	public float Speed { get; set; }
 	/// <summary>
 	/// Whether to stop moving after the target has been reached
 	/// </summary>
+	[JsonProperty]
 	public bool StopOnTargetReach { get; set; } = true;
 	/// <summary>
 	/// Whether the component's owner should currently be approaching their target
 	/// </summary>
+	[JsonProperty]
 	public bool Moving { get; set; } = false;
 
 	/// <summary>
 	/// Unit vector of the last direction the component was trying to move its owner in
 	/// </summary>
+	[JsonProperty]
 	public Vector2 LastIntendedDelta { get; private set; } = Vector2.Zero;
-	private Entity ownerEntity;
-	private CollisionCmp collCmp;
+	
+	private Entity? ownerEntity;
+	private CollisionCmp? collCmp;
 
+	[JsonProperty]
 	public bool AccountForBounds { get; set; } = true;
 
-	public NavigationCmp(float speed = 50f) {
+	[JsonConstructor]
+	public NavigationCmp() : this(50f) { }
+
+	public NavigationCmp(float speed) {
 		Speed = speed;
 	}
 
@@ -149,7 +165,7 @@ public class NavigationCmp : Component, IUpdatable {
 				if (targetPos.Y < 0) targetPos.Y = 0;
 			}
 
-			Vector2 delta = Target.Value - Owner.Position;
+			Vector2 delta = Target.Value - Owner!.Position;
 			Vector2 deltaSaved = delta;
 			Vector2 oldPos = Owner.Position;
 
@@ -204,7 +220,7 @@ public class NavigationCmp : Component, IUpdatable {
 			return ownerGroup.CanAnybodyReach(pos);
 		}
 
-		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_REACH_THRESHOLD * FALLBACK_REACH_THRESHOLD);
+		return Vector2.DistanceSquared(Owner!.Position, pos) < (FALLBACK_REACH_THRESHOLD * FALLBACK_REACH_THRESHOLD);
 	}
 
 	private bool CanSee(Vector2 pos) {
@@ -216,8 +232,32 @@ public class NavigationCmp : Component, IUpdatable {
 			return ownerGroup.CanAnybodySee(pos);
 		}
 
-		return Vector2.DistanceSquared(Owner.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
+		return Vector2.DistanceSquared(Owner!.Position, pos) < (FALLBACK_SIGHT_THRESHOLD * FALLBACK_SIGHT_THRESHOLD);
 	}
 
-	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition.Value) : new(TargetObject);
+	private readonly static ITexture2D pinTex = Utils.GenerateTexture(16, 16, Color.Purple);
+	private ITexture2D? pathLineTex = null;
+	[ExcludeFromCodeCoverage]
+	public void DrawPath() {
+		if (Target != null) {
+
+			Vector2 pos = ownerEntity?.CenterPosition ?? Owner!.Position;
+			Vector2 target = Target.Value;
+			pathLineTex ??= Utils.GenerateTexture(1, 1, Color.Purple);
+			float length = Vector2.Distance(pos, target);
+			float angle = (float)Math.Atan2(target.Y - pos.Y, target.X - pos.X);
+			Vector2 scale = new(length, 2f);
+
+			Game.SpriteBatch!.Draw(pathLineTex.ToTexture2D(), pos, null, Color.White, angle, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+			Vector2 pinPos = Target.Value - (pinTex.Bounds.Size.ToVector2() / 2f);
+			Game.SpriteBatch.Draw(pinTex.ToTexture2D(), pinPos, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+		}
+	}
+
+	public override string ToString() {
+		return $"Target: {Target}";
+	}
+
+	private NavigationTargetEventArgs GetArgsForTarget() => TargetObject == null ? new(TargetPosition!.Value) : new(TargetObject);
 }

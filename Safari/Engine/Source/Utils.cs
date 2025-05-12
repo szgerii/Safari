@@ -17,7 +17,7 @@ public static class Utils {
 		ITexture2D texture;
 		
 		if (Game.CanDraw) {
-			texture = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, width, height));
+			texture = new Texture2DAdapter(new(Game.Graphics!.GraphicsDevice, width, height));
 		} else {
 			texture = new NoopTexture2D(null, width, height);
 		}
@@ -43,7 +43,7 @@ public static class Utils {
 	/// <returns>The texture of the atlas</returns>
 	public static ITexture2D CreateAtlas(ITexture2D[] textures, int rowLength) {
 		if (textures.Length == 0) {
-			return Game.Instance.IsHeadless ?
+			return Game.Instance!.IsHeadless ?
 				NoopTexture2D.Empty :
 				throw new ArgumentException("textures cannot be an empty array", nameof(textures));
 		}
@@ -72,7 +72,7 @@ public static class Utils {
 
 		ITexture2D atlasTex;
 		if (Game.CanDraw) {
-			atlasTex = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, unitWidth * colCount, unitHeight * rowCount));
+			atlasTex = new Texture2DAdapter(new(Game.Graphics!.GraphicsDevice, unitWidth * colCount, unitHeight * rowCount));
 		} else {
 			atlasTex = new NoopTexture2D(null, unitWidth * colCount, unitHeight * rowCount);
 		}
@@ -130,7 +130,7 @@ public static class Utils {
 
 		ITexture2D result;
 		if (Game.CanDraw) {
-			result = new Texture2DAdapter(new(Game.Graphics.GraphicsDevice, tex1.Width, tex1.Height));
+			result = new Texture2DAdapter(new(Game.Graphics!.GraphicsDevice, tex1.Width, tex1.Height));
 		} else {
 			result = new NoopTexture2D(null, tex1.Width, tex1.Height);
 		}
@@ -288,7 +288,7 @@ public static class Utils {
 	/// <returns>A random value from the enum's possible values</returns>
 	public static EnumType GetRandomEnumValue<EnumType>() where EnumType : Enum {
 		Array values = Enum.GetValues(typeof(EnumType));
-		return (EnumType)values.GetValue(Game.Random.Next(values.Length));
+		return (EnumType)values.GetValue(Game.Random!.Next(values.Length))!;
 	}
 
 	/// <summary>
@@ -297,8 +297,8 @@ public static class Utils {
 	/// <param name="bounds">The bounds to pick from (inclusive)</param>
 	/// <returns>The random position</returns>
 	public static Vector2 GetRandomPosition(Rectangle bounds) {
-		int x = Game.Random.Next(bounds.X, bounds.Right + 1);
-		int y = Game.Random.Next(bounds.Y, bounds.Bottom + 1);
+		int x = Game.Random!.Next(bounds.X, bounds.Right + 1);
+		int y = Game.Random!.Next(bounds.Y, bounds.Bottom + 1);
 
 		return new Vector2(x, y);
 	}

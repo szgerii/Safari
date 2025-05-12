@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Engine;
 
 public class ComponentHandler {
-	public GameObject Owner { get; set; }
+	public GameObject? Owner { get; set; }
 
 	private readonly List<Component> components = new();
 	private readonly List<IUpdatable> updatables = new();
@@ -51,7 +51,7 @@ public class ComponentHandler {
 		}
 	}
 
-	public T GetComponent<T>() where T : Component {
+	public T? GetComponent<T>() where T : Component {
 		foreach (Component cmp in components) {
 			if (cmp.GetType().Equals(typeof(T))) {
 				return (T)cmp;
@@ -61,7 +61,7 @@ public class ComponentHandler {
 		return null;
 	}
 
-	public bool GetComponent<T>(out T component) where T : Component {
+	public bool GetComponent<T>(out T? component) where T : Component {
 		foreach (Component cmp in components) {
 			if (cmp.GetType().Equals(typeof(T))) {
 				component = (T)cmp;

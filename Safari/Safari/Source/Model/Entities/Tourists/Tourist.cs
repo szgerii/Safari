@@ -1,13 +1,20 @@
-﻿using Engine.Components;
+﻿using Engine;
+using Engine.Components;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Model.Entities.Animals;
+using Safari.Persistence;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities.Tourists;
 
+/// <summary>
+/// The possible states of the tourist entity
+/// </summary>
 public enum TouristState {
 	Entering,
 	Leaving,
@@ -15,44 +22,85 @@ public enum TouristState {
 	InJeep
 };
 
+/// <summary>
+/// A class representing the tourists visiting our park
+/// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Tourist : Entity {
-	public const int RATING_MEMORY = 80;
-	private static double[] recentRatings = new double[RATING_MEMORY];
+	/// <summary>
+	/// The number of old reviews that determine the rating of the park
+	/// (The larger this number, the harder it is to increase rating)
+	/// </summary>
+	[StaticSavedProperty]
+	public static int RatingMemory { get; set; }
+	[StaticSavedProperty]
+	private static double[] recentRatings = [];
+	[StaticSavedProperty]
 	private static int ratingCount = 0;
-	public static EntitySpawner<Tourist> Spawner { get; set; }
+	/// <summary>
+	/// The spawner responsible for "creating" tourists
+	/// </summary>
+	public static EntitySpawner<Tourist>? Spawner { get; set; }
+	/// <summary>
+	/// The tourists that are currently waiting in the line
+	/// </summary>
+	[StaticSavedReference]
 	public static List<Tourist> Queue { get; private set; } = new List<Tourist>();
 
-	private readonly HashSet<Animal> seenAnimals = new();
+	[GameobjectReferenceProperty]
+	private HashSet<Animal> seenAnimals = new();
+	[JsonProperty]
 	private readonly HashSet<AnimalSpecies> seenAnimalSpecies = new();
 
-
+	[JsonProperty]
 	private int targetQueueIndex = -1;
+	[JsonProperty]
 	private int queueIndex = -1;
+	[JsonProperty]
 	private int reachedQueueIndex = -1;
+	[JsonProperty]
 	private bool shouldDraw = true;
+	[JsonProperty]
 	private int payedAmount = 0;
+	[JsonProperty]
 	private double rating = 2.5f;
+	[JsonProperty]
 	private readonly int moneyThreshold;
+	[JsonProperty]
 	private readonly AnimalSpecies favSpecies;
+	[JsonProperty]
 	private readonly float xOffset;
+	[JsonProperty]
 	private bool preferStandingRight = true;
+	[JsonProperty]
 	private DateTime nextSwitch;
+	[JsonProperty]
+	private readonly bool spriteType;
+	[JsonProperty]
+	private bool waitingForJeep = false;
 
 	/// <summary>
 	/// The animated sprite component of the ranger
 	/// </summary>
-	public AnimatedSpriteCmp AnimatedSprite => Sprite as AnimatedSpriteCmp;
+	public AnimatedSpriteCmp AnimatedSprite => (AnimatedSpriteCmp)Sprite!;
 
 	/// <summary>
 	/// The state machine used for transitioning between the different tourist behavior types
 	/// </summary>
+	[JsonProperty]
 	public StateMachineCmp<TouristState> StateMachine { get; init; }
 
 	/// <summary>
 	/// The spot at which the tourists get picked up
 	/// </summary>
 	public static Point PickupSpot { get; set; }
-	public static Level CurrentLevel => GameScene.Active.Model.Level;
+	/// <summary>
+	/// Shorthand for the current gamescenes level object
+	/// </summary>
+	public static Level CurrentLevel => GameScene.Active.Model.Level!;
+	/// <summary>
+	/// The space in the line between tourists
+	/// </summary>
 	public static double QueueOffset => CurrentLevel.TileSize / 1.23;
 
 	/// <summary>
@@ -77,7 +125,7 @@ public class Tourist : Entity {
 	public static double SpawnRate {
 		get {
 			// base spawn rate -> lerp
-			int i = 1;
+			int i;
 			for (i = 1; i < milestoneCount - 1; i++) {
 				if (AvgRating < milestones[i]) {
 					break;
@@ -91,20 +139,31 @@ public class Tourist : Entity {
 	/// <summary>
 	/// The jeep this tourist is assigned to
 	/// </summary>
-	public Jeep Vehicle { get; set; }
+	[GameobjectReferenceProperty]
+	public Jeep? Vehicle { get; set; }
 
-	public static void Init() {
+	/// <summary>
+	/// Initialize the static state of tourists
+	/// </summary>
+	public static void Init(int memory) {
 		Queue = new List<Tourist>();
-		recentRatings = new double[RATING_MEMORY];
+		RatingMemory = memory;
+		recentRatings = new double[RatingMemory];
 		ratingCount = 0;
 	}
 
+	/// <summary>
+	/// Update the tourist queue (so that everyone knows what spot they should walk to)
+	/// </summary>
 	public static void UpdateQueue() {
 		for (int i = 0; i < Queue.Count; i++) {
 			Queue[i].queueIndex = i;
 		}
 	}
 
+	/// <summary>
+	/// Add a review to the overall rating of the park
+	/// </summary>
 	public static void AddReview(double review) {
 		if (ratingCount < recentRatings.Length) {
 			recentRatings[ratingCount] = review;
@@ -118,14 +177,68 @@ public class Tourist : Entity {
 		UpdateSpawner();
 	}
 
+	/// <summary>
+	/// Update the tourist spawners frequency based on the rating of the park
+	/// </summary>
 	public static void UpdateSpawner() {
+		if (Spawner == null) return;
+		
 		Spawner.Frequency = 1.0f / (SpawnRate);
+	}
+
+	[JsonConstructor]
+	public Tourist(bool spriteType) : base() {
+		SetupSprite(spriteType);
+		StateMachine = new();
+	}
+
+	[PostPersistenceSetup]
+	public void PostPeristenceSetup(Dictionary<string, List<GameObject>> refObjs) {
+		seenAnimals = new();
+		foreach (GameObject go in refObjs["seenAnimals"]) {
+			seenAnimals.Add((Animal)go);
+		}
+		Vehicle = (Jeep)refObjs["Vehicle"][0];
+
+		if (StateMachine.CurrentState == TouristState.Entering || StateMachine.CurrentState == TouristState.InQueue) {
+			NavCmp.ReachedTarget += ReachedQueueSpot;
+		}
+		if (StateMachine.CurrentState == TouristState.Leaving) {
+			NavCmp.ReachedTarget += LeftPark;
+		}
+		if (waitingForJeep) {
+			Jeep.JeepReadyToFill += OnReadyToFill;
+		}
+	}
+
+	[PostPersistenceStaticSetup]
+	public static void PostPersistenceStaticSetup(Dictionary<string, List<GameObject>> refObjs) {
+		Queue = new();
+		foreach (GameObject go in refObjs["Queue"]) {
+			Queue.Add((Tourist)go);
+		}
 	}
 
 	public Tourist(Vector2 pos) : base(pos) {
 		DisplayName = "Tourist";
+		spriteType = Game.Random!.Next(2) == 1;
+		SetupSprite(spriteType);
+		SightDistance = Game.Random.Next(4, 8);
+		var values = Enum.GetValues(typeof(AnimalSpecies));
+		favSpecies = (AnimalSpecies)values.GetValue(Game.Random!.Next(values.Length))!;
+		moneyThreshold = Game.Random.Next(5, 11) * 100;
+		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
+		NavCmp.AccountForBounds = false;
+		NavCmp.Speed = 60f;
+		NavCmp.StopOnTargetReach = true;
+		ReachDistance = 0;
+
+		StateMachine = new StateMachineCmp<TouristState>(TouristState.Entering);
+	}
+
+	private void SetupSprite(bool spriteType) {
 		AnimatedSpriteCmp animSprite;
-		if (Game.Random.Next(2) == 1) {
+		if (spriteType) {
 			animSprite = new(Game.LoadTexture("Assets/Tourist/Man/Walk"), 10, 2, 8);
 			animSprite.Animations["walk-right"] = new Animation(0, 10, true);
 			animSprite.Animations["walk-left"] = new Animation(1, 10, true);
@@ -143,24 +256,13 @@ public class Tourist : Entity {
 		Sprite.YSortEnabled = true;
 		Sprite.YSortOffset = 64;
 		Sprite.Origin = new Vector2(16, 64); // just by the 'vibes'
-		SightDistance = Game.Random.Next(4, 8);
-		var values = Enum.GetValues(typeof(AnimalSpecies));
-		favSpecies = (AnimalSpecies)values.GetValue(Game.Random.Next(values.Length));
-		moneyThreshold = Game.Random.Next(5, 11) * 100;
 		Attach(Sprite);
 		animSprite.CurrentAnimation = "idle-right";
-		xOffset = (float)Game.Random.NextDouble() * 24f - 12f;
-
-		NavCmp.AccountForBounds = false;
-		NavCmp.Speed = 60f;
-		NavCmp.StopOnTargetReach = true;
-		ReachDistance = 0;
-
-		StateMachine = new StateMachineCmp<TouristState>(TouristState.Entering);
-		Attach(StateMachine);
 	}
 
 	public override void Load() {
+		Attach(StateMachine);
+
 		GameScene.Active.Model.TouristCount++;
 
 		base.Load();
@@ -198,6 +300,7 @@ public class Tourist : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (shouldDraw) {
 			base.Draw(gameTime);
@@ -215,16 +318,16 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += ReachedQueueSpot;
 	}
 
-	private void ReachedQueueSpot(object sender, NavigationTargetEventArgs e) {
+	private void ReachedQueueSpot(object? sender, NavigationTargetEventArgs e) {
 		reachedQueueIndex = targetQueueIndex;
 		targetQueueIndex = -1;
-		NavCmp.ReachedTarget -= ReachedQueueSpot;
 		if (StateMachine.CurrentState != TouristState.InQueue) {
 			StateMachine.Transition(TouristState.InQueue);
 		}
 		if (reachedQueueIndex == 0) {
 			if (!TryEntering()) {
 				Jeep.JeepReadyToFill += OnReadyToFill;
+				waitingForJeep = true;
 				Jeep.RequestNextJeep();
 			}
 		}
@@ -232,19 +335,20 @@ public class Tourist : Entity {
 
 	[StateBegin(TouristState.InQueue)]
 	public void BeginInQueue() {
-		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(Game.Random.NextDouble() * 30 + 10.0);
+		nextSwitch = GameScene.Active.Model.IngameDate + TimeSpan.FromMinutes(Game.Random!.NextDouble() * 30 + 10.0);
 	}
 
-	private void OnReadyToFill(object sender, EventArgs e) => TryEntering();
+	private void OnReadyToFill(object? sender, EventArgs e) => TryEntering();
 
 	private bool TryEntering() {
-		Jeep jeep = Jeep.WaitingJeep;
+		Jeep? jeep = Jeep.WaitingJeep;
 		if (jeep != null && jeep.AddTourist(this)) {
 			Queue.Remove(this);
 			UpdateQueue();
 			Vehicle = jeep;
 			StateMachine.Transition(TouristState.InJeep);
 			Jeep.JeepReadyToFill -= OnReadyToFill;
+			waitingForJeep = false;
 			return true;
 		}
 		return false;
@@ -257,13 +361,12 @@ public class Tourist : Entity {
 			NavCmp.TargetPosition = GetQueueSpot(targetQueueIndex);
 			NavCmp.StopOnTargetReach = true;
 			NavCmp.Moving = true;
-			NavCmp.ReachedTarget += ReachedQueueSpot;
 		}
 		
 		DateTime now = GameScene.Active.Model.IngameDate;
 		if (now >= nextSwitch) {
 			preferStandingRight = !preferStandingRight;
-			nextSwitch = now + TimeSpan.FromMinutes(Game.Random.NextDouble() * 11 + 6);
+			nextSwitch = now + TimeSpan.FromMinutes(Game.Random!.NextDouble() * 11 + 6);
 		}
 	}
 
@@ -278,6 +381,8 @@ public class Tourist : Entity {
 
 	[StateUpdate(TouristState.InJeep)]
 	public void InJeepUpdate(GameTime gameTime) {
+		if (Vehicle == null) return;
+
 		Position = Vehicle.Position;
 		foreach (Entity entity in GetEntitiesInSight()) {
 			if (entity is Animal animal && !seenAnimals.Contains(animal)) {
@@ -297,18 +402,27 @@ public class Tourist : Entity {
 		}
 	}
 
+	/// <summary>
+	/// Remove this tourist from their vehicle, and prompt them to walk out of the park
+	/// </summary>
 	public void LeaveJeep() {
 		Vehicle = null;
 		shouldDraw = true;
 		StateMachine.Transition(TouristState.Leaving);
 	}
 
+	/// <summary>
+	/// Notify this tourist that the tour has successfully concluded, and they may leave a review
+	/// </summary>
 	public void TourFinished() {
 		rating = Math.Clamp(rating, 1.0, 5.0);
 		AddReview(rating);
 	}
 
-	public void TourFailed() {
+	/// <summary>
+	/// Notify this tourist that unfortunately their jeep got "destroyed", and they must leave immediately
+	/// </summary>
+	public static void TourFailed() {
 		AddReview(1.0f);
 	}
 
@@ -342,11 +456,14 @@ public class Tourist : Entity {
 		NavCmp.ReachedTarget += LeftPark;
 	}
 
-	private void LeftPark(object sender, NavigationTargetEventArgs e) {
+	private void LeftPark(object? sender, NavigationTargetEventArgs e) {
 		NavCmp.ReachedTarget -= LeftPark;
 		Die();
 	}
 
+	/// <summary>
+	/// Notifies the tourist that it's time to pay for the ride
+	/// </summary>
 	public void Pay() {
 		GameScene.Active.Model.Funds += Jeep.RentFee;
 		payedAmount = Jeep.RentFee;

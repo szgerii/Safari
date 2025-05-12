@@ -1,11 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 
 namespace Safari.Model.Tiles;
 
 /// <summary>
 /// Tile for representing a single road cell
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Road : AutoTile {
+	[JsonConstructor]
 	public Road() : base(Game.LoadTexture("Assets/Road/Road")) {
 		// set up custom bitmask to offset layout
 		Layout[0] = new Point(5, 0);

@@ -2,19 +2,25 @@
 using Engine.Components;
 using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using Safari.Model.Entities;
+using Safari.Model.Entities.Animals;
 using Safari.Scenes;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Tiles;
 
 /// <summary>
 /// Represents a single tile in the game world
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Tile : GameObject {
 	/// <summary>
 	/// The position of the tile inside the tilemap grid
 	/// </summary>
 	public Point TilemapPosition
-		=> (Position / GameScene.Active.Model.Level.TileSize).ToPoint();
+		=> (Position / GameScene.Active.Model.Level!.TileSize).ToPoint();
 
 	/// <summary>
 	/// The Sprite component responsible for rendering this tile
@@ -26,7 +32,7 @@ public abstract class Tile : GameObject {
 	/// <br/>
 	/// Set to null to make the tile invisible
 	/// </summary>
-	public ITexture2D Texture {
+	public ITexture2D? Texture {
 		get => Sprite.Texture;
 		set {
 			Sprite.Texture = value;
@@ -86,7 +92,7 @@ public abstract class Tile : GameObject {
 	/// </summary>
 	public Point[] ConstructionBlockOffsets { get; protected set; } = [];
 
-	public Tile(ITexture2D texture = null) : base(new Vector2(-1)) {
+	public Tile(ITexture2D? texture = null) : base(new Vector2(-1)) {
 		Sprite = new SpriteCmp(texture);
 		Sprite.YSortEnabled = true;
 		Sprite.LayerDepth = 0.5f;
@@ -102,6 +108,11 @@ public abstract class Tile : GameObject {
 	/// Adjusts the Y-Sort offset to the current state of the tile
 	/// </summary>
 	public virtual void UpdateYSortOffset() {
+		if (Texture == null) {
+			Sprite.YSortOffset = 0;
+			return;
+		}
+
 		Rectangle? src = SourceRectangle;
 
 		if (src != null) {
@@ -111,15 +122,39 @@ public abstract class Tile : GameObject {
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, src);
 	}
 
+	public override void Update(GameTime gameTime) {
+		Sprite.Tint = Color.White;
+
+		if (IsFoodSource || IsWaterSource) {
+			foreach (Entity entity in Entity.ActiveEntities) {
+				if (entity is Animal animal && entity.IsBeingInspected && animal.Group != null) {
+					bool knows = (!animal.Species.IsCarnivorous() && IsFoodSource) ? animal.Group.KnowsFoodSpot(TilemapPosition) :
+									animal.Group.KnowsWaterSpot(TilemapPosition);
+					if (knows) {
+						float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
+						Sprite.Tint = Color.White * (0.5f + fadeFactor);
+						break;
+					}
+				}
+			}
+		}
+
+		base.Update(gameTime);
+	}
+
+	/// <summary>
+	/// Draws the preview sprite of this tile at the given coordinates
+	/// </summary>
+	[ExcludeFromCodeCoverage]
 	public void DrawPreviewAt(Vector2 worldPos, bool canDraw) {
 		Vector2 pos = new Vector2(Utils.Round(worldPos.X), Utils.Round(worldPos.Y));
 		if (this is AutoTile auto) {
 			auto.UpdateTexture();
 		}
 		Color tint = canDraw ? Color.CornflowerBlue * 0.4f : Color.Red * 0.4f;
-		Game.SpriteBatch.Draw(
-			Sprite.Texture.ToTexture2D(),
-			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level.TileSize,
+		Game.SpriteBatch!.Draw(
+			Sprite.Texture!.ToTexture2D(),
+			pos - AnchorTile.ToVector2() * GameScene.Active.Model.Level!.TileSize,
 			SourceRectangle,
 			tint,
 			Sprite.Rotation,

@@ -24,6 +24,8 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
     private readonly Button destroyButton;
 
+    private Rectangle extrasMaskArea;
+
     public TileMenu() : base("Tiles and plants") {
         //grass
         //water
@@ -33,7 +35,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);
         itemsPanel.Padding = new Vector2(0);
-        panel.AddChild(itemsPanel);
+        panel!.AddChild(itemsPanel);
 
         extrasPanel = new Panel(new Vector2(0.5f, 0.1f), PanelSkin.Simple, Anchor.BottomRight);
         extrasPanel.Padding = new Vector2(0);
@@ -55,7 +57,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                 Shop.CHelper.SelectedIndex = ConstructionHelperCmp.TREE;
             }
             Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].SelectPrev();
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         treeTypePlus = new Button(">", ButtonSkin.Default, Anchor.BottomRight, new Vector2(0.2f, 0));
@@ -65,7 +67,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                 Shop.CHelper.SelectedIndex = ConstructionHelperCmp.TREE;
             }
             Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].SelectNext();
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         treeTypeDisplayPanel.AddChild(treeTypeLabel);
@@ -84,6 +86,9 @@ public class TileMenu : CategoryMenu, IUpdatable {
         destroyButton.Padding = new Vector2(0);
         destroyButton.ToggleMode = true;
         destroyButton.OnClick = (Entity entity) => {
+            if (treeTypePanel.Parent != null) {
+                extrasPanel.RemoveChild(treeTypePanel);
+            }
             if (GameScene.Active.MouseMode != MouseMode.Demolish) {
                 GameScene.Active.MouseMode = MouseMode.Demolish;
                 destroyButton.Checked = true;
@@ -114,7 +119,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
             if (treeTypePanel.Parent == null) {
                 UserInterface.Active.AddEntity(treeTypePanel);
             }
-            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).ToString();
+            treeTypeLabel.Text = ((TreeType)Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].VariantChoice).GetDisplayName();
         };
 
         Label treeLabel = new Label("Tree" + "(" + Shop.TREE_COST + ")", Anchor.Center, new Vector2(0));
@@ -132,7 +137,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
         waterPanel.SetStyleProperty("FillColor", hover, EntityState.MouseHover);
         waterPanel.SetStyleProperty("FillColor", click, EntityState.MouseDown);
         waterPanel.OnClick = (Entity entity) => {
-            if(treeTypePanel.Parent != null) {
+            if (treeTypePanel.Parent != null) {
                 extrasPanel.RemoveChild(treeTypePanel);
             }
             destroyButton.Checked = false;
@@ -207,7 +212,9 @@ public class TileMenu : CategoryMenu, IUpdatable {
             destroyButton.Checked = false;
             GameScene.Active.MouseMode = MouseMode.Build;
             Shop.CHelper.SelectedIndex = ConstructionHelperCmp.BUSH;
-            Shop.CHelper.SelectedItem.VariantChoice = 0;
+            if (Shop.CHelper.SelectedItem != null) {
+                Shop.CHelper.SelectedItem.VariantChoice = 0;
+            }
         };
 
         Label bushLabel = new Label("Bush" + "(" + Shop.BUSH_COST + ")", Anchor.Center, new Vector2(0));
@@ -244,9 +251,8 @@ public class TileMenu : CategoryMenu, IUpdatable {
     }
 
     private void BuildTile() {
-        DebugConsole.Instance.Write("asd");
         if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level.TileSize).ToPoint();
+            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level!.TileSize).ToPoint();
             if (GameScene.Active.MouseMode == MouseMode.Build) {
                 int price = 0;
                 switch (Shop.CHelper.SelectedIndex) {
@@ -270,7 +276,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
                     new AlertMenu("Funds", "You don't have enough money for this.").Show();
                     return;
                 }
-                if (!Shop.CHelper.CanBuild(p, Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].Instance)) {
+                if (!Shop.CHelper.CanBuild(p, Shop.CHelper.Palette[Shop.CHelper.SelectedIndex].Instance!)) {
                     return;
                 }
                 Shop.CHelper.BuildCurrent(p);
@@ -281,7 +287,7 @@ public class TileMenu : CategoryMenu, IUpdatable {
 
     private void DestroyTile() {
         if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level.TileSize).ToPoint();
+            Point p = (GameScene.Active.GetMouseTilePos() / GameScene.Active.Model.Level!.TileSize).ToPoint();
             Shop.CHelper.Demolish(p);
         }
     }
@@ -289,21 +295,19 @@ public class TileMenu : CategoryMenu, IUpdatable {
     public override void Show() {
         GameScene.Active.MouseMode = MouseMode.Build;
         UserInterface.Active.AddEntity(extrasPanel);
-        base.Show();
         destroyButton.Checked = false;
-        extrasPanel.Offset = new Vector2(0, panel.Offset.Y);
-        GameScene.Active.MaskedAreas.Add(extrasPanel.CalcDestRect());
+        base.Show();
+        extrasPanel.Offset = new Vector2(0, panel!.Offset.Y);
+        extrasMaskArea = extrasPanel.CalcDestRect();
+        GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }
 
     public override void Hide() {
-        if (panel.Parent == null) {
-            return;
-        }
         GameScene.Active.MouseMode = MouseMode.Inspect;
         if (extrasPanel.Parent != null) {
             UserInterface.Active.RemoveEntity(extrasPanel);
         }
-        GameScene.Active.MaskedAreas.Remove(extrasPanel.CalcDestRect());
+        GameScene.Active.MaskedAreas.Remove(extrasMaskArea);
         base.Hide();
     }
 

@@ -9,28 +9,27 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Engine;
 
 public class Game : Microsoft.Xna.Framework.Game {
-	public static Game Instance { get; protected set; }
-	public static GraphicsDeviceManager Graphics { get; protected set; }
-	public static SpriteBatch SpriteBatch { get; protected set; }
-	public static IRenderTarget2D RenderTarget { get; protected set; }
-	public static ContentManager ContentManager => Instance.Content;
+	public static Game? Instance { get; protected set; }
+	public static GraphicsDeviceManager? Graphics { get; protected set; }
+	public static SpriteBatch? SpriteBatch { get; protected set; }
+	public static IRenderTarget2D? RenderTarget { get; protected set; }
+	public static ContentManager ContentManager => Instance!.Content;
 	/// <summary>
 	/// The seed used for initalizing <see cref="Random"/> <br/>
 	/// NOTE: this does not reseed the random, it only takes effect if it is set before <see cref="Initialize"/> is called
 	/// </summary>
 	public static int? Seed { get; set; }
-	public static Random Random { get; set; }
+	public static Random? Random { get; set; }
 
 	public Point BaseResolution { get; protected set; }
 
-	private VertexBuffer fullScreenVbo;
-	private IndexBuffer fullScreenIbo;
+	private VertexBuffer? fullScreenVbo;
+	private IndexBuffer? fullScreenIbo;
 
 	/// <summary>
 	/// Whether the game is running in headless mode (without interacting with any graphics API)
@@ -40,6 +39,10 @@ public class Game : Microsoft.Xna.Framework.Game {
 
 	public static float RenderTargetScale {
 		get {
+			if (Graphics == null || RenderTarget == null) {
+				throw new InvalidOperationException("Cannot calculate render target scale before the game has been completely initialized");
+			}
+
 			float scaleX = Graphics.PreferredBackBufferWidth / (float)RenderTarget.Width;
 			float scaleY = Graphics.PreferredBackBufferHeight / (float)RenderTarget.Height;
 
@@ -48,16 +51,16 @@ public class Game : Microsoft.Xna.Framework.Game {
 	}
 
 	#region SHORTHANDS
-	public static void AddObject(GameObject obj) => SceneManager.Active.AddObject(obj);
-	public static void RemoveObject(GameObject obj) => SceneManager.Active.RemoveObject(obj);
+	public static void AddObject(GameObject obj) => SceneManager.Active!.AddObject(obj);
+	public static void RemoveObject(GameObject obj) => SceneManager.Active!.RemoveObject(obj);
 	#endregion
 
 	public static ITexture2D LoadTexture(string path) {
 		return CanDraw ? (Texture2DAdapter)ContentManager.Load<Texture2D>(path) : NoopTexture2D.Empty;
 	}
 
-	protected GraphicsDeviceManager _graphics;
-	protected SpriteBatch _spriteBatch;
+	protected GraphicsDeviceManager? _graphics;
+	protected SpriteBatch? _spriteBatch;
 
 	public Game(bool headless = false) {
 		IsHeadless = headless;
@@ -114,7 +117,7 @@ public class Game : Microsoft.Xna.Framework.Game {
 
 		if (IsHeadless) {
 			// make sure the Game class doesn't try to initialize its graphics components later on
-			FieldInfo fi = typeof(Microsoft.Xna.Framework.Game).GetField("_initialized", BindingFlags.NonPublic | BindingFlags.Instance);
+			FieldInfo fi = typeof(Microsoft.Xna.Framework.Game).GetField("_initialized", BindingFlags.NonPublic | BindingFlags.Instance)!;
 			fi.SetValue(this, true);
 		} else {
 			base.Initialize();
@@ -140,15 +143,19 @@ public class Game : Microsoft.Xna.Framework.Game {
 			SceneManager.PerformScheduledLoad();
 		}
 
-		SceneManager.Active.PerformObjectRemovals();
-		SceneManager.Active.PerformObjectAdditions();
+		SceneManager.Active?.PerformObjectRemovals();
+		SceneManager.Active?.PerformObjectAdditions();
 
-		SceneManager.Active.Update(gameTime);
+		SceneManager.Active?.Update(gameTime);
 
 		base.Update(gameTime);
 	}
 
 	protected override void Draw(GameTime gameTime) {
+		if (Graphics == null || RenderTarget == null || SpriteBatch == null) {
+			throw new InvalidOperationException("Cannot Draw before the game has been properly initialized");
+		}
+
 		float scale = RenderTargetScale;
 
 		float diffX = Graphics.PreferredBackBufferWidth - scale * RenderTarget.Width;
@@ -171,25 +178,27 @@ public class Game : Microsoft.Xna.Framework.Game {
 			samplerState: SamplerState.PointClamp,
 			transformMatrix: trMatrix
 		);
-		SceneManager.Active.Draw(gameTime);
+		SceneManager.Active?.Draw(gameTime);
 		SpriteBatch.End();
 
 		// Perform post processing
 		Texture2D result = RenderTarget.ToRenderTarget2D();
-		foreach (IPostProcessPass pass in SceneManager.Active.PostProcessPasses) {
-			// Let the pass prepare its uniforms and output texture
-			pass.PreDraw(gameTime);
-			// Set RT
-			GraphicsDevice.SetRenderTarget(pass.Output.ToRenderTarget2D());
-			// bind ibo, vbo for fullscreen drawing
-			GraphicsDevice.Indices = fullScreenIbo;
-			GraphicsDevice.SetVertexBuffer(fullScreenVbo);
-			// upload prev pass to the shader and bind it
-			pass.Shader.Parameters["PrevStep"].SetValue(result);
-			pass.Shader.CurrentTechnique.Passes[0].Apply();
-			// Draw call
-			GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-			result = pass.Output.ToRenderTarget2D();
+		if (SceneManager.Active != null) {
+			foreach (IPostProcessPass pass in SceneManager.Active.PostProcessPasses) {
+				// Let the pass prepare its uniforms and output texture
+				pass.PreDraw(gameTime);
+				// Set RT
+				GraphicsDevice.SetRenderTarget(pass.Output!.ToRenderTarget2D());
+				// bind ibo, vbo for fullscreen drawing
+				GraphicsDevice.Indices = fullScreenIbo;
+				GraphicsDevice.SetVertexBuffer(fullScreenVbo);
+				// upload prev pass to the shader and bind it
+				pass.Shader!.Parameters["PrevStep"].SetValue(result);
+				pass.Shader.CurrentTechnique.Passes[0].Apply();
+				// Draw call
+				GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+				result = pass.Output.ToRenderTarget2D();
+			}
 		}
 
 		GraphicsDevice.SetRenderTarget(null);

@@ -16,6 +16,7 @@ using Safari.Scenes.Menus;
 using System.Reflection;
 using System.Linq;
 using Safari.Helpers;
+using System.IO;
 
 namespace Safari;
 
@@ -35,20 +36,32 @@ public class Game : Engine.Game {
 	/// <param name="headless">Whether to start the game without any graphics (requires the SDL_VIDEODRIVER env var to be set to 'dummy' to function properly)</param>
 	public Game(bool headless = false) : base(headless) { }
 
+	/// <summary>
+	/// The path in which the game can save persisted data
+	/// </summary>
+	public static string SafariPath { get; private set; } = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Safari");
+
 	protected override void Initialize() {
 		BaseResolution = new Point(1920, 1080);
+
+		// Set DM constraint
+		DisplayManager.MAX_WIDTH = 1920;
+		DisplayManager.MAX_HEIGHT = 1080;
+		DisplayManager.MIN_WIDTH = 1000;
+		DisplayManager.MIN_HEIGHT = 680;
 
 		base.Initialize();
 
 		if (!IsHeadless) {
 			// DisplayManager.SetTargetFPS(90, false);
 			DisplayManager.SetVSync(true, true);
+			Directory.CreateDirectory(SafariPath);
 		}
 
 		InputSetup();
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
-			SceneManager.Load(new GameScene());
+			SceneManager.Load(new GameScene(GameScene.Active.Model.ParkName, GameScene.Active.Model.Difficulty));
 		}));
 		InputManager.Keyboard.OnPressed(Keys.R, () => DebugMode.Execute("scene-reload"));
 
@@ -67,11 +80,15 @@ public class Game : Engine.Game {
 		DebugMode.AddFeature(new ExecutedDebugFeature("toggle-fullscreen", () => {
 			if (DisplayManager.WindowType == WindowType.FULL_SCREEN) {
 				DisplayManager.SetWindowType(WindowType.WINDOWED, false);
-				DisplayManager.SetResolution(1280, 720, false);
+				DisplayManager.SetResolution(SafariSettings.DefaultResolution.Item1, SafariSettings.DefaultResolution.Item2, false);
 			} else {
 				DisplayManager.SetWindowType(WindowType.FULL_SCREEN, false);
 				DisplayMode nativeRes = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
-				DisplayManager.SetResolution(nativeRes.Width, nativeRes.Height, false);
+				if (DisplayManager.IsSupported(nativeRes.Width, nativeRes.Height)) {
+					DisplayManager.SetResolution(nativeRes.Width, nativeRes.Height, false);
+				} else {
+					DisplayManager.SetResolution(1920, 1080, false);
+				}
 			}
 			DisplayManager.ApplyChanges();
 		}));
@@ -88,7 +105,7 @@ public class Game : Engine.Game {
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("dump-map", () => {
 			if (SceneManager.Active is GameScene) {
-				MapBuilder.DumpMap(GameScene.Active.Model.Level);
+				MapBuilder.DumpMap(GameScene.Active.Model.Level!);
 			}
 		}));
 
@@ -104,12 +121,13 @@ public class Game : Engine.Game {
 		switch (finalStartupMode) {
 			case GameStartupMode.MainMenu:
 				SceneManager.Load(MainMenu.Instance);
+				SafariSettings.Init();
 				break;
 			case GameStartupMode.DemoScene:
-				SceneManager.Load(new GameScene());
+				SceneManager.Load(new GameScene("test park", GameDifficulty.Easy));
 				break;
 			case GameStartupMode.EmptyScene:
-				SceneManager.Load(new GameScene() { StrippedInit = true });
+				SceneManager.Load(new GameScene("empty", GameDifficulty.Easy) { StrippedInit = true });
 				break;
 			default:
 				throw new InvalidOperationException("Invalid game startup mode");
@@ -126,7 +144,7 @@ public class Game : Engine.Game {
 		// reset singletons
 		var singletons = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterfaces().Contains(typeof(IResettableSingleton)));
 		foreach (var singleton in singletons) {
-			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+			singleton.GetMethod("ResetSingleton", BindingFlags.Public | BindingFlags.Static)!.Invoke(null, null);
 		}
 
 		if (!IsHeadless) {
@@ -145,7 +163,7 @@ public class Game : Engine.Game {
 			AlertMenu.Adjust();
 			PauseMenu.Instance.Update(gameTime);
 			MainMenu.Instance.Update(gameTime);
-			NewGameMenu.Instance.Update(gameTime);
+			LoadingScene.Instance.Update(gameTime);
 			EntityControllerMenu.Active?.Update(gameTime);
 
 			UserInterface.Active.Update(gameTime);
@@ -161,9 +179,9 @@ public class Game : Engine.Game {
 			DebugInfoManager.AddInfo("max", $"{tickTime.Max:0.00} ms / {drawTime.Max:0.00} ms (out of {drawTime.Capacity})");
 
 			DebugInfoManager.AddInfo("FPS (Update)", $"{updateFPS.Average:0}", DebugInfoPosition.TopRight);
-		
+
 			if (SceneManager.Active is GameScene) {
-				GameScene.Active.Model.PrintModelDebugInfos();
+				GameModel.PrintModelDebugInfos();
 			}
 		}
     }
@@ -210,14 +228,20 @@ public class Game : Engine.Game {
 		InputManager.Actions.Register("cycle-build-mode", new InputAction(keys: [Keys.D9]));
 
         // debug
+        InputManager.Keyboard.OnPressed(Keys.Escape, () => {
+			if (EntityControllerMenu.Active != null) {
+				EntityControllerMenu.Active.Hide();
+			} else {
+				PauseMenu.Instance.TogglePauseMenu();
+			}
+		});
         InputManager.Keyboard.OnPressed(Keys.F1, () => DebugConsole.Instance.ToggleDebugConsole());
         InputManager.Keyboard.OnPressed(Keys.F2, () => Statusbar.Instance.Toggle());
-        InputManager.Keyboard.OnPressed(Keys.Escape, () => PauseMenu.Instance.TogglePauseMenu());
         InputManager.Keyboard.OnPressed(Keys.Space, () => Statusbar.Instance.SetSpeed(GameSpeed.Paused));
         InputManager.Keyboard.OnPressed(Keys.D1, () => Statusbar.Instance.SetSpeed(GameSpeed.Slow));
         InputManager.Keyboard.OnPressed(Keys.D2, () => Statusbar.Instance.SetSpeed(GameSpeed.Medium));
         InputManager.Keyboard.OnPressed(Keys.D3, () => Statusbar.Instance.SetSpeed(GameSpeed.Fast));
-        InputManager.Keyboard.OnPressed(Keys.Tab, () => EntityManager.Instance.Toggle());
+        InputManager.Keyboard.OnPressed(Keys.Tab, () => Statusbar.Instance.ToggleEntityManager());
 		InputManager.Keyboard.OnPressed(Keys.C, () => DebugMode.ToggleFeature("draw-colliders"));
 		InputManager.Keyboard.OnPressed(Keys.F, () => DebugMode.Execute("toggle-fullscreen"));
 		InputManager.Keyboard.OnPressed(Keys.P, () => DebugMode.Execute("toggle-debug-infos"));

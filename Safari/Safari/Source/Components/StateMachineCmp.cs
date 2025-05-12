@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -41,25 +42,32 @@ public sealed class StateUpdateAttribute(object targetState) : StateHandlerAttri
 /// Component for storing a state machine based on an enum type
 /// </summary>
 /// <typeparam name="T">The enum type to use as a states list</typeparam>
+[JsonObject(MemberSerialization.OptIn)]
 public class StateMachineCmp<T> : Component, IUpdatable where T : Enum {
 	/// <summary>
 	/// The current state of the state machine
 	/// </summary>
+	[JsonProperty]
 	public T CurrentState { get; private set; }
 	/// <summary>
 	/// The underlying (enum) type of the state machine's states
 	/// </summary>
 	public Type BaseType => typeof(T);
 
-	private readonly Dictionary<T, BeginStateHandler> beginStateHandlers = [];
-	private readonly Dictionary<T, EndStateHandler> endStateHandlers = [];
-	private readonly Dictionary<T, UpdateStateHandler> updateStateHandlers = [];
+	private readonly Dictionary<T, BeginStateHandler?> beginStateHandlers = [];
+	private readonly Dictionary<T, EndStateHandler?> endStateHandlers = [];
+	private readonly Dictionary<T, UpdateStateHandler?> updateStateHandlers = [];
 	private readonly Array enumValues;
 	
-	/// <param name="startState">The state to start the state machine in. Note that the start state's begin handlers will only be invoked when the component gets loaded.</param>
-	public StateMachineCmp(T startState) {
-		CurrentState = startState;
+	private bool loadInit = false;
 
+	[JsonConstructor]
+	public StateMachineCmp() : this((T)Enum.GetValues(typeof(T)).GetValue(0)!, true){ }
+
+	/// <param name="startState">The state to start the state machine in. Note that the start state's begin handlers will only be invoked when the component gets loaded.</param>
+	public StateMachineCmp(T startState, bool loadInit = false) {
+		CurrentState = startState;
+		this.loadInit = loadInit;
 		enumValues = Enum.GetValues(typeof(T));
 		foreach (T val in enumValues) {
 			beginStateHandlers[val] = null;
@@ -70,10 +78,10 @@ public class StateMachineCmp<T> : Component, IUpdatable where T : Enum {
 
 	// NOTE: the state machine will invoke the begin handlers of the state that is currently in use when the component gets loaded
 	public override void Load() {
-		foreach (MethodInfo methodInfo in Owner.GetType().GetMethods()) {
-			StateBeginAttribute beginAttr = (StateBeginAttribute)methodInfo.GetCustomAttribute(typeof(StateBeginAttribute));
-			StateEndAttribute endAttr = (StateEndAttribute)methodInfo.GetCustomAttribute(typeof(StateEndAttribute));
-			StateUpdateAttribute updateAttr = (StateUpdateAttribute)methodInfo.GetCustomAttribute(typeof(StateUpdateAttribute));
+		foreach (MethodInfo methodInfo in Owner!.GetType().GetMethods()) {
+			StateBeginAttribute? beginAttr = (StateBeginAttribute?)methodInfo.GetCustomAttribute(typeof(StateBeginAttribute));
+			StateEndAttribute? endAttr = (StateEndAttribute?)methodInfo.GetCustomAttribute(typeof(StateEndAttribute));
+			StateUpdateAttribute? updateAttr = (StateUpdateAttribute?)methodInfo.GetCustomAttribute(typeof(StateUpdateAttribute));
 
 			if (beginAttr != null) {
 				beginStateHandlers[(T)beginAttr.TargetState] += () => methodInfo?.Invoke(Owner, []);
@@ -84,7 +92,9 @@ public class StateMachineCmp<T> : Component, IUpdatable where T : Enum {
 			}
 		}
 
-		beginStateHandlers[CurrentState]?.Invoke();
+		if (!loadInit) {
+			beginStateHandlers[CurrentState]?.Invoke();
+		}
 
 		base.Load();
 	}

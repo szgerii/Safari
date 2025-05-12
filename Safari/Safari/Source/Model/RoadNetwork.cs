@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Safari.Model;
@@ -22,6 +23,9 @@ public enum RoadState {
 	FromNone
 }
 
+/// <summary>
+/// The details of the change in the network
+/// </summary>
 public class RoadChangedEventArgs : EventArgs {
 	/// <summary>
 	/// The tilemap coordinates of the changed point
@@ -38,6 +42,9 @@ public class RoadChangedEventArgs : EventArgs {
 	}
 };
 
+/// <summary>
+/// The class responsible for managing tour routes in a network of roads
+/// </summary>
 public class RoadNetwork {
 	private readonly int width;
 	private readonly int height;
@@ -47,7 +54,13 @@ public class RoadNetwork {
 	private List<Point> cachedReturnRoute = new();
 	private bool upToDate = false;
 
+	/// <summary>
+	/// The coordinates from which all normal routes should start
+	/// </summary>
 	public Point Start { get; set; }
+	/// <summary>
+	/// The coordinates at which all normal routes should end
+	/// </summary>
 	public Point End { get; set; }
 
 	/// <summary>
@@ -78,10 +91,14 @@ public class RoadNetwork {
 			if (!upToDate) {
 				UpdateNetwork();
 			}
-			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random.Next(cachedRoutes.Count)] : new List<Point>();
+			return cachedRoutes.Count > 0 ? cachedRoutes[Game.Random!.Next(cachedRoutes.Count)] : new List<Point>();
 		}
 	}
 
+	/// <summary>
+	/// Retrieve the shortest path from the end of the map to the start of the map
+	/// (Use this instead of a regular route, because return routes are cached)
+	/// </summary>
 	public List<Point> ReturnRoute {
 		get {
 			if (!upToDate) {
@@ -95,7 +112,7 @@ public class RoadNetwork {
 	/// The example route used for debugging / presenting
 	/// </summary>
 	public List<Point> DebugRoute { get; set; } = new List<Point>();
-	private static ITexture2D debugTexture = null;
+	private static ITexture2D? debugTexture = null;
 
 	/// <summary>
 	/// Use this event any time an object store a route from this network.
@@ -104,19 +121,19 @@ public class RoadNetwork {
 	public event EventHandler<RoadChangedEventArgs> RoadChanged;
 
 	static RoadNetwork() {
-		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", () => {
+		DebugMode.AddFeature(new ExecutedDebugFeature("request-route", [ExcludeFromCodeCoverage] () => {
 			if (SceneManager.Active is GameScene) {
-				RoadNetwork network = GameScene.Active.Model.Level.Network;
+				RoadNetwork network = GameScene.Active.Model.Level!.Network;
 				network.DebugRoute = network.RandomRoute;
 			}
 		}));
 
-		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-route", [ExcludeFromCodeCoverage] (object? sender, GameTime gameTime) => {
 			if (debugTexture == null) {
 				debugTexture = Utils.GenerateTexture(1, 1, Color.DarkCyan);
 			}
 			if (SceneManager.Active is GameScene) {
-				Level level = GameScene.Active.Model.Level;
+				Level level = GameScene.Active.Model.Level!;
 				List<Point> dr = level.Network.DebugRoute;
 				if (dr.Count > 0) {
 					for (int i = 1; i < dr.Count; i++) {
@@ -129,6 +146,7 @@ public class RoadNetwork {
 		}, GameLoopStage.POST_DRAW));
 	}
 
+	[ExcludeFromCodeCoverage]
 	private static void DrawSegment(Point a, Point b, Level level) {
 		int width2 = 6;
 		Point middleA = new Point(a.X * level.TileSize, a.Y * level.TileSize);
@@ -136,8 +154,8 @@ public class RoadNetwork {
 		
 		Point middleB = new Point(b.X * level.TileSize, b.Y * level.TileSize);
 		middleB += new Point(level.TileSize / 2, level.TileSize / 2);
-		Point loc = new Point(0, 0);
-		Point size = new Point(0, 0);
+		Point loc;
+		Point size;
 		if (a.X == b.X) {
 			// vertical
 			if (middleA.Y < middleB.Y) {
@@ -157,7 +175,7 @@ public class RoadNetwork {
 				size = new Point(middleA.X - middleB.X, width2 * 2);
 			}
 		}
-		Game.SpriteBatch.Draw(debugTexture.ToTexture2D(), new Rectangle(loc, size), Color.White);
+		Game.SpriteBatch!.Draw(debugTexture!.ToTexture2D(), new Rectangle(loc, size), Color.White);
 	}
 
 	public RoadNetwork(int width, int height, Point start, Point end) {
@@ -168,7 +186,7 @@ public class RoadNetwork {
 		SetAt(end, RoadState.Road);
 		this.Start = start;
 		this.End = end;
-		RoadChanged += (object sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
+		RoadChanged += (object? sender, RoadChangedEventArgs e) => DebugRoute = new List<Point>();
 	}
 
 	/// <summary>
@@ -376,9 +394,9 @@ public class RoadNetwork {
 	}
 
 	// Pick a random point from a set
-	private Point PickRandom(HashSet<Point> set) {
+	private static Point PickRandom(HashSet<Point> set) {
 		Point[] points = set.ToArray();
-		return points[Game.Random.Next(points.Length)];
+		return points[Game.Random!.Next(points.Length)];
 	}
 
 	// Remove a point, and its neighbours in a given range, from a set
@@ -389,12 +407,9 @@ public class RoadNetwork {
 		SetAt(p, RoadState.FromNone);
 		while (points.Count > 0) {
 			(Point current, int fuel) = points.Dequeue();
-			if (set.Contains(current)) {
-				set.Remove(current);
-			}
-			if (!used.Contains(current)) {
-				used.Add(current);
-			}
+			set.Remove(current);
+			used.Add(current);
+
 			if (fuel > 0) {
 				Point left = new Point(current.X - 1, current.Y);
 				Point right = new Point(current.X + 1, current.Y);
@@ -431,9 +446,7 @@ public class RoadNetwork {
 		SetAt(Start, RoadState.FromNone);
 		while (points.Count > 0) {
 			Point current = points.Dequeue();
-			if (!result.Contains(current)) {
-				result.Add(current);
-			}
+			result.Add(current);
 			Point left = new Point(current.X - 1, current.Y);
 			Point right = new Point(current.X + 1, current.Y);
 			Point up = new Point(current.X, current.Y - 1);

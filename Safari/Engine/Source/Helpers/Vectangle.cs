@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using System;
 
 namespace Engine.Helpers;
@@ -6,12 +7,17 @@ namespace Engine.Helpers;
 /// <summary>
 /// Floating point rectangle, based as closely as possible on MonoGame's <see cref="Rectangle"/>
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	private static Vectangle emptyVectangle = new();
 
+	[JsonProperty]
 	public float X { get; set; }
+	[JsonProperty]
 	public float Y { get; set; }
+	[JsonProperty]
 	public float Width { get; set; }
+	[JsonProperty]
 	public float Height { get; set; }
 
 	public static Vectangle Empty => emptyVectangle;
@@ -82,7 +88,7 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 	public static bool operator ==(Rectangle a, Vectangle b) => b == a;
 	public static bool operator !=(Rectangle a, Vectangle b) => !(b == a);
 
-	public readonly override bool Equals(object obj) {
+	public readonly override bool Equals(object? obj) {
 		return (obj is Vectangle vect && this == vect) ||
 			   (obj is Rectangle rect && this == rect);
 	}
@@ -230,6 +236,25 @@ public struct Vectangle : IEquatable<Vectangle>, IEquatable<Rectangle> {
 
 		return result;
 	}
+
+	/// <summary>
+	/// Clamps a position into the bounds defined by this Vectangle
+	/// </summary>
+	/// <param name="pos">The floating-point position to clamp</param>
+	/// <returns>The clamped Vector2</returns>
+	public readonly Vector2 Clamp(Vector2 pos) {
+		pos.X = Math.Clamp(pos.X, Left, Right);
+		pos.Y = Math.Clamp(pos.Y, Top, Bottom);
+
+		return pos;
+	}
+
+	/// <summary>
+	/// Clamps a position into the bounds defined by this Vectangle
+	/// </summary>
+	/// <param name="pos">The int-based position to clamp</param>
+	/// <returns>The clamped Point</returns>
+	public readonly Point Clamp(Point pos) => Clamp(pos.ToVector2()).ToPoint();
 }
 
 // Rectangle extensions for dealing with Vectangles

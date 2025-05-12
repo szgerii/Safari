@@ -14,12 +14,12 @@ struct ScheduledScene {
 }
 
 public static class SceneManager {
-	public static Scene Active { get; private set; }
+	public static Scene? Active { get; private set; }
 
 	public static bool HasLoadingScheduled => scheduledScene != null;
 	private static ScheduledScene? scheduledScene = null;
 
-	public static event EventHandler<Scene> LoadedScene;
+	public static event EventHandler<Scene>? LoadedScene;
 
 	public static void Load(Scene scene, bool load = true, bool unload = true) {
 		scheduledScene = new ScheduledScene(scene, load, unload);
@@ -35,6 +35,10 @@ public static class SceneManager {
 	}
 
 	public static void PerformScheduledLoad() {
+		if (scheduledScene == null) {
+			return;
+		}
+
 		if (Active != null && scheduledScene.Value.unload && Active.Loaded) {
 			Active.Unload();
 		}

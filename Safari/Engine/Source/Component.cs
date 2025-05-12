@@ -4,17 +4,19 @@ using System;
 namespace Engine;
 
 public abstract class Component {
-	private GameObject owner;
+	private GameObject? owner;
 	/// <summary>
 	/// The game object the component is currently attached to
 	/// </summary>
-	public GameObject Owner {
+	public GameObject? Owner {
 		get => owner;
 		set {
-			Attribute limitAttr = Attribute.GetCustomAttribute(GetType(), typeof(LimitCmpOwnerTypeAttribute));
+			if (value != null) {
+				Attribute? limitAttr = Attribute.GetCustomAttribute(GetType(), typeof(LimitCmpOwnerTypeAttribute));
 
-			if (limitAttr != null && !((LimitCmpOwnerTypeAttribute)limitAttr).IsAllowedType(value.GetType())) {
-				throw new ArgumentException($"Component of type '{GetType().Name}' cannot be attached to game object of type '{value.GetType().Name}' due to manual type restrictions");
+				if (limitAttr != null && !((LimitCmpOwnerTypeAttribute)limitAttr).IsAllowedType(value.GetType())) {
+					throw new ArgumentException($"Component of type '{GetType().Name}' cannot be attached to game object of type '{value.GetType().Name}' due to manual type restrictions");
+				}
 			}
 
 			owner = value;

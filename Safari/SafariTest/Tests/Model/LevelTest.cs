@@ -13,9 +13,9 @@ public class LevelTest : SimulationTest {
 	private Level SetupLevel() {
 		Level.PLAY_AREA_CUTOFF_X = 2;
 		Level.PLAY_AREA_CUTOFF_Y = 2;
-		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance.GraphicsDevice, 3200, 3200);
+		NoopTexture2D tex = new NoopTexture2D(Engine.Game.Instance?.GraphicsDevice, 3200, 3200);
 		Level l = new Level(32, 10, 10, tex);
-		GameScene.Active.RemoveObject(GameScene.Active.Model.Level);
+		GameScene.Active.RemoveObject(GameScene.Active.Model.Level!);
 		GameScene.Active.Model.Level = l;
 		GameScene.Active.AddObject(l);
 		return l;

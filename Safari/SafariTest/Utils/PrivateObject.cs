@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace SafariTest.Utils;
 
@@ -42,5 +43,27 @@ internal class PrivateObject {
 		}
 
 		field.SetValue(Object, value);
+	}
+
+	public object? GetProperty(string propName) {
+		PropertyInfo? prop = Object.GetType().GetProperty(propName, BindingFlags.NonPublic | BindingFlags.Instance) ??
+							 Object.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+
+		if (prop == null) {
+			throw new ArgumentException($"Unknown property '{propName}' in object of type '{Object.GetType()}'");
+		}
+
+		return prop.GetValue(Object);
+	}
+
+	public object? GetField(string fieldName) {
+		FieldInfo? field = Object.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance) ??
+						   Object.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.Instance);
+
+		if (field == null) {
+			throw new ArgumentException($"Unknown field '{fieldName}' in object of type '{Object.GetType()}'");
+		}
+
+		return field.GetValue(Object);
 	}
 }

@@ -6,6 +6,7 @@ using Engine.Helpers;
 using Engine.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Input;
 using Safari.Model.Entities.Animals;
@@ -13,27 +14,20 @@ using Safari.Model.Tiles;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Model.Entities;
 
+/// <summary>
+/// A class that contains general behaviour and properties of all entities (animals, jeeps, poachers, rangers, etc.)
+/// </summary>
 [SimulationActor]
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Entity : GameObject, ISpatial {
-	/// <summary>
-	/// Invoked every time an in-game hour passes for this entity
-	/// </summary>
-	public event EventHandler HourPassed;
-	/// <summary>
-	/// Invoked every time an in-game day passes for this entity
-	/// </summary>
-	public event EventHandler DayPassed;
-	/// <summary>
-	/// Invoked every time an in-game week passes for this entity
-	/// </summary>
-	public event EventHandler WeekPassed;
 	/// <summary>
 	/// Invoked exactly once at the end of an entity's lifetime
 	/// </summary>
-	public event EventHandler Died;
+	public event EventHandler? Died;
 
 	private static readonly List<Entity> activeEntities = [];
 	/// <summary>
@@ -44,12 +38,14 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Entity name to display in the shop / manager screens
 	/// </summary>
-	public string DisplayName { get; protected init; }
+	[JsonProperty]
+	public string DisplayName { get; protected init; } = "Entity";
 
 	/// <summary>
 	/// The calculated bounds for the current frame, invalidated (set to null) on PreUpdate
 	/// </summary>
 	private Vectangle calcBounds = new(-1, -1, -1, -1);
+	[JsonProperty]
 	private Vectangle? boundsBaseOverride;
 	/// <summary>
 	/// The bounding rectangle of the entity's display content <br/>
@@ -71,15 +67,18 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// The number of tiles the entity can see in any direction
 	/// </summary>
+	[JsonProperty]
 	public float SightDistance { get; set; } = 5;
 	/// <summary>
 	/// The number of tiles the entity can interact with in any direction
 	/// </summary>
+	[JsonProperty]
 	public float ReachDistance { get; set; } = 1;
-	
+
 	/// <summary>
 	/// Bool for controlling whether this entity is visible (without any nearby light) at night
 	/// </summary>
+	[JsonProperty]
 	public bool VisibleAtNight { get; set; } = true;
 	/// <summary>
 	/// Getter for checking whether this entity is currently visible to the player
@@ -87,12 +86,12 @@ public abstract class Entity : GameObject, ISpatial {
 	public virtual bool Visible {
 		get {
 			GameModel model = GameScene.Active.Model;
-			Level level = model.Level;
+			Level level = model.Level!;
 			Vector2 offset = Bounds.Size / 2;
 			Vector2 centerPoint = Position + offset;
 			int map_x = (int)(centerPoint.X / level.TileSize);
 			int map_y = (int)(centerPoint.Y / level.TileSize);
-			if (!model.IsDaytime && !VisibleAtNight && !model.Level.LightManager.CheckLight(map_x, map_y)) {
+			if (!model.IsDaytime && !VisibleAtNight && !level.LightManager.CheckLight(map_x, map_y)) {
 				return false;
 			}
 			return true;
@@ -104,7 +103,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	public Vectangle SightArea {
 		get {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			Vector2 centerOffset = Bounds.Size / 2;
 			Vector2 startPoint = Position + centerOffset - new Vector2(SightDistance * tileSize);
 			float size = 2 * SightDistance * tileSize;
@@ -117,7 +116,7 @@ public abstract class Entity : GameObject, ISpatial {
 	/// </summary>
 	public Vectangle ReachArea {
 		get {
-			int tileSize = GameScene.Active.Model.Level.TileSize;
+			int tileSize = GameScene.Active.Model.Level!.TileSize;
 			Vector2 centerOffset = Bounds.Size / 2;
 			Vector2 startPoint = Position + centerOffset - new Vector2(ReachDistance * tileSize);
 			float size = 2 * ReachDistance * tileSize;
@@ -129,34 +128,34 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <summary>
 	/// Indicates if the entity has died
 	/// </summary>
+	[JsonProperty]
 	public bool IsDead { get; private set; } = false;
 
 	/// <summary>
 	/// The navigation component controlling the entity's movement
 	/// </summary>
+	[JsonProperty]
 	public NavigationCmp NavCmp { get; protected set; }
 
 	/// <summary>
 	/// The sprite component of the entity used for rendering
 	/// </summary>
-	public SpriteCmp Sprite { get; protected set; }
+	public SpriteCmp? Sprite { get; protected set; }
 
 	/// <summary>
 	/// Whether the entity is currently being inspected through the entity controller
 	/// </summary>
 	public bool IsBeingInspected { get; set; }
 
-	private DateTime lastHourUpdate;
-	private DateTime lastDayUpdate;
-	private DateTime lastWeekUpdate;
+	[JsonConstructor]
+	public Entity() : this(Vector2.Zero) { }
 
 	public Entity(Vector2 pos) : base(pos) {
 		NavCmp = new NavigationCmp();
-		Attach(NavCmp);
 	}
 
 	static Entity() {
-		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("entity-interact-bounds", [ExcludeFromCodeCoverage] (object? sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				e.DrawInteractBounds(gameTime);
 			}
@@ -184,7 +183,7 @@ public abstract class Entity : GameObject, ISpatial {
 		} else if (Sprite is AnimatedSpriteCmp animSprite) {
 			result = new Vectangle(Position - animSprite.Origin, new Vector2(animSprite.FrameWidth, animSprite.FrameHeight));
 		} else {
-			Vector2 size = Sprite.SourceRectangle?.Size.ToVector2() ?? Sprite.Texture.Bounds.Size.ToVector2();
+			Vector2 size = Sprite!.SourceRectangle?.Size.ToVector2() ?? Sprite.Texture!.Bounds.Size.ToVector2();
 			result = new Vectangle(Position - Sprite.Origin, size);
 		}
 
@@ -206,9 +205,12 @@ public abstract class Entity : GameObject, ISpatial {
 		return true;
 	}
 
-	public static Entity GetEntityOnMouse() {
+	/// <summary>
+	/// Fetches the entity currently hovered on (or null)
+	/// </summary>
+	public static Entity? GetEntityOnMouse() {
 		Vector2 mouseWorldPos = InputManager.Mouse.GetWorldPos();
-		Entity result = null;
+		Entity? result = null;
 
 		foreach (Entity e in Entity.ActiveEntities) {
 			if (!e.IsDead && e.Bounds.Contains(mouseWorldPos) && e.Visible) {
@@ -224,10 +226,9 @@ public abstract class Entity : GameObject, ISpatial {
 	}
 
 	public override void Load() {
+		Attach(NavCmp);
+
 		GameModel model = GameScene.Active.Model;
-		lastHourUpdate = model.IngameDate;
-		lastDayUpdate = model.IngameDate;
-		lastWeekUpdate = model.IngameDate;
 
 		model.EntityCount++;
 		activeEntities.Add(this);
@@ -245,23 +246,7 @@ public abstract class Entity : GameObject, ISpatial {
 		base.Unload();
 	}
 
-	public override void Update(GameTime gameTime) {
-		DateTime ingameDate = GameScene.Active.Model.IngameDate;
-		if (ingameDate - lastHourUpdate > TimeSpan.FromHours(1)) {
-			HourPassed?.Invoke(this, EventArgs.Empty);
-			lastHourUpdate = ingameDate;
-		}
-		if (ingameDate - lastDayUpdate > TimeSpan.FromDays(1)) {
-			DayPassed?.Invoke(this, EventArgs.Empty);
-			lastDayUpdate = ingameDate;
-		}
-		if (ingameDate - lastWeekUpdate > TimeSpan.FromDays(7)) {
-			WeekPassed?.Invoke(this, EventArgs.Empty);
-			lastWeekUpdate = ingameDate;
-		}
-		base.Update(gameTime);
-	}
-
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (!Visible) {
 			return;
@@ -269,32 +254,40 @@ public abstract class Entity : GameObject, ISpatial {
 
 		if (IsBeingInspected) {
 			float fadeFactor = (float)Math.Sin(2 * gameTime.TotalGameTime.TotalSeconds) / 4f + 0.25f;
-			Sprite.Tint = Color.White * (0.5f + fadeFactor);
+			Sprite!.Tint = Color.White * (0.5f + fadeFactor);
+
+			if (DebugMode.IsFlagActive("draw-paths")) {
+				NavCmp.DrawPath();
+				if (this is Animal animal && animal.Group != null) {
+					animal.Group.NavCmp.DrawPath();
+				}
+			}
 		} else {
-			Sprite.Tint = Color.White;
+			Sprite!.Tint = Color.White;
 		}
 
 		base.Draw(gameTime);
 	}
 
-	private ITexture2D sightAreaTex = null, reachAreaTex = null, boundsTex = null;
+	private ITexture2D? sightAreaTex = null, reachAreaTex = null, boundsTex = null;
 	/// <summary>
 	/// Draws the bounds of the entity's vision and reach to the screen (debug feature)
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
+	[ExcludeFromCodeCoverage]
 	public void DrawInteractBounds(GameTime gameTime) {
 		if (SightArea.Width != 0 && SightArea.Height != 0) {
 			if (sightAreaTex == null || sightAreaTex.Bounds.Size != SightArea.Size.ToPoint()) {
 				sightAreaTex = Utils.GenerateTexture((int)SightArea.Width, (int)SightArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(sightAreaTex.ToTexture2D(), (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(sightAreaTex.ToTexture2D(), (Rectangle)SightArea, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (ReachArea.Width != 0 && ReachArea.Height != 0) {
 			if (reachAreaTex == null || reachAreaTex.Bounds.Size != ReachArea.Size.ToPoint()) {
 				reachAreaTex = Utils.GenerateTexture((int)ReachArea.Width, (int)ReachArea.Height, Color.White, true);
 			}
-			Game.SpriteBatch.Draw(reachAreaTex.ToTexture2D(), (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(reachAreaTex.ToTexture2D(), (Rectangle)ReachArea, null, Color.DarkRed, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 		}
 
 		if (boundsTex?.Bounds.Size != Bounds.Size.ToPoint()) {
@@ -306,7 +299,7 @@ public abstract class Entity : GameObject, ISpatial {
 		}
 
 		if (boundsTex != null) {
-			Game.SpriteBatch.Draw(boundsTex.ToTexture2D(), (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth + 0.01f);
+			Game.SpriteBatch!.Draw(boundsTex.ToTexture2D(), (Rectangle)Bounds, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, Sprite!.RealLayerDepth + 0.01f);
 		}
 	}
 
@@ -334,6 +327,11 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's sight</returns>
 	public virtual bool CanSee(GameObject obj) => CanSee(obj.Position);
+	/// <summary>
+	/// Checks if the entity can see a given game object
+	/// </summary>
+	/// <param name="e">The Entity to check</param>
+	/// <returns>Whether the object is inside the entity's sight</returns>
 	public virtual bool CanSee(Entity e) => SightArea.Intersects(e.Bounds);
 	/// <summary>
 	/// Checks if the entity can reach a given position
@@ -347,6 +345,11 @@ public abstract class Entity : GameObject, ISpatial {
 	/// <param name="obj">The game object to check</param>
 	/// <returns>Whether the object is inside the entity's reach</returns>
 	public virtual bool CanReach(GameObject obj) => CanReach(obj.Position);
+	/// <summary>
+	/// Checks if the entity can reach a given game object
+	/// </summary>
+	/// <param name="obj">The entity to check</param>
+	/// <returns>Whether the object is inside the entity's reach</returns>
 	public virtual bool CanReach(Entity e) => ReachArea.Intersects(e.Bounds);
 
 	/// <summary>
@@ -367,12 +370,12 @@ public abstract class Entity : GameObject, ISpatial {
 	/// Retrieves a list of the non-empty tiles inside the entity's sight
 	/// </summary>
 	/// <returns>A list of the tiles inside the entity's vision</returns>
-	public virtual List<Tile> GetTilesInSight() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)SightArea);
+	public virtual List<Tile> GetTilesInSight() => GameScene.Active.Model.Level!.GetTilesInWorldArea((Rectangle)SightArea);
 	/// <summary>
 	/// Retrieves a list of the non-empty tiles inside the entity's reach
 	/// </summary>
 	/// <returns>A list of the tiles that the entity can interact with</returns>
-	public virtual List<Tile> GetTilesInReach() => GameScene.Active.Model.Level.GetTilesInWorldArea((Rectangle)ReachArea);
+	public virtual List<Tile> GetTilesInReach() => GameScene.Active.Model.Level!.GetTilesInWorldArea((Rectangle)ReachArea);
 
 	public override string ToString() {
 		return DisplayName;

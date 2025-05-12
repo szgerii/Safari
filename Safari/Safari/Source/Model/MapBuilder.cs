@@ -12,11 +12,11 @@ namespace Safari.Model;
 /// Static helper class that can generate the starting map
 /// </summary>
 public static class MapBuilder {
-	public readonly static int ZEBRA_COUNT = 16;
-	public readonly static int GIRAFFE_COUNT = 8;
-	public readonly static int ELEPHANT_COUNT = 6;
-	public readonly static int LION_COUNT = 8;
-	public readonly static int TIGER_COUNT = 6;
+	public readonly static int ZEBRA_COUNT = 8;
+	public readonly static int GIRAFFE_COUNT = 4;
+	public readonly static int ELEPHANT_COUNT = 4;
+	public readonly static int LION_COUNT = 4;
+	public readonly static int TIGER_COUNT = 3;
 	public readonly static int TIGER_WHITE_COUNT = 3;
 
 	public readonly static IReadOnlyList<Point> LAKE_LOC = new List<Point>() {
@@ -387,8 +387,8 @@ public static class MapBuilder {
 	/// Builds the starting map (based on the const lists)
 	/// </summary>
 	/// <param name="strippedInit">Whether to skip placing down animals/plants/jeeps/etc</param>
-	public static void BuildStartingMap(Level level, bool strippedInit = false) {
-		// road placement
+	public static void BuildStartingMap(Level level, bool strippedInit = false, bool loadInit = false) {
+		// entrance / exit placement
 		level.SetTile(level.Network.Start, new Road());
 		level.SetTile(level.Network.End, new Road());
 		Point current = new Point(-1, level.Network.Start.Y);
@@ -396,23 +396,16 @@ public static class MapBuilder {
 		Jeep.PickUpSpot = level.Network.Start - new Point(2, 0);
 		Jeep.DropOffSpot = level.Network.End - new Point(0, 2);
 		Tourist.PickupSpot = Jeep.PickUpSpot - new Point(0, 1);
-		while (current.X < level.Network.End.X) {
+		while (current.X < level.Network.Start.X - 1) {
 			current.X++;
 			Road r = new Road();
-			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
-			} else {
-				level.SetTile(current, r);
-			}
+			level.SetTile(current, r);
 		}
-		while (current.Y > level.Network.End.Y - 2) {
-			current.Y--;
+		current = new Point(level.Network.End.X, -1);
+		while (current.Y < level.Network.End.Y - 1) {
+			current.Y++;
 			Road r = new Road();
-			if (level.ConstructionHelperCmp.CanBuild(current, r)) {
-				level.ConstructionHelperCmp.InstaBuild(current, r);
-			} else {
-				level.SetTile(current, r);
-			}
+			level.SetTile(current, r);
 		}
 
 		// fence placement
@@ -443,8 +436,28 @@ public static class MapBuilder {
 			y--;
 		}
 
-		if (strippedInit) return;
+		if (!loadInit) {
+			// starting road
+			current = level.Network.Start;
+			while (current.X < level.Network.End.X - 1) {
+				current.X++;
+				Road r = new Road();
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			}
+			current = level.Network.End;
+			while (current.Y < level.Network.Start.Y) {
+				current.Y++;
+				Road r = new Road();
+				level.ConstructionHelperCmp.InstaBuild(current, r);
+			}
+		}
 
+		if (!strippedInit && !loadInit) {
+			AddStartingObjects(level);
+		}
+	}
+
+	private static void AddStartingObjects(Level level) {
 		// food / water sources
 		foreach (Point p in LAKE_LOC) {
 			level.ConstructionHelperCmp.InstaBuild(p, new Water());
@@ -468,52 +481,53 @@ public static class MapBuilder {
 
 		// animals (at random positions)
 		for (int i = 0; i < ZEBRA_COUNT; i++) {
-			Game.AddObject(new Zebra(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Zebra(GetRandomSpawn(level, AnimalSpecies.Lion.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < GIRAFFE_COUNT; i++) {
-			Game.AddObject(new Giraffe(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Giraffe(GetRandomSpawn(level, AnimalSpecies.Giraffe.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < ELEPHANT_COUNT; i++) {
-			Game.AddObject(new Elephant(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Elephant(GetRandomSpawn(level, AnimalSpecies.Elephant.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < LION_COUNT; i++) {
-			Game.AddObject(new Lion(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Lion(GetRandomSpawn(level, AnimalSpecies.Lion.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_COUNT; i++) {
-			Game.AddObject(new Tiger(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new Tiger(GetRandomSpawn(level, AnimalSpecies.Tiger.GetSize()), IntegerToGender(i)));
 		}
 		for (int i = 0; i < TIGER_WHITE_COUNT; i++) {
-			Game.AddObject(new TigerWhite(GetRandomSpawn(level), IntegerToGender(i)));
+			Game.AddObject(new TigerWhite(GetRandomSpawn(level, AnimalSpecies.TigerWhite.GetSize()), IntegerToGender(i)));
 		}
 
 		for (int i = 0; i < Jeep.STARTING_JEEPS; i++) {
 			Jeep.SpawnJeep();
 		}
-
-		Ranger ranger1 = new Ranger(new Vector2(300, 300)) {
-			TargetSpecies = AnimalSpecies.Lion
-		};
-		Game.AddObject(ranger1);
-
-		Ranger ranger2 = new Ranger(new Vector2(1500, 700)) {
-			TargetSpecies = AnimalSpecies.TigerWhite
-		};
-		Game.AddObject(ranger2);
 	}
 
 	private static Gender IntegerToGender(int i) => i % 2 == 0 ? Gender.Female : Gender.Male;
 
-	public static Vector2 GetRandomSpawn(Level level) {
+	public static Vector2 GetRandomSpawn(Level level, Point? size = null) {
+		size ??= new Point(1);
+
 		int minTX = Level.PLAY_AREA_CUTOFF_X + 3;
 		int maxTX = level.MapWidth - Level.PLAY_AREA_CUTOFF_X - 3;
 		int minTY = Level.PLAY_AREA_CUTOFF_Y + 3;
 		int maxTY = level.MapHeight - Level.PLAY_AREA_CUTOFF_Y - 3;
 
+		Point[] offsets = new Point[size.Value.X * size.Value.Y - 1];
+		for (int x = 0; x < size.Value.X; x++) {
+			for (int y = 0; y < size.Value.Y; y++) {
+				if (x == 0 && y == 0) continue;
+
+				offsets[x * size.Value.Y + y - 1] = new Point(x, y);
+			}
+		}
+
 		Point p = new Point();
 		do {
-			p = new Point(Game.Random.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
-		} while (level.GetTile(p) != null);
+			p = new Point(Game.Random!.Next(minTX, maxTX), Game.Random.Next(minTY, maxTY));
+		} while (!level.ConstructionHelperCmp.CanBuild(p, offsets));
 
-		return new Vector2(p.X * level.TileSize + Game.Random.Next(32), p.Y * level.TileSize + Game.Random.Next(32));
+		return new Vector2(p.X * level.TileSize, p.Y * level.TileSize);
 	}
 }

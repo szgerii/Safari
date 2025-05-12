@@ -11,6 +11,9 @@ using System.Collections.Generic;
 using Safari.Popups;
 using Engine.Helpers;
 using Engine.Graphics.Stubs.Texture;
+using Newtonsoft.Json;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -19,6 +22,10 @@ public enum Gender {
 	Female
 }
 
+/// <summary>
+/// A class for representing general animal information (most behaviour logic is container in the AnimalGroup class)
+/// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public abstract class Animal : Entity {
 	/// <summary>
 	/// The base layer depth for animals
@@ -28,17 +35,20 @@ public abstract class Animal : Entity {
 	protected const int ANIMATION_SPEED = 7;
 
 	/// <summary>
-	/// The level of hunger at which an animal will become hungry
+	/// The level of hunger at which a herbivorous animal will become hungry
 	/// </summary>
 	private const int HUNGER_THRESHOLD_HERB = 50;
-	private const float INITIAL_HUNGER_DECAY_HERB = 0.1f;
-	private const int HUNGER_TRESHOLD_CARN = 35;
-	private const float INITIAL_HUNGER_DECAY_CARN = 0.05f;
+	private const float INITIAL_HUNGER_DECAY_HERB = 0.26f;
+	/// <summary>
+	/// The level of hunger at which a carnivorous animal will become hungry
+	/// </summary>
+	private const int HUNGER_THRESHOLD_CARN = 45;
+	private const float INITIAL_HUNGER_DECAY_CARN = 0.17f;
 	/// <summary>
 	/// The level of hunger at which an animal will become thirsty
 	/// </summary>
 	private const int THIRST_THRESHOLD = 50;
-	private const float INITIAL_THIRST_DECAY = 0.2f;
+	private const float INITIAL_THIRST_DECAY = 0.32f;
 	/// <summary>
 	/// The number of days that have to pass before an animal can mate again
 	/// </summary>
@@ -46,32 +56,46 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The number of days an animal can live
 	/// </summary>
-	private const int MAX_AGE = 50;
+	public const int MAX_AGE = 50;
+	/// <summary>
+	/// The age (in days) after which the animal is considered mature and is allowed to mate
+	/// </summary>
+	public const int MATURE_AGE = 12;
 
-	private const float FEEDING_SPEED = 10f;
-	private const float DRINKING_SPEED = 10f;
+	/// <summary>
+	/// The amount of hunger level that is restored in a (real) second
+	/// </summary>
+	public const float FEEDING_SPEED = 10f;
+	/// <summary>
+	/// The amount of thirst level that is restored in a (real) second
+	/// </summary>
+	public const float DRINKING_SPEED = 10f;
 
 	private const int INDICATOR_HEIGHT = 8;
 
+	[JsonProperty]
 	protected DateTime birthTime;
+	[JsonProperty]
 	protected DateTime? lastMatingTime = null;
 
 	/// <summary>
 	/// Invoked when this animal gets hungry
 	/// </summary>
-	public event EventHandler GotHungry;
+	public event EventHandler? GotHungry;
 	/// <summary>
 	/// Invoked when this animal gets thirsty
 	/// </summary>
-	public event EventHandler GotThirsty;
+	public event EventHandler? GotThirsty;
 
 	/// <summary>
-	/// Represents how hungry the animal currently is (goes down with time)s
+	/// Represents how hungry the animal currently is (goes down with time)
 	/// </summary>
+	[JsonProperty]
 	public float HungerLevel { get; protected set; } = 100f;
 	/// <summary>
-	/// Represents how thirsty the animal currently is (goes down with time)s
+	/// Represents how thirsty the animal currently is (goes down with time)
 	/// </summary>
+	[JsonProperty]
 	public float ThirstLevel { get; protected set; } = 100f;
 	/// <summary>
 	/// Determines how fast the animal's hunger level drops
@@ -86,7 +110,7 @@ public abstract class Animal : Entity {
 	/// Whether the animal is currently hungry
 	/// (i.e. hunger level has fallen under the hunger threshold)
 	/// </summary>
-	public bool IsHungry => HungerLevel < (IsCarnivorous ? HUNGER_TRESHOLD_CARN : HUNGER_THRESHOLD_HERB);
+	public bool IsHungry => HungerLevel < (IsCarnivorous ? HUNGER_THRESHOLD_CARN : HUNGER_THRESHOLD_HERB);
 	/// <summary>
 	/// Whether the animal is currently thirsty
 	/// (i.e. thirst level has fallen under the thirst threshold)
@@ -96,15 +120,18 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// Whether the animal is currently being escorted by a poacher
 	/// </summary>
+	[JsonProperty]
 	public bool IsCaught { get; protected set; }
 
 	/// <summary>
 	/// The gender of the animal
 	/// </summary>
+	[JsonProperty]
 	public Gender Gender { get; init; }
 	/// <summary>
 	/// The species of this animal
 	/// </summary>
+	[JsonProperty]
 	public AnimalSpecies Species { get; init; }
 	/// <summary>
 	/// Whether the animal feeds on other, herbivorous animals
@@ -128,6 +155,7 @@ public abstract class Animal : Entity {
 	/// </summary>
 	public int Price => Utils.Round(Species.GetPrice() * 0.5f + (Species.GetPrice() * 0.5f * ((float)Age / MAX_AGE)));
 
+	[JsonProperty]
 	private bool hasChip;
 	/// <summary>
 	/// Controls whether this animal has a chip attached
@@ -146,22 +174,37 @@ public abstract class Animal : Entity {
 	/// <summary>
 	/// The group this animal belongs to
 	/// </summary>
-	public AnimalGroup Group { get; set; }
+	public AnimalGroup? Group { get; set; }
 
 	/// <summary>
 	/// Shorthand for Group.State
 	/// </summary>
-	public AnimalGroupState State => Group.State;
+	public AnimalGroupState State => Group!.State;
+
+	/// <summary>
+	/// Invoked when the animal is captured by a poacher
+	/// </summary>
+	public event EventHandler? Caught;
 
 	/// <summary>
 	/// The animal's sprite component cast to an animated sprite
 	/// (which all animals have by default)
 	/// </summary>
-	protected AnimatedSpriteCmp AnimSprite => Sprite as AnimatedSpriteCmp;
+	protected AnimatedSpriteCmp AnimSprite => (AnimatedSpriteCmp)Sprite!;
 	/// <summary>
 	/// The animal's collision detection component
 	/// </summary>
-	protected CollisionCmp collisionCmp;
+	protected CollisionCmp? collisionCmp;
+	
+	[JsonConstructor]
+	public Animal() : base() {
+		Died += (object? sender, EventArgs e) => {
+			Group?.Leave(this);
+		};
+		InitAnimations();
+
+		InitCollision();
+	}
 
 	public Animal(Vector2 pos, AnimalSpecies species, Gender gender) : base(pos) {
 		// data
@@ -174,11 +217,26 @@ public abstract class Animal : Entity {
 
 		birthTime = GameScene.Active.Model.IngameDate;
 
-		Died += (object sender, EventArgs e) => {
+		Died += (object? sender, EventArgs e) => {
 			Group?.Leave(this);
 		};
 
-		// animations
+		InitAnimations();
+
+		InitCollision();
+
+	}
+
+	[MemberNotNull(nameof(collisionCmp))]
+	private void InitCollision() {
+		collisionCmp = new CollisionCmp(Vectangle.Empty) {
+			Tags = CollisionTags.Animal,
+			Targets = CollisionTags.World // | CollisionTags.Animal
+		};
+		Attach(collisionCmp);
+	}
+
+	private void InitAnimations() {
 		AnimatedSpriteCmp animSprite = new AnimatedSpriteCmp(null, 3, 4, ANIMATION_SPEED);
 		Sprite = animSprite;
 		Attach(Sprite);
@@ -192,18 +250,11 @@ public abstract class Animal : Entity {
 		animSprite.Animations["walk-left"] = new Animation(1, 3, true);
 		animSprite.Animations["walk-up-right"] = new Animation(2, 3, true);
 		animSprite.Animations["walk-up-left"] = new Animation(3, 3, true);
-
-		// collision
-		collisionCmp = new CollisionCmp(Vectangle.Empty) {
-			Tags = CollisionTags.Animal,
-			Targets = CollisionTags.World // | CollisionTags.Animal
-		};
-		Attach(collisionCmp);
 	}
 
 	static Animal() {
 		// add debug feature for drawing animal stats
-		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object sender, GameTime gameTime) => {
+		DebugMode.AddFeature(new LoopedDebugFeature("animal-indicators", (object? sender, GameTime gameTime) => {
 			foreach (Entity e in ActiveEntities) {
 				if (e is Animal a) a.DrawIndicators(gameTime);
 			}
@@ -225,6 +276,10 @@ public abstract class Animal : Entity {
 	}
 
 	public override void Load() {
+		if (Sprite is AnimatedSpriteCmp animSprite && animSprite.Animations.ContainsKey("idle-right")) {
+			animSprite.CurrentAnimation = "idle-right";
+		}
+
 		GameModel model = GameScene.Active.Model;
 
 		model.AnimalCount++;
@@ -250,12 +305,49 @@ public abstract class Animal : Entity {
 		base.Unload();
 	}
 
+	private const float STUCK_CHECK_THRESHOLD = 32f;
+	private const float GROUP_DISTANCE_THRESHOLD = AnimalGroup.FORMATION_SPREAD * 2f;
+	private readonly static AnimalGroupState[] checkpointStates = [ AnimalGroupState.Wandering, AnimalGroupState.SeekingWater, AnimalGroupState.SeekingFood ];
+	private Vector2 checkpointPos = new Vector2(-100);
+	private DateTime checkpointTime = DateTime.MinValue;
+	private bool checkpointFarFromGroup = false;
 	public override void Update(GameTime gameTime) {
 		if (IsCaught) return;
+
+		if (Group == null) {
+			// shouldnt ever really happen, but just to be safe:
+			return;
+		}
 
 		if (Age > MAX_AGE || ThirstLevel <= 0f || HungerLevel <= 0f) {
 			Die();
 			return;
+		}
+
+		if (GameScene.Active.Model.IngameDate - checkpointTime >= TimeSpan.FromHours(1)) {
+			if (checkpointStates.Contains(State)) {
+				if (Vector2.Distance(CenterPosition, checkpointPos) < STUCK_CHECK_THRESHOLD) {
+					Group.Leave(this);
+					Group = new AnimalGroup(this);
+				}
+
+				if (Vector2.Distance(CenterPosition, Group.Position) > GROUP_DISTANCE_THRESHOLD) {
+					if (checkpointFarFromGroup) {
+						Group.Leave(this);
+						Group = new AnimalGroup(this);
+						checkpointFarFromGroup = false;
+					} else {
+						checkpointFarFromGroup = true;
+					}
+				} else {
+					checkpointFarFromGroup = false;
+				}
+			} else {
+				checkpointFarFromGroup = false;
+			}
+
+			checkpointPos = CenterPosition;
+			checkpointTime = GameScene.Active.Model.IngameDate;
 		}
 
 		// update anim
@@ -291,6 +383,7 @@ public abstract class Animal : Entity {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (IsCaught) return;
 
@@ -308,6 +401,10 @@ public abstract class Animal : Entity {
 		if (HungerLevel > 100f) {
 			HungerLevel = 100f;
 		}
+	}
+
+	public void Feed(int amount) {
+		HungerLevel = Math.Min(100f, HungerLevel + amount);
 	}
 
 	/// <summary>
@@ -352,7 +449,8 @@ public abstract class Animal : Entity {
 			throw new InvalidOperationException("Cannot catch an animal that has already been caught");
 		}
 
-		Group.Leave(this);
+		Caught?.Invoke(this, EventArgs.Empty);
+		Group?.Leave(this);
 
 		IsCaught = true;
 	}
@@ -372,13 +470,14 @@ public abstract class Animal : Entity {
 		Group = new AnimalGroup(this);
 	}
 
-	private ITexture2D indicatorTex = null, indicatorOutlineTex = null;
+	private ITexture2D? indicatorTex = null, indicatorOutlineTex = null;
 	/// <summary>
 	/// Draws an indicator for the animal's hunger and thirst levels to the screen (debug feature)
 	/// </summary>
 	/// <param name="gameTime">The current game time</param>
+	[ExcludeFromCodeCoverage]
 	public void DrawIndicators(GameTime gameTime) {
-		if (IsCaught) return;
+		if (IsCaught || Sprite == null) return;
 
 		int maxWidth = Utils.Round(Bounds.Width * 0.8f);
 		int margin = Utils.Round(Bounds.Width * 0.1f);
@@ -397,7 +496,7 @@ public abstract class Animal : Entity {
 		Vector2 hungerOffset = new Vector2(margin, -INDICATOR_HEIGHT);
 
 		// thirst level
-		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
+		Game.SpriteBatch!.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(thirstWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		Game.SpriteBatch.Draw(indicatorOutlineTex.ToTexture2D(), new Rectangle((Position + thirstOffset).ToPoint(), new Point(maxWidth, INDICATOR_HEIGHT)), null, Color.Cyan, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
 		// hunger level
 		Game.SpriteBatch.Draw(indicatorTex.ToTexture2D(), new Rectangle((Position + hungerOffset).ToPoint(), new Point(hungerWidth, INDICATOR_HEIGHT)), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, Sprite.RealLayerDepth);
@@ -407,11 +506,15 @@ public abstract class Animal : Entity {
 	private void CheckSurroundings() {
 		foreach (Tile tile in GetTilesInSight()) {
 			if (tile.IsFoodSource) {
-				Group.AddFoodSpot(tile.Position);
+				Group?.AddFoodSpot(tile.TilemapPosition);
+			} else if (Group?.KnowsFoodSpot(tile.TilemapPosition) ?? false) {
+				Group.RemoveFoodSpot(tile.TilemapPosition, true);
 			}
 
 			if (tile.IsWaterSource) {
-				Group.AddWaterSpot(tile.Position);
+				Group?.AddWaterSpot(tile.TilemapPosition);
+			} else if (Group?.KnowsWaterSpot(tile.TilemapPosition) ?? false) {
+				Group.RemoveWaterSpot(tile.TilemapPosition);
 			}
 		}
 
@@ -423,17 +526,8 @@ public abstract class Animal : Entity {
 			}
 
 			if (entity is Animal anim && anim.Group != null) {
-				if (Group != anim.Group && Group.CanMergeWith(anim.Group)) {
+				if (Group != anim.Group && (Group?.CanMergeWith(anim.Group) ?? false)) {
 					Group.MergeWith(anim.Group);
-				}
-
-				if (IsCarnivorous && IsHungry && !anim.IsCarnivorous && !anim.IsCaught) {
-					if (CanReach(anim)) {
-						HungerLevel = 100f;
-						anim.Die();
-					} else {
-						// TODO: set nav target to anim
-					}
 				}
 			}
 		}

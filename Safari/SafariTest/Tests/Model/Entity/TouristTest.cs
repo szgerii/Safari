@@ -20,7 +20,7 @@ public class TouristTest : SimulationTest {
 	[TestMethod]
 	public void TouristStaticState() {
 		// Queue init, queue update
-		Tourist.Init();
+		Tourist.Init(60);
 		Assert.IsNotNull(Tourist.Queue);
 		Assert.AreEqual(0, Tourist.Queue.Count);
 		Tourist t1 = SpawnT(new(0, 0));
@@ -35,7 +35,7 @@ public class TouristTest : SimulationTest {
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
 		Assert.AreEqual(1 / 0.7f, tSpawner.Frequency, acc);
-		for (int i = 0; i < Tourist.RATING_MEMORY / 2; i++) {
+		for (int i = 0; i < Tourist.RatingMemory / 2; i++) {
 			Tourist.AddReview(4.0f);
 		}
 		Assert.AreEqual(3.0f, Tourist.AvgRating, acc);
@@ -50,7 +50,7 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
 		Assert.AreEqual(0, Model.TouristCount);
-		Tourist.Init();
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -69,7 +69,7 @@ public class TouristTest : SimulationTest {
 
 		oldRating = Tourist.AvgRating;
 		Tourist t3 = SpawnT(new(0, 0));
-		t3.TourFailed();
+		Tourist.TourFailed();
 		Assert.IsTrue(Tourist.AvgRating < oldRating);
 
 		Jeep.RentFee = 100;
@@ -98,8 +98,8 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
 		Tourist.PickupSpot = new Point(3, 3);
-		Vector2 PickupCenter = Model.Level.GetTileCenter(new Point(3, 3));
-		Tourist.Init();
+		Vector2 PickupCenter = Model.Level!.GetTileCenter(new Point(3, 3));
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();
@@ -132,8 +132,8 @@ public class TouristTest : SimulationTest {
 		Engine.Game.Random.Next(5, 11).Returns(8);
 		Engine.Game.Random.NextDouble().Returns(0.5);
 
-		Vector2 PickupCenter = Model.Level.GetTileCenter(Tourist.PickupSpot);
-		Tourist.Init();
+		Vector2 PickupCenter = Model.Level!.GetTileCenter(Tourist.PickupSpot);
+		Tourist.Init(60);
 		EntitySpawner<Tourist> tSpawner = new EntitySpawner<Tourist>(0.1f);
 		Tourist.Spawner = tSpawner;
 		Tourist.UpdateSpawner();

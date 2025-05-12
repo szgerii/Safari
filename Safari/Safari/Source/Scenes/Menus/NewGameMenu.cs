@@ -4,11 +4,14 @@ using Microsoft.Xna.Framework;
 using Safari.Popups;
 using Engine;
 using Safari.Helpers;
+using Safari.Model;
+using Safari.Persistence;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Scenes.Menus;
 
-public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
-	private static NewGameMenu instance;
+public class NewGameMenu : MenuScene, IResettableSingleton {
+	private static NewGameMenu? instance;
 	public static NewGameMenu Instance {
 		get {
 			instance ??= new();
@@ -20,17 +23,16 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
 		instance = null;
 	}
 
-	private Header title;
-    private Panel itemPanel;
-    private TextInput input;
-    private Button startButton;
-    private Button menuButton;
-    private Panel radioPanel;
-    private Header diffTitle;
-    private RadioButton radioEasy;
-    private RadioButton radioMedium;
-    private RadioButton radioHard;
-    private bool loadGame = false;
+	private Header? title;
+    private Panel? itemPanel;
+    private TextInput? input;
+    private Button? startButton;
+    private Button? menuButton;
+    private Panel? radioPanel;
+    private Header? diffTitle;
+    private RadioButton? radioEasy;
+    private RadioButton? radioMedium;
+    private RadioButton? radioHard;
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0), PanelSkin.Default, Anchor.TopLeft);
@@ -68,15 +70,19 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void StartButtonClicked(Entity entity) {
-        if (input.Value == "") { 
+        if (input!.Value == "") { 
             new AlertMenu("Safari name", "You must name your safari before starting a game!").Show();
             return;
-        } else if(!radioEasy.Checked && !radioMedium.Checked && !radioHard.Checked) {
+        } else if(!radioEasy!.Checked && !radioMedium!.Checked && !radioHard!.Checked) {
             new AlertMenu("Difficulty", "You must select a difficulty before starting a game!").Show();
             return;
         }
-        SceneManager.Load(LoadingScene.Instance);
-        loadGame = true;
+        if (GameModelPersistence.IsNameAvailable(input.Value)) {
+            LoadingScene.Instance.LoadNewGame(input.Value, radioEasy.Checked ? GameDifficulty.Easy : radioMedium!.Checked ? GameDifficulty.Normal : GameDifficulty.Hard);
+        } else {
+            new AlertMenu("Safari name", "This name is already in use!").Show();
+            return;
+        }
     }
 
     private void MenuButtonClicked(Entity entity) {
@@ -95,12 +101,5 @@ public class NewGameMenu : MenuScene, IUpdatable, IResettableSingleton {
         radioEasy = null;
         radioMedium = null;
         radioHard = null;
-    }
-
-    public override void Update(GameTime gameTime) {
-        if (loadGame) {
-            SceneManager.Load(new GameScene());
-            loadGame = false;
-        }
     }
 }

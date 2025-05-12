@@ -16,7 +16,7 @@ public class LightEntityCmp : Component, IUpdatable {
 	private readonly Level level;
 	private readonly int range;
 	private Point? old_map_pos = null;
-	private Entity ownerEntity;
+	private Entity? ownerEntity;
 
 	public LightEntityCmp(Level level, int range) {
 		this.level = level;
@@ -30,7 +30,7 @@ public class LightEntityCmp : Component, IUpdatable {
 	}
 
 	public void Update(GameTime gameTime) {
-		Point centerPoint = ownerEntity.CenterPosition.ToPoint();
+		Point centerPoint = ownerEntity!.CenterPosition.ToPoint();
 		int map_x = (int)(centerPoint.X / (float)level.TileSize);
 		int map_y = (int)(centerPoint.Y / (float)level.TileSize);
 		Point map_pos = new Point(map_x, map_y);
@@ -42,7 +42,7 @@ public class LightEntityCmp : Component, IUpdatable {
 		} else {
 			if (old_map_pos != map_pos) {
 				if (!level.IsOutOfBounds(old_map_pos.Value.X, old_map_pos.Value.Y)) {
-					level.LightManager.RemoveLightsource((Point)old_map_pos, range);
+					level.LightManager.RemoveLightSource((Point)old_map_pos, range);
 				}
 				if (!level.IsOutOfBounds(map_pos.X, map_pos.Y)) {
 					level.LightManager.AddLightSource(map_pos, range);

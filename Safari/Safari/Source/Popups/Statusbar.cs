@@ -13,7 +13,7 @@ using System;
 namespace Safari.Popups;
 
 public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
-    private static Statusbar instance;
+    private static Statusbar? instance;
 	public static Statusbar Instance {
 		get {
 			instance ??= new();
@@ -65,9 +65,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     private readonly Button entityManagerButton;
 
-    private Rectangle maskArea;
-
-    public Rectangle Size => panel.CalcDestRect();
+    public Rectangle Size => panel?.CalcDestRect() ?? Rectangle.Empty;
 
     private Statusbar() {
         background = null;
@@ -124,10 +122,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         entityManagerButton = new Button("Entity Manager", ButtonSkin.Default, Anchor.TopRight, new Vector2(0.25f, 0.3f), new Vector2(20));
         entityManagerButton.Padding = new Vector2(0);
         entityManagerButton.OnClick = (Entity entity) => {
-            EntityManager.Instance.Toggle();
-			animals.Hide();
-			tiles.Hide();
-			others.Hide();
+            ToggleEntityManager();
 		};
         entityManagerButton.MaxSize = new Vector2(400, 0.3f);
         panel.AddChild(entityManagerButton);
@@ -205,25 +200,39 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         panel.AddChild(speedButtonPanel);
     }
 
+    public void ToggleEntityManager() {
+        if (EntityManager.Instance.Visible) {
+            EntityManager.Instance.Hide();
+        } else {
+            EntityManager.Instance.Show();
+            animals?.Hide();
+            tiles?.Hide();
+            others?.Hide();
+        }
+    }
+
     private void AnimalButton(Entity entity) {
         EntityManager.Instance.Hide();
-        animals.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         tiles.Hide();
         others.Hide();
+        animals.ToggleCategoryMenu();
     }
 
     private void TileButton(Entity entity) {
         EntityManager.Instance.Hide();
-        tiles.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         animals.Hide();
         others.Hide();
+        tiles.ToggleCategoryMenu();
     }
 
     private void OtherButton(Entity entity) {
         EntityManager.Instance.Hide();
-        others.ToggleCategoryMenu();
+        EntityControllerMenu.Active?.Hide();
         animals.Hide();
         tiles.Hide();
+        others.ToggleCategoryMenu();
     }
 
     private void AdjustSpeedSettings(Entity entity) {
@@ -258,39 +267,29 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
 
     public void Load() {
         visible = true;
-        UserInterface.Active.AddEntity(panel);
+        base.Show();
+        EntityManager.Instance.Load();
         AdjustSpeedButtons();
         ScaleText(null, EventArgs.Empty);
-
-        maskArea = panel.CalcDestRect();
-        GameScene.Active.MaskedAreas.Add(maskArea);
     }
 
     public void Unload() {
         visible = false;
-        if (panel.Parent != null) {
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
-        }
+        base.Hide();
         EntityManager.Instance.Unload();
         animals.Hide();
         tiles.Hide();
         others.Hide();
-
-        this.Hide();
     }
 
+    /// <summary>
+    /// Toggles Statusbar and children's visibility.
+    /// </summary>
     public void Toggle() {
         if (visible) {
-            visible = false;
-            UserInterface.Active.RemoveEntity(panel);
-            GameScene.Active.MaskedAreas.Remove(maskArea);
+            Unload();
         } else {
-            visible = true;
-            UserInterface.Active.AddEntity(panel);
-            maskArea = panel.CalcDestRect();
-            GameScene.Active.MaskedAreas.Add(maskArea);
-            panel.SendToBack();
+            Load();
         }
     }
 
@@ -339,7 +338,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
         AdjustSpeedButtons();
     }
 
-    private void ScaleText(object sender, EventArgs e) {
+    private void ScaleText(object? sender, EventArgs e) {
         moneyText.Scale = SettingsMenu.Scale;
         ratingText.Scale = SettingsMenu.Scale;
         carnivoreText.Scale = SettingsMenu.Scale;
@@ -348,6 +347,7 @@ public class Statusbar : PopupMenu, IUpdatable, IResettableSingleton {
     }
 
     public override void Update(GameTime gameTime) {
+        EntityManager.Instance.Update(gameTime);
         tiles.Update(gameTime);
         moneyCurr = GameScene.Active.Model.Funds;
         moneyText.Text = "Money: " +

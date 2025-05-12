@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Engine.Graphics.Stubs.Texture;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using Safari.Scenes;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,8 @@ namespace Safari.Model.Tiles;
 /// <summary>
 /// A tile that automatically adjusts its texture based on its neighbors
 /// </summary>
-public partial class AutoTile : Tile {
+[JsonObject(MemberSerialization.OptIn)]
+public abstract partial class AutoTile : Tile {
 	/// <summary>
 	/// A dictionary mapping the possible bitmask values to their offsets inside the atlas texture
 	/// </summary>
@@ -28,6 +30,7 @@ public partial class AutoTile : Tile {
 	/// <summary>
 	/// Whether the current texture should be recalculated on the next frame
 	/// </summary>
+	[JsonProperty]
 	public bool NeedsUpdate { get; set; } = true;
 
 	public AutoTile(ITexture2D atlasTex) : base() {
@@ -51,7 +54,7 @@ public partial class AutoTile : Tile {
 		NeedsUpdate = false;
 
 		if (TileSize == -1) {
-			TileSize = GameScene.Active.Model.Level.TileSize;
+			TileSize = GameScene.Active.Model.Level!.TileSize;
 		}
 
 		AutoTileBitmask result = 0;
@@ -101,18 +104,23 @@ public partial class AutoTile : Tile {
 	/// <returns>Whether there's a neighbor at the offset</returns>
 	private bool HasNeighborAtOffset(Point offset) {
 		Point destPos = TilemapPosition + offset;
-		Level currentLevel = GameScene.Active.Model.Level;
+		Level currentLevel = GameScene.Active.Model.Level!;
 
 		if (currentLevel.IsOutOfBounds(destPos.X, destPos.Y)) {
 			return false;
 		}
 
-		Tile target = currentLevel.GetTile(destPos.X, destPos.Y);
+		Tile? target = currentLevel.GetTile(destPos.X, destPos.Y);
 
 		return target != null && target.GetType() == GetType();
 	}
 
 	public override void UpdateYSortOffset() {
+		if (Texture == null) {
+			Sprite.YSortOffset = 0;
+			return;
+		}
+
 		Sprite.YSortOffset = Utils.GetYSortOffset(Texture, SourceRectangle) - 1;
 	}
 }

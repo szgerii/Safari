@@ -1,11 +1,22 @@
-﻿using GeonBit.UI.Entities;
+﻿using Engine;
+using Engine.Scenes;
+using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Helpers;
+using Safari.Model;
+using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 
-public class LoadingScene : MenuScene, IResettableSingleton {
-	private static LoadingScene instance;
+public class LoadingScene : MenuScene, IResettableSingleton, IUpdatable {
+	private static LoadingScene? instance;
+	private static GameScene? gameToLoad = null;
+	private static string? parkNameToLoad = null;
+	private static int parkSlotToLoad = -1;
+	private static bool newGame;
+	private static bool loadGame = false;
+	private static int updates = 0;
 	public static LoadingScene Instance {
 		get {
 			instance ??= new();
@@ -17,7 +28,24 @@ public class LoadingScene : MenuScene, IResettableSingleton {
 		instance = null;
 	}
 
-	private Label text = null;
+	private Label? text = null;
+
+	public void LoadNewGame(string parkName, GameDifficulty difficulty) {
+		gameToLoad = new GameScene(parkName, difficulty);
+		SceneManager.Load(Instance);
+        loadGame = true;
+		newGame = true;
+		updates = 0;
+	}
+
+	public void LoadSave(string parkName, int slotNumber) {
+		parkNameToLoad = parkName;
+        parkSlotToLoad = slotNumber;
+        SceneManager.Load(Instance);
+        loadGame = true;
+		newGame = false;
+		updates = 0;
+	}
 
     protected override void ConstructUI() {
         panel = new Panel(new Vector2(0, 0), PanelSkin.Default, Anchor.TopLeft);
@@ -28,5 +56,29 @@ public class LoadingScene : MenuScene, IResettableSingleton {
     protected override void DestroyUI() {
         panel = null;
         text = null;
+    }
+
+    public override void Update(GameTime gameTime) {
+		if (updates == 0) { updates++; return; }
+        if (loadGame) {
+			if (newGame) {
+				SceneManager.Load(gameToLoad!);
+				loadGame = false;
+				gameToLoad = null;
+			} else {
+				try {
+					new GameModelPersistence(parkNameToLoad!).Load(parkSlotToLoad);
+					loadGame = false;
+				} catch {
+					loadGame = false;
+
+					AlertMenu am = new AlertMenu("Corrupted save file", "Cannot open the selected save file because it is either corrupted, or was created with a different version of the game");
+					am.Chosen += (object? sender, bool choice) => {
+						SceneManager.Load(MainMenu.Instance);
+					};
+					am.Show();
+				}
+			}
+        }
     }
 }

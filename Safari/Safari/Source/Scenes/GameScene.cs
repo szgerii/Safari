@@ -1,25 +1,25 @@
-using Engine.Objects;
-using Engine.Scenes;
-using Microsoft.Xna.Framework;
-using Safari.Model;
-using Engine.Collision;
-using Safari.Components;
-using System;
 using Engine;
-using System.Collections.Generic;
-using GeonBit.UI;
+using Engine.Collision;
 using Engine.Debug;
-using Safari.Model.Entities;
-using Safari.Popups;
-using Safari.Scenes.Menus;
-using Safari.Model.Entities.Tourists;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Helpers;
 using Engine.Input;
-using Safari.Input;
+using Engine.Objects;
+using Engine.Scenes;
+using GeonBit.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Engine.Graphics.Stubs.Texture;
+using Safari.Components;
+using Safari.Input;
+using Safari.Model;
+using Safari.Model.Entities;
 using Safari.Model.Entities.Animals;
+using Safari.Model.Entities.Tourists;
 using Safari.Model.Tiles;
+using Safari.Popups;
+using Safari.Scenes.Menus;
+using System;
+using System.Collections.Generic;
 
 namespace Safari.Scenes;
 
@@ -30,39 +30,61 @@ public enum MouseMode {
 }
 
 public class GameScene : Scene {
-	private GameModel model;
-	public static GameScene Active => SceneManager.Active as GameScene;
+	private readonly GameModel model;
+	public static GameScene Active => (GameScene)SceneManager.Active!;
 	public virtual GameModel Model => model;
 
 	public MouseMode MouseMode { get; set; } = MouseMode.Inspect;
 	public List<Rectangle> MaskedAreas { get; private set; } = new List<Rectangle>();
+	/// <summary>
+	/// Indicates whether the mouse is currently being used for camera dragging
+	/// </summary>
+	public bool MouseDragLock { get; set; } = false;
 
 	/// <summary>
 	/// Whether to skip placing the demo animals/plants/etc on the map
 	/// </summary>
 	public bool StrippedInit { get; set; } = false;
 
+	/// <summary>
+	/// Whether the GS is being initialized from an existing save
+	/// </summary>
+	public bool LoadInit { get; set; } = false;
+
 	private readonly List<GameObject> simulationActors = [];
 	private readonly Queue<GameObject> simulationActorAddQueue = new();
 	private readonly Queue<GameObject> simulationActorRemoveQueue = new();
 
-	private ITexture2D demolishHover;
-	private ITexture2D buildHover;
+	private ITexture2D? demolishHover;
+	private ITexture2D? buildHover;
 
 	static GameScene() {
 		DebugMode.AddFeature(new ExecutedDebugFeature("list-objects", () => {
 			if (Active == null) return;
 
 			foreach (GameObject obj in Active.GameObjects) {
-				string objStr = obj is Entity e ? e.ToString() : obj.ToString();
+				if (obj is Tile) continue;
 
 				DebugConsole.Instance.Write($"{obj} {Utils.Format(obj.Position, false, false)}", false);
 			}
 		}));
 
 		DebugMode.AddFeature(new ExecutedDebugFeature("scene-reload", () => {
-			SceneManager.Load(new GameScene());
+			SceneManager.Load(new GameScene(Active.model.ParkName, Active.model.Difficulty));
 		}));
+	}
+
+	public GameScene() : this("test park", GameDifficulty.Easy) { }
+
+	public GameScene(string parkName, GameDifficulty difficulty) : base() {
+		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+		startDate = startDate.AddHours(6);
+		model = new GameModel(parkName, 10000, difficulty, startDate);
+	}
+
+	public GameScene(GameModel model) : base() {
+		this.model = model;
+		LoadInit = true;
 	}
 
 	public override void Unload() {
@@ -71,17 +93,17 @@ public class GameScene : Scene {
 
 		Jeep.Cleanup();
 
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			Statusbar.Instance.Unload();
 			EntityControllerMenu.Active?.Hide();
 		}
 
-        base.Unload();
+		base.Unload();
 
 		PostUpdate -= CollisionManager.PostUpdate;
 		EntityBoundsManager.CleanUp();
 		CollisionManager.CleanUp();
-		PostProcessPasses.Remove(model.Level.LightManager);
+		PostProcessPasses.Remove(model.Level!.LightManager);
 
 		Game.ContentManager.Unload();
 	}
@@ -89,14 +111,48 @@ public class GameScene : Scene {
 	public override void Load() {
 		// init game model
 		// The start of the game is always <date of creation> 6 am
-		DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-		startDate = startDate.AddHours(6);
-		model = new GameModel("test park", 6000, GameDifficulty.Easy, startDate, StrippedInit);
-		if (!Game.Instance.IsHeadless) {
-			PostProcessPasses.Add(model.Level.LightManager);
+		if (!LoadInit) {
+			ITexture2D staticBG = Game.CanDraw ? Game.LoadTexture("Assets/Background/Background") : new NoopTexture2D(null, 3584, 2048);
+			model.Level = new Level(32, staticBG.Width / 32, staticBG.Height / 32, staticBG);
+			AddObject(model.Level);
+
+			if (!StrippedInit) {
+				// try to spawn poachers after 6 hours of previous spawn with a 0.5 base chance, which increase by 0.05 every attempt
+				Jeep.Init(400);
+				int memory = 
+					model.Difficulty == GameDifficulty.Easy ? 60
+					: model.Difficulty == GameDifficulty.Normal ? 100
+					: 140;
+				Tourist.Init(memory);
+				Ranger.Init();
+
+				int maxPoachers =
+					model.Difficulty == GameDifficulty.Easy ? 4
+					: model.Difficulty == GameDifficulty.Normal ? 8
+					: 12;
+				EntitySpawner < Poacher > poacherSpawner = new(4, 0.5f, 0.05f) {
+					EntityLimit = maxPoachers, // don't spawn if there are >= 5 poachers on the map
+					EntityCount = () => model.PoacherCount, // use PoacherCount to determine number of poachers on the map
+					ExtraCondition = () => !DebugMode.IsFlagActive("no-poachers")
+				};
+				Game.AddObject(poacherSpawner);
+
+				Tourist.Spawner = new(.2f, 0.6f, 0.05f) {
+					EntityLimit = 30,
+					EntityCount = () => Tourist.Queue.Count,
+					SpawnArea = new Rectangle(-64, 512, 32, 320),
+					ExtraCondition = () => model.IsDaytime
+				};
+				Game.AddObject(Tourist.Spawner);
+				Tourist.UpdateSpawner();
+			}
 		}
 
-		int tileSize = model.Level.TileSize;
+		if (Game.CanDraw) {
+			PostProcessPasses.Add(model.Level!.LightManager);
+		}
+
+		int tileSize = model.Level!.TileSize;
 		Vectangle mapBounds = new(0, 0, model.Level.MapWidth * tileSize, model.Level.MapHeight * tileSize);
 
 		EntityBoundsManager.Init(mapBounds);
@@ -108,13 +164,15 @@ public class GameScene : Scene {
 		model.GameWon += OnGameWon;
 
 		// init camera
-		CreateCamera(
-			new Rectangle(
-				0, 0,
-				model.Level.MapWidth * model.Level.TileSize,
-				model.Level.MapHeight * model.Level.TileSize
-			)
-		);
+		if (!LoadInit) {
+			CreateCamera(
+				new Rectangle(
+					0, 0,
+					model.Level.MapWidth * model.Level.TileSize,
+					model.Level.MapHeight * model.Level.TileSize
+				)
+			);
+		}
 
 		if (Game.CanDraw) {
 			UserInterface.Active.MouseInputProvider.DoClick();
@@ -127,16 +185,16 @@ public class GameScene : Scene {
 		buildHover = Utils.GenerateTexture(model.Level.TileSize, model.Level.TileSize, new Color(0.1f, 0.3f, 0.7f, 1f), true);
 
 		base.Load();
-
-		MapBuilder.BuildStartingMap(model.Level, StrippedInit);
+		MapBuilder.BuildStartingMap(model.Level, StrippedInit, LoadInit);
 
 		if (Game.CanDraw) {
 			Statusbar.Instance.Load();
-			EntityManager.Instance.Load();
 		}
+
+		model.CheckWinLose = true;
 	}
 
-    public override void Update(GameTime gameTime) {
+	public override void Update(GameTime gameTime) {
 		PerformPreUpdate(gameTime);
 
 		if (InputManager.Actions.JustPressed("cycle-interact-mode")) {
@@ -155,25 +213,15 @@ public class GameScene : Scene {
 
 		UpdatePalette();
 
-		/*Vector2 mouseTilePos = GetMouseTilePos();
-		if (MousePlayable(mouseTilePos)) {
-			if (MouseMode == MouseMode.Build || MouseMode == MouseMode.Demolish) {
-				UpdateBuild();
-			} else if (MouseMode == MouseMode.Inspect) {
-				UpdateInspect();
-			}
-		}*/
-
 		if (model.GameSpeed != GameSpeed.Paused) {
 			model.Advance(gameTime);
 		}
 
 		if (Game.CanDraw) {
 			Statusbar.Instance.Update(gameTime);
-			EntityManager.Instance.Update(gameTime);
 		}
 
-        foreach (GameObject obj in GameObjects) {
+		foreach (GameObject obj in GameObjects) {
 			if (model.GameSpeed != GameSpeed.Paused || !Attribute.IsDefined(obj.GetType(), typeof(SimulationActorAttribute))) {
 				if (obj is Entity e && e.IsDead) continue;
 
@@ -196,8 +244,9 @@ public class GameScene : Scene {
 	}
 
 	public void UpdateInspect() {
-		if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton)) {
-			Entity entity = Entity.GetEntityOnMouse();
+		Entity? entity = Entity.GetEntityOnMouse();
+
+		if (InputManager.Mouse.JustReleased(MouseButtons.LeftButton) && !MouseDragLock) {
 			if (entity != null && entity is Ranger ranger) {
 				EntityControllerMenu controller = new RangerControllerMenu(ranger);
 				controller.Show();
@@ -205,10 +254,16 @@ public class GameScene : Scene {
 				EntityControllerMenu controller = new AnimalControllerMenu(animal);
 				controller.Show();
 			}
+		} else if (InputManager.Mouse.JustPressed(MouseButtons.LeftButton) && !MouseDragLock) {
+			if (entity is not Animal && entity is not Ranger) {
+				EntityControllerMenu.Active?.Hide();
+			}
 		}
 	}
 
 	private void UpdatePalette() {
+		if (Model.Level == null) return;
+
 		if (MouseMode == MouseMode.Build) {
 			if (InputManager.Actions.JustPressed("next-brush")) {
 				Model.Level.ConstructionHelperCmp.SelectNext();
@@ -233,7 +288,7 @@ public class GameScene : Scene {
 
 	public void UpdateBuild() {
 		if (InputManager.Mouse.IsDown(MouseButtons.LeftButton)) {
-			Point p = (GetMouseTilePos() / Model.Level.TileSize).ToPoint();
+			Point p = (GetMouseTilePos() / Model.Level!.TileSize).ToPoint();
 			if (MouseMode == MouseMode.Build) {
 				Model.Level.ConstructionHelperCmp.BuildCurrent(p);
 			} else if (MouseMode == MouseMode.Demolish) {
@@ -243,10 +298,10 @@ public class GameScene : Scene {
 	}
 
 	public bool MousePlayable(Vector2 mouseTilePos) {
-		return !Model.Level.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
+		return !Model.Level!.IsOutOfPlayArea((int)mouseTilePos.X / Model.Level.TileSize, (int)mouseTilePos.Y / Model.Level.TileSize) && !InMaskedArea(InputManager.Mouse.Location);
 	}
 
-	private bool InMaskedArea(Point position) {
+	public bool InMaskedArea(Point position) {
 		foreach (Rectangle area in MaskedAreas) {
 			if (area.Contains(position)) {
 				return true;
@@ -257,7 +312,7 @@ public class GameScene : Scene {
 
 	public Vector2 GetMouseTilePos() {
 		Vector2 mouseTilePos = InputManager.Mouse.GetWorldPos();
-		mouseTilePos.X -= mouseTilePos.X % Model.Level.TileSize;
+		mouseTilePos.X -= mouseTilePos.X % Model.Level!.TileSize;
 		mouseTilePos.Y -= mouseTilePos.Y % Model.Level.TileSize;
 
 		return mouseTilePos;
@@ -265,17 +320,17 @@ public class GameScene : Scene {
 
 	public override void Draw(GameTime gameTime) {
 		if (MouseMode == MouseMode.Build) {
-			var cons = Model.Level.ConstructionHelperCmp;
+			var cons = Model.Level!.ConstructionHelperCmp;
 			if (cons.SelectedInstance != null) {
 				Tile t = cons.SelectedInstance;
 				Vector2 mousePos = GetMouseTilePos();
 				Point tilePos = (mousePos / Model.Level.TileSize).ToPoint();
 				t.DrawPreviewAt(GetMouseTilePos(), cons.CanBuildCurrent(tilePos));
-				Game.SpriteBatch.Draw(buildHover.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+				Game.SpriteBatch!.Draw(buildHover!.ToTexture2D(), mousePos, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 			}
 		} else if (MouseMode == MouseMode.Demolish) {
 			Vector2 mousePosWorld = GetMouseTilePos();
-			Game.SpriteBatch.Draw(demolishHover.ToTexture2D(), mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+			Game.SpriteBatch!.Draw(demolishHover!.ToTexture2D(), mousePosWorld, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 		}
 
 		base.Draw(gameTime);
@@ -318,41 +373,46 @@ public class GameScene : Scene {
 
 		CameraControllerCmp controllerCmp = new(bounds);
 		Camera.Active.Attach(controllerCmp);
+		Camera.Active.Zoom = CameraControllerCmp.DefaultZoom;
 
 		AddObject(Camera.Active);
 	}
 
-	private void OnGameLost(object sender, LoseReason reason) {
+	private void OnGameLost(object? sender, LoseReason reason) {
 		string message = reason switch {
 			LoseReason.Money => "You ran out of funds.",
 			LoseReason.Animals => "All of your animals have died.",
 			_ => ""
 		};
-		AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
-		menu.Chosen += (object sender, bool e) => {
-			SceneManager.Load(MainMenu.Instance);
-		};
-		model.Pause();
-		menu.Show();
+
+		if (Game.CanDraw) {
+			AlertMenu menu = new AlertMenu("You lose!", message, "Return to main menu");
+			menu.Chosen += (object? sender, bool e) => {
+				SceneManager.Load(MainMenu.Instance);
+			};
+			model.Pause();
+			menu.Show();
+		}
 	}
 
-	private void OnGameWon(object sender, EventArgs e) {
+	private void OnGameWon(object? sender, EventArgs e) {
 		string difficulty = model.Difficulty switch {
 			GameDifficulty.Easy => "easy",
 			GameDifficulty.Normal => "normal",
 			_ => "hard"
 		};
-		AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
-		menu.Chosen += (object sender, bool e) => {
-			if (e) {
-				SceneManager.Load(MainMenu.Instance);
-			} else {
-				model.PostWin = true;
-				model.CheckWinLose = false;
-				model.Resume();
-			}
-		};
-		model.Pause();
-		menu.Show();
+
+		if (Game.CanDraw) {
+			AlertMenu menu = new AlertMenu("You win!", $"Congratulations on beating the game on {difficulty} difficulty!", "Return to main menu", "Keep playing...");
+			menu.Chosen += (object? sender, bool e) => {
+				if (e) {
+					SceneManager.Load(MainMenu.Instance);
+				} else {
+					model.Resume();
+				}
+			};
+			model.Pause();
+			menu.Show();
+		}
 	}
 }

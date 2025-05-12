@@ -27,7 +27,7 @@ public static class InputManager {
 	public static GamePad GamePad { get; private set; } = new GamePad();
 	public static Actions Actions { get; private set; } = new Actions();
 	public static ActiveDevice ActiveDevice { get; private set; } = ActiveDevice.KeyboardMouse;
-	public static event EventHandler<ActiveDevice> ActiveDeviceChanged;
+	public static event EventHandler<ActiveDevice>? ActiveDeviceChanged;
 	public static int ActiveGamepad { get; private set; } = 1;
 	public static bool ShowCursor { get; set; } = true;
 
@@ -55,7 +55,7 @@ public static class InputManager {
 
 	public static void Update(GameTime gameTime) {
 		// update focus
-		if (!Game.Instance.IsHeadless) {
+		if (Game.CanDraw) {
 			bool rootFocused = UserInterface.Active.ActiveEntity == UserInterface.Active.Root;
 			int rootChildren = UserInterface.Active.Root.Children.Count;
 			bool allPassiveFocus = true;
@@ -103,9 +103,9 @@ public static class InputManager {
 
 		if (ShowCursor) {
 			if (ActiveDevice != ActiveDevice.KeyboardMouse) {
-				Game.Instance.IsMouseVisible = false;
+				Game.Instance!.IsMouseVisible = false;
 			} else {
-				Game.Instance.IsMouseVisible = true;
+				Game.Instance!.IsMouseVisible = true;
 			}
 		}
 

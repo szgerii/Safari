@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace Safari.Model.Entities.Animals;
 
@@ -20,7 +21,7 @@ public static class AnimalSpeciesExtensions {
 	/// </summary>
 	/// <param name="species">The species to use</param>
 	/// <returns>The Animal sub-class Type belonging to the species</returns>
-	public static Type GetAnimalType(this AnimalSpecies species) {
+	public static Type? GetAnimalType(this AnimalSpecies species) {
 		return species switch {
 			AnimalSpecies.Zebra => typeof(Zebra),
 			AnimalSpecies.Elephant => typeof(Elephant),
@@ -53,13 +54,30 @@ public static class AnimalSpeciesExtensions {
 	/// <returns>The base price of the species</returns>
 	public static int GetPrice(this AnimalSpecies species) {
 		return species switch {
-			AnimalSpecies.Zebra => 100,
-			AnimalSpecies.Elephant => 100,
-			AnimalSpecies.Giraffe => 100,
-			AnimalSpecies.Lion => 100,
-			AnimalSpecies.Tiger => 100,
-			AnimalSpecies.TigerWhite => 100,
+			AnimalSpecies.Zebra => 400,
+			AnimalSpecies.Elephant => 500,
+			AnimalSpecies.Giraffe => 600,
+			AnimalSpecies.Lion => 400,
+			AnimalSpecies.Tiger => 500,
+			AnimalSpecies.TigerWhite => 700,
 			_ => 0,
+		};
+	}
+
+	/// <summary>
+	/// Gets the size (in tiles) that the animal takes up on the grid
+	/// </summary>
+	/// <param name="species">The species to use</param>
+	/// <returns>The area the species takes up on the tile grid</returns>
+	public static Point GetSize(this AnimalSpecies species) {
+		return species switch {
+			AnimalSpecies.Zebra => new Point(2, 2),
+			AnimalSpecies.Elephant => new Point(3, 3),
+			AnimalSpecies.Giraffe => new Point(2, 3),
+			AnimalSpecies.Lion => new Point(3, 2),
+			AnimalSpecies.Tiger => new Point(3, 2),
+			AnimalSpecies.TigerWhite => new Point(3, 2),
+			_ => new Point(1, 1)
 		};
 	}
 

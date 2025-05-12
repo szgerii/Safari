@@ -1,17 +1,24 @@
-﻿using Engine.Components;
+﻿using Engine.Input;
+using Engine.Components;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
 using Safari.Scenes;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Safari.Popups;
 
 public class EntityControllerMenu : PopupMenu {
-	public static EntityControllerMenu Active { get; private set; } = null;
-	private Button closeButton;
-	private readonly Image image;
-	private Header header;
-	private Rectangle maskArea;
+	protected static readonly Vector2 BASE_SIZE = new(0.3f, 0.9f);
+
+	public static EntityControllerMenu? Active { get; private set; } = null;
+	protected Button? closeButton;
+	protected readonly Image? image;
+	protected Header header;
 	protected Safari.Model.Entities.Entity controlledEntity;
 
 	public EntityControllerMenu(Safari.Model.Entities.Entity entity) {
@@ -20,17 +27,18 @@ public class EntityControllerMenu : PopupMenu {
 		header.Text = entity.DisplayName;
 		controlledEntity = entity;
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
-			image = new Image(anim.Texture.ToTexture2D(), new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
+			image = new Image(anim.Texture!.ToTexture2D(), new Vector2(128, 128), ImageDrawMode.Stretch, Anchor.AutoCenter);
 			image.Offset = new Vector2(0, 0.3f);
 			UpdateSourceRectangle();
-			panel.AddChild(image);
+			panel!.AddChild(image);
 		}
 	}
 
 	private Vector2? prevOffset = null;
+	[MemberNotNull(nameof(closeButton), nameof(header))]
 	private void PrepareUI() {
 		background = null;
-		panel = new Panel(new Vector2(0.3f, 0.9f), PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
+		panel = new Panel(BASE_SIZE, PanelSkin.Default, Anchor.TopLeft, prevOffset ?? new Vector2(16, 16));
 		panel.Tag = "PassiveFocus";
 		panel.Padding = new Vector2(20, 20);
 
@@ -52,32 +60,27 @@ public class EntityControllerMenu : PopupMenu {
 		Hide();
 	}
 
-	private void OnEntityDied(object sender, EventArgs e) {
+	private void OnEntityDied(object? sender, EventArgs e) {
 		Hide();
 	}
 
 	public override void Show() {
-		if (Active != null) {
-			Active.Hide();
-		}
+		Active?.Hide();
 		Active = this;
-		closeButton.OnClick += OnCloseClick;
+		closeButton!.OnClick += OnCloseClick;
 		controlledEntity.Died += OnEntityDied;
 		controlledEntity.IsBeingInspected = true;
 		base.Show();
-		maskArea = this.panel.CalcDestRect();
-
-		GameScene.Active.MaskedAreas.Add(maskArea);
+		InputManager.Mouse.ScrollLock = true;
 	}
 
 	public override void Hide() {
-		closeButton.OnClick -= OnCloseClick;
+		closeButton!.OnClick -= OnCloseClick;
 		controlledEntity.Died -= OnEntityDied;
 		controlledEntity.IsBeingInspected = false;
 		base.Hide();
 		Active = null;
-		
-		GameScene.Active.MaskedAreas.Remove(maskArea);
+		InputManager.Mouse.ScrollLock = false;
 	}
 
 	public override void Update(GameTime gameTime) {
@@ -91,7 +94,7 @@ public class EntityControllerMenu : PopupMenu {
 		if (controlledEntity.Sprite is AnimatedSpriteCmp anim) {
 			Rectangle r = anim.CalculateSrcRec();
 
-			image.SourceRectangle = r;
+			image!.SourceRectangle = r;
 			if (r.Width >= r.Height) {
 				float width = 96;
 				float height = (width / r.Size.X) * r.Size.Y;
@@ -102,9 +105,36 @@ public class EntityControllerMenu : PopupMenu {
 				image.Size = new Vector2(width, height);
 			}
 		} else {
-			image.SourceRectangle = null;
+			image!.SourceRectangle = null;
 		}
 	}
 
 	protected virtual void UpdateData() { }
+
+	private readonly Type[] ROUNDED_TYPES = [typeof(float), typeof(double)];
+	private const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+	protected virtual string DumpObjectDataToString(object targetObj, Type? targetType = null) {
+		if (targetType == null) {
+			targetType = targetObj.GetType();
+		}
+
+		List<MemberInfo> infos = [.. targetType.GetProperties(FLAGS)];
+		infos.AddRange(targetType.GetFields(FLAGS));
+
+		StringBuilder sb = new("");
+		foreach (MemberInfo info in infos) {
+			string line = $"{info.Name}: ";
+
+			if (info is FieldInfo field) {
+				line += ROUNDED_TYPES.Contains(field.FieldType) ? $"{field.GetValue(targetObj):0.00}" : $"{field.GetValue(targetObj)}";
+			} else if (info is PropertyInfo prop) {
+				line += ROUNDED_TYPES.Contains(prop.PropertyType) ? $"{prop.GetValue(targetObj):0.00}" : $"{prop.GetValue(targetObj)}";
+			}
+
+			sb.Append(line);
+			sb.Append('\n');
+		}
+
+		return sb.ToString();
+	}
 }

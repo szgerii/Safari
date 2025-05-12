@@ -1,30 +1,32 @@
-﻿using Engine.Scenes;
+﻿using Engine;
+using Engine.Scenes;
 using GeonBit.UI.Entities;
 using Microsoft.Xna.Framework;
-using Engine;
 using Safari.Helpers;
+using Safari.Persistence;
+using Safari.Popups;
 
 namespace Safari.Scenes.Menus;
 public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
-	private static MainMenu instance;
-	public static MainMenu Instance {
-		get {
-			instance ??= new();
-			return instance;
-		}
-	}
-	public static void ResetSingleton() {
+    private static MainMenu? instance;
+    public static MainMenu Instance {
+        get {
+            instance ??= new();
+            return instance;
+        }
+    }
+    public static void ResetSingleton() {
         instance?.Unload();
-		instance = null;
-	}
+        instance = null;
+    }
 
-	private Header title;
-    private Panel buttonPanel;
-    private Button newGameButton;
-    private Button continueGameButton;
-    private Button loadGameButton;
-    private Button settingsButton;
-    private Button exitButton;
+    private Header? title;
+    private Panel? buttonPanel;
+    private Button? newGameButton;
+    private Button? continueGameButton;
+    private Button? loadGameButton;
+    private Button? settingsButton;
+    private Button? exitButton;
     private bool loadGame = false;
 
     protected override void ConstructUI() {
@@ -40,6 +42,21 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
 
         continueGameButton = new Button("Continue Game", ButtonSkin.Default, Anchor.AutoCenter);
         continueGameButton.OnClick = ContinueGameClicked;
+        bool firstSaveFileHasSave = false;
+        bool saveFileExists = GameModelPersistence.ListExistingParkNames().Count > 0;
+        if (!saveFileExists) {
+            continueGameButton.Enabled = false;
+        } else {
+            firstSaveFileHasSave = new GameModelPersistence(GameModelPersistence.ListExistingParkNames()[0]).Saves.Count > 0;
+            if (!firstSaveFileHasSave) {
+                continueGameButton.Enabled = false;
+            }
+        }
+
+        if(saveFileExists && firstSaveFileHasSave) {
+            continueGameButton.Enabled = true;
+        }
+
         buttonPanel.AddChild(continueGameButton);
 
         loadGameButton = new Button("Load Game", ButtonSkin.Default, Anchor.AutoCenter);
@@ -64,8 +81,11 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void ContinueGameClicked(Entity entity) {
-        SceneManager.Load(LoadingScene.Instance);
-        loadGame = true;
+        try {
+            LoadingScene.Instance.LoadSave(GameModelPersistence.ListExistingParkNames()[0], 0);
+        } catch {
+            new AlertMenu("Corrupt save file", "An unexpected error occured when trying to read a corrupt save file").Show();
+        }
     }
 
     private void LoadGameClicked(Entity entity) {
@@ -77,7 +97,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
     }
 
     private void ExitClicked(Entity entity) {
-        Game.Instance.Exit();
+        Game.Instance?.Exit();
     }
 
     protected override void DestroyUI() {
@@ -93,7 +113,7 @@ public class MainMenu : MenuScene, IUpdatable, IResettableSingleton {
 
     public override void Update(GameTime gameTime) {
         if (loadGame) {
-            SceneManager.Load(new GameScene());
+            SceneManager.Load(new GameScene("test park", Model.GameDifficulty.Easy));
             loadGame = false;
         }
     }

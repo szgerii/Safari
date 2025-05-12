@@ -49,7 +49,7 @@ public class EntitySpawnerTest {
 
 		// model
 		current = start;
-		model = Substitute.ForPartsOf<GameModel>("test park", 10000, GameDifficulty.Normal, start, true);
+		model = Substitute.ForPartsOf<GameModel>("test park", 10000, GameDifficulty.Normal, start);
 		model.Configure().IngameDate.Returns((CallInfo _) => current);
 		gs.Configure().Model.Returns((CallInfo _) => model);
 	}
@@ -65,6 +65,8 @@ public class EntitySpawnerTest {
 		Assert.AreEqual(0.1f, spawner.ChanceIncrease);
 		Assert.AreEqual(1, spawner.CurrentChance);
 		Assert.IsNull(spawner.SpawnArea);
+
+		spawner.SpawnArea = new Rectangle(0, 0, 400, 400);
 
 		spawner.Update(gt);
 		Assert.AreEqual(1, spawnedCount);
@@ -102,6 +104,7 @@ public class EntitySpawnerTest {
 		GameTime gt = new();
 		goAddCount = 0;
 		EntitySpawner<DummyEntity> spawner = new(1, 1, 0.1f);
+		spawner.SpawnArea = new Rectangle(0, 0, 400, 400);
 
 		spawner.EntityLimit = 2;
 		spawner.EntityCount = () => goAddCount;

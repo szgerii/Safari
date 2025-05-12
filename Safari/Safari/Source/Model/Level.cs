@@ -1,40 +1,55 @@
 ﻿using Engine;
+using Engine.Debug;
+using Engine.Graphics.Stubs.Texture;
 using Engine.Input;
+using Engine.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using Safari.Components;
 using Safari.Debug;
 using Safari.Input;
 using Safari.Model.Tiles;
+using Safari.Scenes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Engine.Graphics.Stubs.Texture;
 
 namespace Safari.Model;
 
 /// <summary>
 /// Stores the static parts of the game world
 /// </summary>
+[JsonObject(MemberSerialization.OptIn)]
 public class Level : GameObject {
+	/// <summary>
+	/// The number of tiles at the east and west sides of the map that are not playable
+	/// </summary>
 	public static int PLAY_AREA_CUTOFF_X { get; set; } = 8;
+	/// <summary>
+	/// The number of tiles at the north and south sides of the map that are not playable
+	/// </summary>
 	public static int PLAY_AREA_CUTOFF_Y { get; set; } = 8;
 
 	/// <summary>
 	/// The image to draw as a background to the tiles
 	/// </summary>
-	public ITexture2D Background { get; set; }
+	public ITexture2D? Background { get; set; }
 	/// <summary>
 	/// The dimension of a single cell inside the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int TileSize { get; init; }
 	/// <summary>
 	/// The number of cells that make up a row in the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int MapWidth { get; init; }
 	/// <summary>
 	/// The number of cells that make up a column in the tilemap grid
 	/// </summary>
+	[JsonProperty]
 	public int MapHeight { get; init; }
 
 	public Rectangle PlayAreaBounds => new(new Point(PLAY_AREA_CUTOFF_X * TileSize, PLAY_AREA_CUTOFF_Y * TileSize), new Point((MapWidth - (2 * PLAY_AREA_CUTOFF_X)) * TileSize, (MapHeight - (2 * PLAY_AREA_CUTOFF_X)) * TileSize));
@@ -53,9 +68,29 @@ public class Level : GameObject {
 	/// </summary>
 	public ConstructionHelperCmp ConstructionHelperCmp { get; init; }
 
-	private readonly Tile[,] tiles;
+	private readonly Tile?[,] tiles;
 
 	private readonly ITexture2D debugGridTex;
+
+	[JsonConstructor]
+	public Level(int MapWidth, int MapHeight, int TileSize) : base(Vector2.Zero) {
+		this.MapWidth = MapWidth;
+		this.MapHeight = MapHeight;
+		this.TileSize = TileSize;
+		tiles = new Tile[MapWidth, MapHeight];
+		ITexture2D gridCellTex = Utils.GenerateTexture(TileSize, TileSize, Color.Black, true);
+		ITexture2D[] mergeArray = new ITexture2D[MapWidth * MapHeight];
+		for (int i = 0; i < mergeArray.Length; i++) {
+			mergeArray[i] = gridCellTex;
+		}
+		debugGridTex = Utils.CreateAtlas(mergeArray, MapWidth);
+		LightManager = new LightManager(MapWidth, MapHeight, TileSize);
+		Point start = new Point(PLAY_AREA_CUTOFF_X, MapHeight - PLAY_AREA_CUTOFF_Y - 8);
+		Point end = new Point(MapWidth - PLAY_AREA_CUTOFF_X - 8, PLAY_AREA_CUTOFF_Y);
+		Network = new RoadNetwork(MapWidth, MapHeight, start, end);
+		ConstructionHelperCmp = new ConstructionHelperCmp(MapWidth, MapHeight);
+		Attach(ConstructionHelperCmp);
+	}
 
 	public Level(int tileSize, int width, int height, ITexture2D background) : base(Vector2.Zero) {
 		TileSize = tileSize;
@@ -89,7 +124,7 @@ public class Level : GameObject {
 	/// <param name="y">The tilemap row the tile is in inside the grid</param>
 	/// <returns>The tile at the given position, or null if the cell's empty</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public Tile GetTile(int x, int y) {
+	public Tile? GetTile(int x, int y) {
 		if (IsOutOfBounds(x, y)) {
 			throw new ArgumentException("Given tilemap position is outside the bounds of the level");
 		}
@@ -103,7 +138,7 @@ public class Level : GameObject {
 	/// <param name="pos">The tilemap position the tile is in inside the grid</param>
 	/// <returns>The tile at the given position, or null if the cell's empty</returns>
 	/// <exception cref="ArgumentException"></exception>
-	public Tile GetTile(Point pos) => GetTile(pos.X, pos.Y);
+	public Tile? GetTile(Point pos) => GetTile(pos.X, pos.Y);
 
 	/// <summary>
 	/// Returns a list of tiles that are inside the given tilemap area
@@ -119,7 +154,7 @@ public class Level : GameObject {
 			for (int y = tilemapArea.Y; y < yMax; y++) {
 				if (IsOutOfPlayArea(x, y)) continue;
 
-				Tile tile = GetTile(x, y);
+				Tile? tile = GetTile(x, y);
 
 				if (tile == null) continue;
 
@@ -141,7 +176,50 @@ public class Level : GameObject {
 		return GetTilesInArea(tilemapArea);
 	}
 
+	/// <summary>
+	/// Calculate the center of a tile at the given coordinates in world position
+	/// </summary>
 	public Vector2 GetTileCenter(Point p) => new Vector2(p.X * TileSize + TileSize / 2.0f, p.Y * TileSize + TileSize / 2.0f);
+
+	/// <summary>
+	/// Fetch a blob of positions centered around the given coordinates
+	/// </summary>
+	public List<Point> GetTileBlob(Point tilemapPos) {
+		if (IsOutOfBounds(tilemapPos))
+			throw new ArgumentException(null, nameof(tilemapPos));
+
+		if (GetTile(tilemapPos) == null)
+			return [ tilemapPos ];
+
+		Type tileType = GetTile(tilemapPos)!.GetType();
+		List<Point> result = [];
+		Stack<Point> traversalQueue = new();
+		traversalQueue.Push(tilemapPos);
+		while (traversalQueue.Count > 0) {
+			Point current = traversalQueue.Pop();
+
+			result.Add(current);
+
+			void TryQueue(Point pos) {
+				if (IsOutOfBounds(pos)) {
+					return;
+				}
+
+				Tile? tile = GetTile(pos);
+
+				if (tile != null && !(result.Contains(pos) || traversalQueue.Contains(pos)) && tile.GetType() == tileType) {
+					traversalQueue.Push(pos);
+				}
+			}
+
+			TryQueue(current + new Point(1, 0));
+			TryQueue(current + new Point(-1, 0));
+			TryQueue(current + new Point(0, 1));
+			TryQueue(current + new Point(0, -1));
+		}
+
+		return result;
+	}
 
 	/// <summary>
 	/// Places or modifies a tile at a tilemap position
@@ -168,7 +246,7 @@ public class Level : GameObject {
 			LightManager.AddLightSource(x, y, tile.LightRange);
 		}
 
-		if (!tile.Loaded) {
+		if (!tile.Loaded && SceneManager.Active is GameScene) {
 			Game.AddObject(tile);
 		}
 
@@ -199,7 +277,7 @@ public class Level : GameObject {
 
 		if (tiles[x, y] == null) return;
 
-		Tile t = tiles[x, y];
+		Tile t = tiles[x, y]!;
 		if (t is Road) {
 			Network.ClearRoad(x, y);
 		}
@@ -232,6 +310,13 @@ public class Level : GameObject {
 	}
 
 	/// <summary>
+	/// Checks if a given tilemap position falls outside of the tilemap grid
+	/// </summary>
+	/// <param name="tilemapPos">A point for the observed tilemap position</param>
+	/// <returns>Whether the position is considered out of bounds</returns>
+	public bool IsOutOfBounds(Point tilemapPos) => IsOutOfBounds(tilemapPos.X, tilemapPos.Y);
+
+	/// <summary>
 	/// Checks if a given tilemap position falls outside of the playable area
 	/// </summary>
 	/// <param name="x">The x coordinate of the position</param>
@@ -249,7 +334,7 @@ public class Level : GameObject {
 	/// <returns>The random position</returns>
 	public Vector2 GetRandomPosition(bool playAreaOnly = true) {
 		int minX, maxX, minY, maxY;
-		
+
 		if (playAreaOnly) {
 			minX = PLAY_AREA_CUTOFF_X * TileSize;
 			maxX = (MapWidth - PLAY_AREA_CUTOFF_X - 1) * TileSize;
@@ -262,13 +347,13 @@ public class Level : GameObject {
 		}
 
 		return new Vector2(
-			Game.Random.Next(minX, maxX),
+			Game.Random!.Next(minX, maxX),
 			Game.Random.Next(minY, maxY)
 		);
 	}
 
 	public override void Load() {
-		foreach (Tile tile in tiles) {
+		foreach (Tile? tile in tiles) {
 			if (tile == null) continue;
 
 			if (!tile.Loaded) {
@@ -276,11 +361,13 @@ public class Level : GameObject {
 			}
 		}
 
+		DebugMode.AddFeature(new LoopedDebugFeature("draw-grid", PostDraw, GameLoopStage.POST_DRAW));
+
 		base.Load();
 	}
 
 	public override void Unload() {
-		foreach (Tile tile in tiles) {
+		foreach (Tile? tile in tiles) {
 			if (tile == null) continue;
 			Game.RemoveObject(tile);
 		}
@@ -295,15 +382,17 @@ public class Level : GameObject {
 		base.Update(gameTime);
 	}
 
+	[ExcludeFromCodeCoverage]
 	public override void Draw(GameTime gameTime) {
 		if (Background != null) {
-			Game.SpriteBatch.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+			Game.SpriteBatch!.Draw(Background.ToTexture2D(), Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 		}
 		base.Draw(gameTime);
 	}
 
-	public void PostDraw(object _, GameTime gameTime) {
-		Game.SpriteBatch.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+	[ExcludeFromCodeCoverage]
+	public void PostDraw(object? _, GameTime gameTime) {
+		Game.SpriteBatch!.Draw(debugGridTex.ToTexture2D(), Vector2.Zero, null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 	}
 
 	/// <summary>

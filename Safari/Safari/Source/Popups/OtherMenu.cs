@@ -13,7 +13,7 @@ public class OtherMenu : CategoryMenu {
     public OtherMenu() : base("Other") {
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);
         itemsPanel.Padding = new Vector2(0);
-        panel.AddChild(itemsPanel);
+        panel!.AddChild(itemsPanel);
 
         StyleProperty hover = new StyleProperty(Color.LightGray);
         StyleProperty click = new StyleProperty(Color.LightSlateGray);
@@ -40,12 +40,5 @@ public class OtherMenu : CategoryMenu {
         jeepPanel.AddChild(jeepLabel);
 
         itemsPanel.AddChild(jeepPanel);
-    }
-
-    public override void Hide() {
-        if (panel.Parent == null) {
-            return;
-        }
-        base.Hide();
     }
 }

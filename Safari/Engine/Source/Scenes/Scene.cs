@@ -6,9 +6,11 @@ using System.Collections.Generic;
 namespace Engine.Scenes;
 
 public class Scene : IUpdatable, IDrawable {
-	public event EventHandler<GameTime> PreUpdate, PostUpdate, PreDraw, PostDraw;
+	public event EventHandler<GameTime>? PreUpdate, PostUpdate, PreDraw, PostDraw;
 
 	public bool Loaded { get; protected set; } = false;
+
+	private bool loading = false;
 
 	public List<GameObject> GameObjects { get; protected set; } = new List<GameObject>();
 
@@ -21,9 +23,11 @@ public class Scene : IUpdatable, IDrawable {
 	public List<IPostProcessPass> PostProcessPasses { get; private set; } = new();
 
 	public virtual void Load() {
+		loading = true;
 		foreach (GameObject obj in GameObjects) {
 			obj.Load();
 		}
+		loading = false;
 
 		Loaded = true;
 	}
@@ -57,7 +61,7 @@ public class Scene : IUpdatable, IDrawable {
 	}
 
 	public virtual void AddObject(GameObject obj) {
-		if (Loaded) {
+		if (Loaded || loading) {
 			if (!objAddBuffer.Contains(obj)) {
 				objAddBuffer.Enqueue(obj);
 			}
@@ -67,7 +71,7 @@ public class Scene : IUpdatable, IDrawable {
 	}
 
 	public virtual void RemoveObject(GameObject obj) {
-		if (Loaded) {
+		if (Loaded || loading) {
 			if (!objRemoveBuffer.Contains(obj)) {
 				objRemoveBuffer.Enqueue(obj);
 			}

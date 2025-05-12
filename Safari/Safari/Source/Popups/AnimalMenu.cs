@@ -12,22 +12,18 @@ using System.Collections.Generic;
 namespace Safari.Popups;
 
 public class AnimalMenu : CategoryMenu {
-    //private Image zebraImage;
-    //private Image giraffeImage;
-    //private Image elephantImage;
-    //private Image lionImage;
-    //private Image tigerImage;
-    //private Image tigerWhiteImage;
     private readonly Panel itemsPanel;
 
     private readonly Panel genderPanel;
     private readonly Button maleButton;
     private readonly Button femaleButton;
 
+    private Rectangle extrasMaskArea;
+
     public Gender SelectedGender { get; private set; } = Gender.Female;
 
     public AnimalMenu() : base("Animal") {
-        panel.Size = new Vector2(0.6f, 0.25f);
+        panel!.Size = new Vector2(0.6f, 0.25f);
 
         itemsPanel = new Panel(new Vector2(0, 0.6f), PanelSkin.None, Anchor.BottomLeft);
         itemsPanel.Padding = new Vector2(0);
@@ -44,7 +40,7 @@ public class AnimalMenu : CategoryMenu {
         maleButton.Padding = new Vector2(0);
         maleButton.ToggleMode = true;
         maleButton.OnClick = (Entity entity) => {
-            femaleButton.Checked = false;
+            femaleButton!.Checked = false;
             maleButton.Checked = true;
             SelectedGender = Gender.Male;
         };
@@ -83,18 +79,20 @@ public class AnimalMenu : CategoryMenu {
     }
 
     public override void Show() {
-        UserInterface.Active.AddEntity(genderPanel);
+        if (genderPanel.Parent == null) {
+            UserInterface.Active.AddEntity(genderPanel);
+        }
         base.Show();
-        genderPanel.Offset = new Vector2(0, panel.Offset.Y);
-        GameScene.Active.MaskedAreas.Add(genderPanel.CalcDestRect());
+        genderPanel.Offset = new Vector2(0, panel!.Offset.Y);
+        extrasMaskArea = genderPanel.CalcDestRect();
+        GameScene.Active.MaskedAreas.Add(extrasMaskArea);
     }
 
     public override void Hide() {
-        if(panel.Parent == null) {
-            return;
+        if (genderPanel.Parent != null) {
+            UserInterface.Active.RemoveEntity(genderPanel);
         }
-        UserInterface.Active.RemoveEntity(genderPanel);
-        GameScene.Active.MaskedAreas.Remove(genderPanel.CalcDestRect());
+        GameScene.Active.MaskedAreas.Remove(extrasMaskArea);
         base.Hide();
     }
 }
