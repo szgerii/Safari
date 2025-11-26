@@ -6,7 +6,7 @@ This game was developed for our Software Technologies course, meaning the main f
 
 Note that during development the repository was hosted on GitLab, it was only moved here afterwards. Because of this, the commit history might not have every one of our GitHub profiles properly linked, see the next section for seeing who did what (on a surface level). It also means that no GitHub Actions setup exists for our CI/CD pipeline, but the old GitLab-based version can still be checked out through its configuration files in the repo.
 
-The documentation was also originally hosted as a GitLab wiki, so it might look a bit awkward here in a couple places.
+The documentation was also originally hosted as a GitLab wiki, which has been migrated to the [Wiki section](https://github.com/szgerii/Safari/wiki) of this repo. Because of the differences in how GitHub and GitLab handle their wiki pages, the docs might look a bit awkward here and there.
 
 ## Developed By
 
