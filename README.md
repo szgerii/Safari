@@ -1,17 +1,23 @@
-# Safari (Gerik)
+# Safari
 
-## Status
+## Project Origin
 
-[![pipeline master](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/pipeline.svg?key_text=master+pipeline&key_width=100)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/master)
-[![coverage master](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/master/coverage.svg?key_text=master+model+coverage&key_width=150)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/master)
+This game was developed for our Software Technologies course, meaning the main focus was on software architecture and development methods. We worked on it throughout most of the semester, so it's the result of about 3-4 months of active work (except for exam seasons).
 
-[![pipeline develop](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/pipeline.svg?key_text=develop+pipeline&key_width=100)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/develop)
-[![coverage develop](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/badges/develop/coverage.svg?key_text=develop+model+coverage&key_width=150)](https://szofttech.inf.elte.hu/szofttech-ab-2025/group-09/gerik/commits/develop)
+Note that during development the repository was hosted on GitLab, it was only moved here afterwards. Because of this, the commit history might not have every one of our GitHub profiles properly linked, see the next section for seeing who did what (on a surface level). It also means that no GitHub Actions setup exists for our CI/CD pipeline, but the old GitLab-based version can still be checked out through its configuration files in the repo.
 
-## Project Structure
+The documentation was also originally hosted as a GitLab wiki, so it might look a bit awkward here in a couple places.
+
+## Developed By
+
+- [Szűcs Gergely](https://github.com/szgerii): Engine, Game Logic (animals, rangers, poachers), optimizations (spatial partitioning), CI/CD, Tests, Docs
+- [Zelenák András](https://github.com/ZeleAnd): Engine, Game Logic (visitors, cars), Road System, Save/Load System, Day/Night System, Tests, Docs
+- [Kiss Gergő](https://github.com/k-geri): Game Logic (park/animal management), All Menu Systems & Other GUIs, Build System, Docs, Tests, Docs
+
+## Solution Structure
 - `Safari/Safari`: the main project for the game itself
 - `Safari/Engine`: the engine used by the game<br>
-    - The engine runs on top of the [MonoGame](https://monogame.net/) framework and is an expansion of an old hobby project started by us.
+    - The engine runs on top of the [MonoGame](https://monogame.net/) framework and is an expansion of an old hobby project started by us. 
 - `Safari/GeonBit.UI`: UI library for MonoGame ([GeonBit.UI](https://www.nuget.org/packages/GeonBit.UI/))
 - `Safari/SafariTest`: MSTest project for unit testing the game
 
